@@ -32,6 +32,16 @@ def get_missing_files(pac_file_path, cache_path):
     return missing_files
 
 
+def missing_file_filter(missing_files):
+    """
+    Helper to create a filter function for extract_pac based on a set of missing files.
+    """
+    def _filter_func(file_entry):
+        return file_entry[0] in missing_files
+
+    return _filter_func
+
+
 class ExtractThread(QtCore.QThread):
 
     message = QtCore.pyqtSignal(str)
@@ -62,6 +72,8 @@ class ExtractThread(QtCore.QThread):
 
         # Only perform a PAC extraction if we are missing any files called out in the PAC.
         if missing_hpl_files:
+            hpl_file_filter = missing_file_filter(missing_hpl_files)
+
             # If we dont have a backup of the original game files we should make one.
             # Realistically Steam can restore "bad" files but we should probably allow the users of the tool to do
             # that from the tool if so desired as a good UX.
@@ -72,7 +84,7 @@ class ExtractThread(QtCore.QThread):
 
             try:
                 self.message.emit("Extracting HPL palette files...")
-                extract_pac(palette_file_path, palette_cache_path, extract_filter=missing_hpl_files)
+                extract_pac(palette_file_path, palette_cache_path, extract_filter=hpl_file_filter)
 
             # FIXME: LOL
             except Exception:
@@ -116,9 +128,11 @@ class ExtractThread(QtCore.QThread):
 
         # Only perform a PAC extraction if we are missing any files called out in the PAC.
         if missing_hip_files:
+            hip_file_filter = missing_file_filter(missing_hip_files)
+
             try:
                 self.message.emit("Extracting image files...")
-                extract_pac(img_file_path, image_cache_path, extract_filter=missing_hip_files)
+                extract_pac(img_file_path, image_cache_path, extract_filter=hip_file_filter)
 
             # FIXME: LOL
             except Exception:
