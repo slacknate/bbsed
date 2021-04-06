@@ -5,7 +5,7 @@ from PyQt5 import QtCore, Qt, QtWidgets
 
 from libhpl import convert_from_hpl, set_index_color
 
-from .ui.palettedialog import Ui_Dialog
+from .ui.palettedialog_ui import Ui_Dialog
 
 COLOR_BOX_SIZE = 15
 

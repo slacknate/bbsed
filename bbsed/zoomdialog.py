@@ -2,7 +2,7 @@ import io
 
 from PyQt5 import QtCore, Qt, QtWidgets
 
-from .ui.zoomdialog import Ui_Dialog
+from .ui.zoomdialog_ui import Ui_Dialog
 
 ZOOM_VIEW_SIZE = 247
 ZOOM_VIEW_CENTER = 124
