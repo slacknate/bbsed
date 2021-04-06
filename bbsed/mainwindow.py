@@ -204,7 +204,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # If we have not cached a PNG of the sprite we should do so now.
         if not os.path.exists(png_full_path):
-            extract_img(hip_full_path, png_full_path)
+            try:
+                extract_img(hip_full_path, png_full_path)
+
+            # FIXME: LOL
+            except Exception:
+                traceback.print_exc()
+                return
 
         # Load the sprite into memory from cache.
         self.current_sprite = io.BytesIO()
