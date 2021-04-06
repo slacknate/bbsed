@@ -41,7 +41,7 @@
     <item>
      <widget class="QGroupBox" name="character_box">
       <property name="title">
-       <string>Character / Palette</string>
+       <string>Character + Palette</string>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>

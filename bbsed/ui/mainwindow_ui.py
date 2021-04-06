@@ -71,5 +71,5 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.install_box.setTitle(_translate("MainWindow", "BBCF Installation"))
         self.select_path.setText(_translate("MainWindow", "Select"))
-        self.character_box.setTitle(_translate("MainWindow", "Character / Palette"))
+        self.character_box.setTitle(_translate("MainWindow", "Character + Palette"))
         self.sprite_group.setTitle(_translate("MainWindow", "Sprite"))
