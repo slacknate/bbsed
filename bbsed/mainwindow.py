@@ -7,7 +7,7 @@ from collections import defaultdict
 from PyQt5 import Qt, QtCore, QtWidgets
 
 from libpac import extract_pac
-from libhip import extract_img
+from libhip import convert_from_hip
 from libhpl import convert_to_hpl, replace_palette, get_palette_index
 
 from .ui.mainwindow_ui import Ui_MainWindow
@@ -286,7 +286,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # If we have not cached a PNG of the sprite we should do so now.
         if not os.path.exists(png_full_path):
             try:
-                extract_img(hip_full_path, png_full_path)
+                convert_from_hip(hip_full_path, png_full_path)
 
             # FIXME: LOL
             except Exception:
