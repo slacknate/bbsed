@@ -1,5 +1,4 @@
 import io
-import traceback
 
 from PyQt5 import QtCore, Qt, QtWidgets
 
@@ -58,13 +57,14 @@ class PaletteDialog(QtWidgets.QDialog):
 
             try:
                 set_index_color(self.palette_data, palette_index, color_tuple)
-                self._update_png_view()
-                self.palette_data_changed.emit()
 
-            # FIXME: LOL
             except Exception:
-                traceback.print_exc()
+                message = f"Failed to change the color for palette index ({self.palette_x}, {self.palette_y})!"
+                self.parent().show_error_dialog("Error Updating Palette", message)
                 return
+
+            self._update_png_view()
+            self.palette_data_changed.emit()
 
     def mouse_double_click_event(self, _):
         """

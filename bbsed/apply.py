@@ -2,23 +2,19 @@ import os
 import shutil
 import tempfile
 
-from PyQt5 import QtCore
-
 from libpac import create_pac
 
+from .work_thread import WorkThread
 from .util import *
 
 
-class ApplyThread(QtCore.QThread):
-
-    message = QtCore.pyqtSignal(str)
-
+class ApplyThread(WorkThread):
     def __init__(self, bbcf_install, files_to_apply):
-        QtCore.QThread.__init__(self)
+        WorkThread.__init__(self)
         self.files_to_apply = files_to_apply
         self.bbcf_install = bbcf_install
 
-    def run(self):
+    def work(self):
         bbcf_game_data_dir = os.path.join(self.bbcf_install, "data", "Char")
 
         for pac_file_name, hpl_file_list in self.files_to_apply.items():

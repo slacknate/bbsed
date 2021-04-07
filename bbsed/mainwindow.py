@@ -1,7 +1,7 @@
 import io
 import os
+import sys
 import shutil
-import traceback
 import subprocess
 
 from PyQt5 import Qt, QtCore, QtWidgets
@@ -12,6 +12,7 @@ from libhpl import convert_to_hpl, replace_palette, get_palette_index
 from .ui.mainwindow_ui import Ui_MainWindow
 from .palettedialog import PaletteDialog
 from .zoomdialog import ZoomDialog
+from .errordialog import ErrorDialog
 from .config import Configuration
 from .extract import ExtractThread
 from .apply import ApplyThread
@@ -53,9 +54,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hip_images = []
         self.palette_info = {}
 
-        self.palette_dialog = PaletteDialog()
+        self.palette_dialog = PaletteDialog(self)
         self.palette_dialog.palette_data_changed.connect(self.update_palette)
-        self.zoom_dialog = ZoomDialog()
+        self.zoom_dialog = ZoomDialog(self)
 
         # Set up our sprite viewer with a scene.
         # A scene can load a pixmap (i.e. an image like a PNG) from file or bytestring and display it.
@@ -73,7 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sorted_chars.sort(key=lambda item: item[0])
 
         for char_id, (char_name, _) in sorted_chars:
-            self.ui.char_select.addItem(char_name)
+            self.ui.char_select.addItem(char_name, char_id)
 
         self.ui.char_select.setCurrentIndex(-1)
         self.ui.char_select.currentIndexChanged[int].connect(self.character_selected)
@@ -171,6 +172,19 @@ class MainWindow(QtWidgets.QMainWindow):
             if (dirty or (not dirty and not dirty_exists)) and not backup:
                 hpl_file_list.append(hpl_full_path)
 
+    def _run_apply_thread(self, files_to_apply):
+        """
+        Helper to run our apply thread based on a set of files to apply that was generated
+        in the various apply button UI callbacks.
+        """
+        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
+        thread = ApplyThread(bbcf_install, files_to_apply)
+
+        self.run_work_thread(thread, "Applying Sprite Data...", "Sprite Updater")
+
+        if thread.error is not None:
+            self.show_error_dialog(*thread.error.get_details())
+
     def apply_all(self, _):
         """
         Callback for the Apply All action. Apply all palettes to the BBCF game data.
@@ -184,8 +198,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 palette_file_name = PALETTE_FILE_FMT.format(character)
                 self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
 
-        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater", bbcf_install, files_to_apply)
+        self._run_apply_thread(files_to_apply)
 
     def apply_character(self, _):
         """
@@ -197,8 +210,7 @@ class MainWindow(QtWidgets.QMainWindow):
         palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
         self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
 
-        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater", bbcf_install, files_to_apply)
+        self._run_apply_thread(files_to_apply)
 
     def apply_palette(self, _):
         """
@@ -242,8 +254,7 @@ class MainWindow(QtWidgets.QMainWindow):
             elif not current and not dirty and not backup:
                 hpl_file_list.append(hpl_full_path)
 
-        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater", bbcf_install, files_to_apply)
+        self._run_apply_thread(files_to_apply)
 
     @staticmethod
     def _delete_character_files(palette_cache_path):
@@ -505,6 +516,7 @@ class MainWindow(QtWidgets.QMainWindow):
         The color in a palette has been changed by the user. Save the changes to disk.
         """
         palette_id = self.ui.palette_select.currentText()
+        character_name = self.ui.char_select.currentText()
         hpl_files = self.palette_info[palette_id]
 
         palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
@@ -518,9 +530,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             convert_to_hpl(self.palette_dialog.get_palette_img(), palette_full_path)
 
-        # FIXME: LOL
         except Exception:
-            traceback.print_exc()
+            message = f"Failed to update palette {palette_id} for {character_name}!"
+            self.show_error_dialog("Error Updating Palette", message)
             return
 
         pal_index = self.ui.palette_select.currentIndex()
@@ -544,9 +556,8 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 convert_from_hip(hip_full_path, png_full_path)
 
-            # FIXME: LOL
             except Exception:
-                traceback.print_exc()
+                self.show_error_dialog("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
                 return
 
         # Load the sprite into memory from cache.
@@ -589,10 +600,13 @@ class MainWindow(QtWidgets.QMainWindow):
         _, abbreviation = CHARACTER_INFO[char_id]
         self.current_char = abbreviation
 
-        # Extract character data.
         bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-        thread = self.run_work_thread(ExtractThread, "Extracting Sprite Data...", "Sprite Extractor",
-                                      bbcf_install, self.data_dir, abbreviation)
+
+        # Extract character data.
+        thread = ExtractThread(bbcf_install, self.data_dir, abbreviation)
+        self.run_work_thread(thread, "Extracting Sprite Data...", "Sprite Extractor")
+        if thread.error is not None:
+            self.show_error_dialog(*thread.error.get_details())
 
         # Store the meta data our thread so kindly gathered for us.
         self.hip_images = thread.hip_images
@@ -624,7 +638,19 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.ui.toolbar.isEnabled():
             self.ui.toolbar.setEnabled(True)
 
-    def run_work_thread(self, thread_factory, initial_message, title, *args, **kwargs):
+    def show_error_dialog(self, title, message, exc_info=None):
+        """
+        Show a dialog for an error that just occurred.
+        We should not fail any operations silently.
+        Note that this method may only be called within an `except:` block if `exc_info` is None.
+        """
+        if exc_info is None:
+            exc_info = sys.exc_info()
+
+        dialog = ErrorDialog(title, message, exc_info, self)
+        dialog.exec_()
+
+    def run_work_thread(self, thread, initial_message, title):
         """
         Helper to run a thread and do some work (that will likely take a long time) so it does not block the UI.
         """
@@ -642,8 +668,6 @@ class MainWindow(QtWidgets.QMainWindow):
         def _set_message(_message):
             dialog.setLabelText(_message)
 
-        # Run the extraction in a thread so the UI does not become unresponsive for the duration of the operation.
-        thread = thread_factory(*args, **kwargs)
         # Connecting signals with a BlockingQueuedConnection is a requirement for thread safety.
         # We connect a custom signal to set the message of the dialog so the worker thread can update the
         # status of the operation for the user.
@@ -656,5 +680,3 @@ class MainWindow(QtWidgets.QMainWindow):
         # Show our dialog and once it closes we ensure our thread is joined.
         dialog.exec_()
         thread.wait()
-
-        return thread

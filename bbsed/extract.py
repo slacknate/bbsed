@@ -1,13 +1,11 @@
 import os
 import shutil
-import traceback
 
 from collections import defaultdict
 
-from PyQt5 import QtCore
-
 from libpac import extract_pac, enumerate_pac
 
+from .work_thread import WorkThread, WorkThreadError
 from .util import *
 
 
@@ -16,14 +14,14 @@ def get_missing_files(pac_file_path, cache_path):
     Helper to get a set of missing files called out/required by a PAC file.
     These files are "required" as they are part of a character definition.
     """
+    base_name = os.path.basename(pac_file_path)
+
     try:
         file_list = enumerate_pac(pac_file_path)
         required_files = {item[0] for item in file_list}
 
-    # FIXME: LOL
     except Exception:
-        traceback.print_exc()
-        required_files = set()
+        raise WorkThreadError("Error Enumerating PAC File", f"Failed to get files list from {base_name}!")
 
     # Determine if we are missing any files that the PAC file says we need.
     existing_files = set(os.listdir(cache_path))
@@ -42,12 +40,9 @@ def missing_file_filter(missing_files):
     return _filter_func
 
 
-class ExtractThread(QtCore.QThread):
-
-    message = QtCore.pyqtSignal(str)
-
+class ExtractThread(WorkThread):
     def __init__(self, bbcf_install, data_dir, abbreviation):
-        QtCore.QThread.__init__(self)
+        WorkThread.__init__(self)
         self.abbreviation = abbreviation
         self.bbcf_install = bbcf_install
         self.data_dir = data_dir
@@ -86,10 +81,9 @@ class ExtractThread(QtCore.QThread):
                 self.message.emit("Extracting HPL palette files...")
                 extract_pac(palette_file_path, palette_cache_path, extract_filter=hpl_file_filter)
 
-            # FIXME: LOL
             except Exception:
-                traceback.print_exc()
-                return
+                message = f"Failed to extract HPL files from {palette_file_name}!"
+                raise WorkThreadError("Error Extracting PAC File", message)
 
         # Listing this directory will include backup files if they exist. We should not iterate those to save time.
         hpl_file_list = os.listdir(palette_cache_path)
@@ -136,10 +130,9 @@ class ExtractThread(QtCore.QThread):
                 self.message.emit("Extracting image files...")
                 extract_pac(img_file_path, image_cache_path, extract_filter=hip_file_filter)
 
-            # FIXME: LOL
             except Exception:
-                traceback.print_exc()
-                return
+                message = f"Failed to extract HIP files from {img_file_name}!"
+                raise WorkThreadError("Error Extracting PAC File", message)
 
         # Iterate our cached image files and maintain a list of the HIP files.
         # This list is used as a user-facing file list, as these are the actual game files.
@@ -153,7 +146,7 @@ class ExtractThread(QtCore.QThread):
             if hip_image.endswith(".hip") and self.abbreviation in hip_image:
                 self.hip_images.append(hip_image)
 
-    def run(self):
+    def work(self):
         palette_cache_path = os.path.join(self.data_dir, self.abbreviation, "pal")
         image_cache_path = os.path.join(self.data_dir, self.abbreviation, "img")
 
