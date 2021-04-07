@@ -180,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
         bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
         thread = ApplyThread(bbcf_install, files_to_apply)
 
-        self.run_work_thread(thread, "Applying Sprite Data...", "Sprite Updater")
+        self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
         if thread.error is not None:
             self.show_error_dialog(*thread.error.get_details())
@@ -604,7 +604,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Extract character data.
         thread = ExtractThread(bbcf_install, self.data_dir, abbreviation)
-        self.run_work_thread(thread, "Extracting Sprite Data...", "Sprite Extractor")
+        self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
         if thread.error is not None:
             self.show_error_dialog(*thread.error.get_details())
 
@@ -650,7 +650,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog = ErrorDialog(title, message, exc_info, self)
         dialog.exec_()
 
-    def run_work_thread(self, thread, initial_message, title):
+    def run_work_thread(self, thread, title, initial_message):
         """
         Helper to run a thread and do some work (that will likely take a long time) so it does not block the UI.
         """
