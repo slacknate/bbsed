@@ -116,5 +116,12 @@ class PaletteDialog(QtWidgets.QDialog):
         Load a palette from file and display the data in the dialog.
         """
         self.palette_data = io.BytesIO()
-        convert_from_hpl(palette_path, COLOR_BOX_SIZE, self.palette_data)
+
+        try:
+            convert_from_hpl(palette_path, COLOR_BOX_SIZE, self.palette_data)
+
+        except Exception:
+            self.parent().show_error_dialog("Error Setting Palette", f"Failed to update the palette image!")
+            return
+
         self._update_png_view()

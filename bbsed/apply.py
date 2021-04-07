@@ -4,7 +4,7 @@ import tempfile
 
 from libpac import create_pac
 
-from .work_thread import WorkThread
+from .work_thread import WorkThread, WorkThreadError
 from .util import *
 
 
@@ -38,6 +38,11 @@ class ApplyThread(WorkThread):
                     temp_full_path = os.path.join(temp_dir, os.path.basename(hpl_full_path))
                     shutil.copyfile(hpl_full_path, temp_full_path)
 
-            self.message.emit(f"Creating {pac_file_name}...")
-            create_pac(temp_dir, pac_full_path)
+            try:
+                self.message.emit(f"Creating {pac_file_name}...")
+                create_pac(temp_dir, pac_full_path)
+
+            except Exception:
+                raise WorkThreadError("Error Extracting PAC File", f"Failed to create PAC file from HIP file list!")
+
             shutil.rmtree(temp_dir)

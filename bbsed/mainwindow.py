@@ -460,8 +460,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if os.path.exists(dirty_full_path):
             palette_full_path = dirty_full_path
 
-        # We are only updating the palette data we aren't writing out any pixel information.
-        replace_palette(self.current_sprite, palette_full_path)
+        try:
+            # We are only updating the palette data we aren't writing out any pixel information.
+            replace_palette(self.current_sprite, palette_full_path)
+
+        except Exception:
+            self.show_error_dialog("Error Updating Palette", f"Failed to replace the palette of the current sprite!")
 
         png_pixmap = Qt.QPixmap()
         png_pixmap.loadFromData(self.current_sprite.getvalue(), "PNG")
@@ -504,7 +508,13 @@ class MainWindow(QtWidgets.QMainWindow):
         y = evt.y()
 
         mapped_point = self.ui.sprite_preview.mapToScene(Qt.QPoint(x, y))
-        palette_index = get_palette_index(self.current_sprite, (mapped_point.x(), mapped_point.y()))
+
+        try:
+            palette_index = get_palette_index(self.current_sprite, (mapped_point.x(), mapped_point.y()))
+
+        except Exception:
+            self.show_error_dialog("Error Getting Palette Index", f"Failed to get palette index of selected color!")
+            return
 
         self.palette_dialog.set_palette_index(palette_index)
 
