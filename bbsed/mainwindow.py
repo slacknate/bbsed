@@ -48,7 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Disable character select and sprite editor widgets while no BBCF install has been chosen.
         # We do not want any sort of wackness occurring that can get the app into a bad state.
         else:
-            self.ui.char_select.setEnabled(False)
+            self.ui.character_box.setEnabled(False)
             self.ui.sprite_group.setEnabled(False)
 
         self.current_char = ""
@@ -380,8 +380,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.steam_path.setText(steam_install)
 
             # Enable the character select if it is not already.
-            if not self.ui.char_select.isEnabled():
-                self.ui.char_select.setEnabled(True)
+            if not self.ui.character_box.isEnabled():
+                self.ui.character_box.setEnabled(True)
 
             # Enable the sprite preview if it is not already.
             if not self.ui.sprite_group.isEnabled():
