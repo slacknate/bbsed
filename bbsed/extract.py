@@ -40,6 +40,13 @@ def missing_file_filter(missing_files):
     return _filter_func
 
 
+def hpl_filter_func(hpl_file):
+    """
+    Filter function to exclude palette backups and dirty files from the palette info dict.
+    """
+    return not hpl_file.endswith(BACKUP_PALETTE_EXT) and not hpl_file.endswith(DIRTY_PALETTE_EXT)
+
+
 class ExtractThread(WorkThread):
     def __init__(self, bbcf_install, data_dir, abbreviation):
         WorkThread.__init__(self)
@@ -87,7 +94,7 @@ class ExtractThread(WorkThread):
 
         # Listing this directory will include backup files if they exist. We should not iterate those to save time.
         hpl_file_list = os.listdir(palette_cache_path)
-        hpl_file_list = filter(lambda _hpl_file: not _hpl_file.endswith(".orig.hpl"), hpl_file_list)
+        hpl_file_list = filter(hpl_filter_func, hpl_file_list)
 
         # Iterate our cached palette files and create a mapping of palette IDs to a list of associated files.
         # A palette ID is the in-game palette number you choose at character select.
@@ -100,12 +107,10 @@ class ExtractThread(WorkThread):
 
             # Back up our HPL palette file if we have not already.
             # We create backups of these files so we can restore the game-provided content if desired.
-            # Note that we do not create backups of the dirty files.
-            if not hpl_file.endswith(DIRTY_PALETTE_EXT):
-                hpl_backup_path = os.path.join(palette_cache_path, hpl_file.replace(PALETTE_EXT, BACKUP_PALETTE_EXT))
-                if not os.path.exists(hpl_backup_path):
-                    hpl_file_path = os.path.join(palette_cache_path, hpl_file)
-                    shutil.copyfile(hpl_file_path, hpl_backup_path)
+            hpl_backup_path = os.path.join(palette_cache_path, hpl_file.replace(PALETTE_EXT, BACKUP_PALETTE_EXT))
+            if not os.path.exists(hpl_backup_path):
+                hpl_file_path = os.path.join(palette_cache_path, hpl_file)
+                shutil.copyfile(hpl_file_path, hpl_backup_path)
 
     def _extract_sprites(self, image_cache_path):
         """
