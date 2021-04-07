@@ -2,7 +2,7 @@ import io
 
 from PyQt5 import QtCore, Qt, QtWidgets
 
-from libhpl import convert_from_hpl, set_index_color
+from libhpl import convert_from_hpl, get_index_color, set_index_color
 
 from .ui.palettedialog_ui import Ui_Dialog
 
@@ -47,13 +47,24 @@ class PaletteDialog(QtWidgets.QDialog):
         as well as the sprite preview in the main window.
         If the color dialog is cancelled no color data is modified.
         """
-        dialog = QtWidgets.QColorDialog()
+        palette_index = (self.palette_x, self.palette_y)
+
+        try:
+            current_color = get_index_color(self.palette_data, palette_index)
+
+        except Exception:
+            message = f"Failed to fetch the color for palette index ({self.palette_x}, {self.palette_y})!"
+            self.parent().show_error_dialog("Error Reading Palette", message)
+            return
+
+        initial = Qt.QColor(*current_color)
+        dialog = QtWidgets.QColorDialog(initial, parent=self)
+        dialog.setOptions(QtWidgets.QColorDialog.ShowAlphaChannel)
         accepted = dialog.exec_()
 
         if accepted:
             qcolor = dialog.currentColor()
-            color_tuple = (qcolor.red(), qcolor.green(), qcolor.blue())
-            palette_index = (self.palette_x, self.palette_y)
+            color_tuple = (qcolor.red(), qcolor.green(), qcolor.blue(), qcolor.alpha())
 
             try:
                 set_index_color(self.palette_data, palette_index, color_tuple)
