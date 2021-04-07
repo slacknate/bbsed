@@ -537,8 +537,15 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         A new character was picked from the character combobox.
         """
+        # Disable signals on the file list as it will be changing shortly.
+        self.ui.file_list.blockSignals(True)
         # Don't allow the user to interact with these parts of the UI while we are updating them.
         self.ui.sprite_group.setEnabled(False)
+
+        # Clear our image data.
+        self.sprite_scene.clear()
+        # Ensure the graphics view is refreshed so our changes are visible to the user.
+        self.ui.sprite_preview.viewport().update()
 
         # Hide the palette and zoom dialogs while no palette is selected.
         self.palette_dialog.hide()
@@ -574,6 +581,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.palette_select.blockSignals(False)
         # Re-enable user interaction for everything else.
         self.ui.sprite_group.setEnabled(True)
+        # Re-enable signals on file select so the user can peruse the newly populated sprites.
+        self.ui.file_list.blockSignals(False)
 
     def run_work_thread(self, thread_factory, initial_message, title, *args, **kwargs):
         """
