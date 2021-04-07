@@ -117,7 +117,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, evt):
         """
-        Ensure we hide our palette dialog when we close the main window or the app won't actually close.
+        Ensure we hide our dialogs when we close the main window or the app won't actually close.
         Unsure if calling the superclass closeEvent is required but we do so in case it is.
         """
         QtWidgets.QMainWindow.closeEvent(self, evt)
