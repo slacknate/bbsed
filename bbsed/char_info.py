@@ -11,24 +11,24 @@ ES = 7
 HAKUMEN = 8
 HAZAMA = 9
 HIBIKI = 10
-IZANAMI = 11
-IZAYOI = 12
-JIN = 13
-JUBEI = 14
-KAGURA = 15
-KOKONOE = 16
-LITCHI = 17
-MAKOTO = 18
-MAI = 19
-NAOTO = 20
-NINE = 21
-NOEL = 22
-PLATINUM = 23
-RACHEL = 24
-RAGNA = 25
-RELIUS = 26
-SUSANOO = 27
-TAGER = 28
+IRON_TAGER = 11
+IZANAMI = 12
+IZAYOI = 13
+JIN = 14
+JUBEI = 15
+KAGURA = 16
+KOKONOE = 17
+LITCHI = 18
+MAKOTO = 19
+MAI = 20
+NAOTO = 21
+NINE = 22
+NOEL = 23
+PLATINUM = 24
+RACHEL = 25
+RAGNA = 26
+RELIUS = 27
+SUSANOO = 28
 TAOKAKA = 29
 TSUBAKI = 30
 TERUMI = 31
@@ -51,6 +51,7 @@ CHARACTER_INFO = {
     HAKUMEN: ("Hakumen", "ha"),
     HAZAMA: ("Hazama", "hz"),
     HIBIKI: ("Hibiki Kohaku", "hb"),
+    IRON_TAGER: ("Iron Tager", "tg"),
     IZANAMI: ("Izanami", "mi"),  # Mikado == Imperator
     IZAYOI: ("Izayoi", "iz"),
     JIN: ("Jin Kisaragi", "jn"),
@@ -68,7 +69,6 @@ CHARACTER_INFO = {
     RAGNA: ("Ragna the Bloodedge", "rg"),
     RELIUS: ("Relius Clover", "rl"),
     SUSANOO: ("Susano'o", "su"),
-    TAGER: ("Iron Tager", "tg"),
     TAOKAKA: ("Taokaka", "tk"),
     TSUBAKI: ("Tsubaki Yayoi", "tb"),
     TERUMI: ("Yuuki Terumi", "tm"),
