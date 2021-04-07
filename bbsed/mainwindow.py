@@ -322,6 +322,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     shutil.copyfile(hpl_backup_path, hpl_full_path)
 
     def reset_all(self, _):
+        """
+        Reset the all palettes for all characters to the versions from the game.
+        """
         for character in os.listdir(self.data_dir):
             # The app config file lives in this directory, we should ignore it.
             if character not in ("app.conf",):
@@ -329,6 +332,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self._reset_character_files(palette_cache_path)
 
     def reset_character(self, _):
+        """
+        Reset the all palettes for the selected character to the versions from the game.
+        """
         palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
         self._reset_character_files(palette_cache_path)
 
@@ -336,6 +342,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self._update_sprite_preview(pal_index)
 
     def reset_palette(self, _):
+        """
+        Reset the selected palette to the version from the game.
+        """
         palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
         palette_id = self.ui.palette_select.currentText()
 
