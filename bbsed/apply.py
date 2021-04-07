@@ -45,4 +45,5 @@ class ApplyThread(WorkThread):
             except Exception:
                 raise WorkThreadError("Error Extracting PAC File", f"Failed to create PAC file from HIP file list!")
 
-            shutil.rmtree(temp_dir)
+            finally:
+                shutil.rmtree(temp_dir)
