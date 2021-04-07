@@ -42,14 +42,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config = Configuration(os.path.join(self.data_dir, "app.conf"))
 
         # Set our previously used BBCF install path if it exists.
+        # If we have an install we should enable relevant UI elements.
         if self.config.steam_install:
             self.ui.steam_path.setText(self.config.steam_install)
-
-        # Disable character select and sprite editor widgets while no BBCF install has been chosen.
-        # We do not want any sort of wackness occurring that can get the app into a bad state.
-        else:
-            self.ui.character_box.setEnabled(False)
-            self.ui.sprite_group.setEnabled(False)
+            self.ui.character_box.setEnabled(True)
+            self.ui.sprite_group.setEnabled(True)
 
         self.current_char = ""
         self.current_sprite = io.BytesIO()
@@ -58,7 +55,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.palette_dialog = PaletteDialog()
         self.palette_dialog.palette_data_changed.connect(self.update_palette)
-
         self.zoom_dialog = ZoomDialog()
 
         # Set up our sprite viewer with a scene.
@@ -67,6 +63,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sprite_preview.setScene(self.sprite_scene)
 
         self.ui.select_steam.clicked.connect(self.select_steam_install)
+        # FIXME: there's something weird about drag select being off by one...
         self.ui.file_list.itemSelectionChanged.connect(self.select_sprite)
         self.ui.palette_select.currentIndexChanged[int].connect(self.select_palette)
 
@@ -90,6 +87,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Setup menu and toolbar actions so they actually do stuff!
         self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
         self.ui.exit.triggered.connect(self.exit_app)
+        self.ui.view_palette.triggered.connect(self.toggle_palette)
+        self.ui.view_zoom.triggered.connect(self.toggle_zoom)
         self.ui.apply_all.triggered.connect(self.apply_all)
         self.ui.apply_character.triggered.connect(self.apply_character)
         self.ui.apply_palette.triggered.connect(self.apply_palette)
@@ -123,6 +122,36 @@ class MainWindow(QtWidgets.QMainWindow):
         QtWidgets.QMainWindow.closeEvent(self, evt)
         self.palette_dialog.hide()
         self.zoom_dialog.hide()
+
+    def toggle_palette(self, check_state):
+        """
+        Callback for our palette toggle action. Set the visibility state of the palette dialog.
+        Mostly useful for recovering the dialog if it was closed, but maybe some folks wanna hide it anyway.
+        # TODO: can we make this state a setting and have it always hidden for people that want it that way?
+        """
+        self.palette_dialog.setHidden(not check_state)
+
+    def set_palette_visibility(self, is_visible):
+        """
+        Show or hide the palette dialog and update the view palette action check state to match.
+        """
+        self.palette_dialog.setVisible(is_visible)
+        self.ui.view_palette.setChecked(is_visible)
+
+    def toggle_zoom(self, check_state):
+        """
+        Callback for our zoom toggle action. Set the visibility state of the zoom dialog.
+        Mostly useful for recovering the dialog if it was closed, but maybe some folks wanna hide it anyway.
+        # TODO: can we make this state a setting and have it always hidden for people that want it that way?
+        """
+        self.zoom_dialog.setVisible(check_state)
+
+    def set_zoom_visibility(self, is_visible):
+        """
+        Show or hide the zoom dialog and update the view zoom action check state to match.
+        """
+        self.zoom_dialog.setVisible(is_visible)
+        self.ui.view_zoom.setChecked(is_visible)
 
     @staticmethod
     def _get_character_files(files_to_apply, palette_cache_path, palette_file_name):
@@ -394,14 +423,6 @@ class MainWindow(QtWidgets.QMainWindow):
         Our cached sprite uses a palette from the sprite data definition, NOT from the
         in-game palette data. This means that we should always be re-writing the palette.
         """
-        # Show our palette dialog if we need to.
-        if self.palette_dialog.isHidden():
-            self.palette_dialog.show()
-
-        # Show our zoom dialog if we need to.
-        if self.zoom_dialog.isHidden():
-            self.zoom_dialog.show()
-
         palette_id = self.ui.palette_select.itemText(palette_index)
         hpl_files = self.palette_info[palette_id]
 
@@ -419,10 +440,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if os.path.exists(dirty_full_path):
             palette_full_path = dirty_full_path
 
-        # Update the dialog palette data since we have switched palettes.
-        # NOTE: When the dialog emits palette_data_changed... we end up here... we should change that eventually.
-        self.palette_dialog.set_palette(palette_full_path)
-
         # We are only updating the palette data we aren't writing out any pixel information.
         replace_palette(self.current_sprite, palette_full_path)
 
@@ -436,8 +453,24 @@ class MainWindow(QtWidgets.QMainWindow):
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
 
-        # Update the zoom dialog to the current sprite
+        # Update the dialog palette data since we have switched palettes.
+        # NOTE: When the dialog emits palette_data_changed... we end up here... we should change that eventually.
+        self.palette_dialog.set_palette(palette_full_path)
+        # Update the zoom dialog to the current sprite.
         self.zoom_dialog.set_sprite(self.current_sprite)
+        # Do not show the palette or zoom dialogs until after we have set the palette/sprite information on them.
+        # If we show them prior to this then the dialog graphics view does not correctly update
+        # until we change the current palette.
+
+        # Show our palette dialog if we need to.
+        # TODO: implement an app setting and keep this hidden if the user wants.
+        if self.palette_dialog.isHidden():
+            self.set_palette_visibility(True)
+
+        # Show our zoom dialog if we need to.
+        # TODO: implement an app setting and keep this hidden if the user wants.
+        if self.zoom_dialog.isHidden():
+            self.set_zoom_visibility(True)
 
     def move_zoom_cursor(self, evt):
         x = evt.x()
@@ -512,15 +545,8 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(png_full_path, "rb") as png_fp:
             self.current_sprite.write(png_fp.read())
 
-        # If no palette is selected (i.e. we are picking a sprite right after picking a character)
-        # then we automatically pick the first color palette as it is the cannon palette for the character,
         pal_index = self.ui.palette_select.currentIndex()
-        if pal_index == -1:
-            self.ui.palette_select.setCurrentIndex(0)
-
-        # Otherwise just update the preview to whatever palette we have selected.
-        else:
-            self._update_sprite_preview(pal_index)
+        self._update_sprite_preview(pal_index)
 
     def select_palette(self, index):
         """
@@ -548,8 +574,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sprite_preview.viewport().update()
 
         # Hide the palette and zoom dialogs while no palette is selected.
-        self.palette_dialog.hide()
-        self.zoom_dialog.hide()
+        self.set_palette_visibility(False)
+        self.set_zoom_visibility(False)
 
         _, abbreviation = CHARACTER_INFO[char_id]
         self.current_char = abbreviation
@@ -574,8 +600,8 @@ class MainWindow(QtWidgets.QMainWindow):
         for palette_id, _ in self.palette_info.items():
             self.ui.palette_select.addItem(palette_id)
 
-        # Do not select a palette while no sprites are selected.
-        self.ui.palette_select.setCurrentIndex(-1)
+        # Automatically select the first palette.
+        self.ui.palette_select.setCurrentIndex(0)
 
         # Re-enable signals on palette select so it works as expected for the user.
         self.ui.palette_select.blockSignals(False)
@@ -583,6 +609,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sprite_group.setEnabled(True)
         # Re-enable signals on file select so the user can peruse the newly populated sprites.
         self.ui.file_list.blockSignals(False)
+        # If our toolbar is disabled (like it is at app launch) we should now enable it.
+        # At launch it is disabled due to the fact that we will not have a selected character or palette.
+        # If the user clicks any of the buttons with no character or palette selected then bad things happen.
+        if not self.ui.toolbar.isEnabled():
+            self.ui.toolbar.setEnabled(True)
 
     def run_work_thread(self, thread_factory, initial_message, title, *args, **kwargs):
         """

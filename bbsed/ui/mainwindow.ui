@@ -40,6 +40,9 @@
     </item>
     <item>
      <widget class="QGroupBox" name="character_box">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="title">
        <string>Character + Palette</string>
       </property>
@@ -68,6 +71,9 @@
     </item>
     <item>
      <widget class="QGroupBox" name="sprite_group">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="title">
        <string>Sprite</string>
       </property>
@@ -96,7 +102,10 @@
     </item>
    </layout>
   </widget>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="QToolBar" name="toolbar">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -141,7 +150,15 @@
     <addaction name="separator"/>
     <addaction name="exit"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="view_palette"/>
+    <addaction name="view_zoom"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
   </widget>
   <action name="exit">
    <property name="text">
@@ -242,6 +259,25 @@
    </property>
    <property name="toolTip">
     <string>Launch BBCF</string>
+   </property>
+  </action>
+  <action name="view_palette">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Palette Dialog</string>
+   </property>
+  </action>
+  <action name="view_zoom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Zoom Dialog</string>
    </property>
   </action>
  </widget>
