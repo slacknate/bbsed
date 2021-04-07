@@ -1,5 +1,8 @@
 # PyCharm meta data directory
-idea/*
+.idea/*
+
+# Editable pip install meta data directory
+*.egg-info/*
 
 # Ignore shell scripts so we can make some convience commands
 *.cmd
