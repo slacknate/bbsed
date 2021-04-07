@@ -1,13 +1,13 @@
 import os
 import configparser
 
-SETTINGS = ("bbcf_install",)
+SETTINGS = ("steam_install",)
 
 
 class Configuration:
     def __init__(self, cfg_path):
         self.cfg_path = cfg_path
-        self.bbcf_install = ""
+        self.steam_install = ""
         self.load()
 
     def update(self, **kwargs):
@@ -26,13 +26,13 @@ class Configuration:
             with open(self.cfg_path, "r") as cfg_fp:
                 parser.read_file(cfg_fp)
 
-            self.bbcf_install = parser.get("bbsed", "bbcf_install")
+            self.steam_install = parser.get("bbsed", "steam_install")
 
     def save(self):
         parser = configparser.ConfigParser()
 
         parser.add_section("bbsed")
-        parser.set("bbsed", "bbcf_install", self.bbcf_install)
+        parser.set("bbsed", "steam_install", self.steam_install)
 
         with open(self.cfg_path, "w") as cfg_fp:
             parser.write(cfg_fp)

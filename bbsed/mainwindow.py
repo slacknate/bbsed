@@ -2,6 +2,7 @@ import io
 import os
 import shutil
 import traceback
+import subprocess
 
 from PyQt5 import Qt, QtCore, QtWidgets
 
@@ -41,8 +42,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config = Configuration(os.path.join(self.data_dir, "app.conf"))
 
         # Set our previously used BBCF install path if it exists.
-        if self.config.bbcf_install:
-            self.ui.bbcf_path.setText(self.config.bbcf_install)
+        if self.config.steam_install:
+            self.ui.steam_path.setText(self.config.steam_install)
 
         # Disable character select and sprite editor widgets while no BBCF install has been chosen.
         # We do not want any sort of wackness occurring that can get the app into a bad state.
@@ -65,7 +66,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sprite_scene = QtWidgets.QGraphicsScene()
         self.ui.sprite_preview.setScene(self.sprite_scene)
 
-        self.ui.select_path.clicked.connect(self.select_bbcf_install)
+        self.ui.select_steam.clicked.connect(self.select_steam_install)
         self.ui.file_list.itemSelectionChanged.connect(self.select_sprite)
         self.ui.palette_select.currentIndexChanged[int].connect(self.select_palette)
 
@@ -87,6 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sprite_preview.enterEvent = self.set_cross_cursor
 
         # Setup menu and toolbar actions so they actually do stuff!
+        self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
         self.ui.exit.triggered.connect(self.exit_app)
         self.ui.apply_all.triggered.connect(self.apply_all)
         self.ui.apply_character.triggered.connect(self.apply_character)
@@ -99,6 +101,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.reset_palette.triggered.connect(self.reset_palette)
         self.ui.restore_all.triggered.connect(self.restore_all)
         self.ui.restore_character.triggered.connect(self.restore_character)
+
+    def launch_bbcf(self, _):
+        """
+        Launch BBCF via Steam.
+        """
+        steam_exe_path = os.path.join(self.config.steam_install, "steam.exe")
+        subprocess.call([steam_exe_path, "-applaunch", BBCF_STEAM_APP_ID])
 
     def exit_app(self, _):
         """
@@ -146,8 +155,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 palette_file_name = PALETTE_FILE_FMT.format(character)
                 self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
 
-        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater",
-                             self.config.bbcf_install, files_to_apply)
+        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
+        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater", bbcf_install, files_to_apply)
 
     def apply_character(self, _):
         """
@@ -159,8 +168,8 @@ class MainWindow(QtWidgets.QMainWindow):
         palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
         self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
 
-        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater",
-                             self.config.bbcf_install, files_to_apply)
+        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
+        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater", bbcf_install, files_to_apply)
 
     def apply_palette(self, _):
         """
@@ -204,8 +213,8 @@ class MainWindow(QtWidgets.QMainWindow):
             elif not current and not dirty and not backup:
                 hpl_file_list.append(hpl_full_path)
 
-        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater",
-                             self.config.bbcf_install, files_to_apply)
+        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
+        self.run_work_thread(ApplyThread, "Applying Sprite Data...", "Sprite Updater", bbcf_install, files_to_apply)
 
     @staticmethod
     def _delete_character_files(palette_cache_path):
@@ -329,11 +338,13 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Helper to delete the existing PAC palette file and replace it with the backed version from the game data.
         """
+        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
+
         backup_palette_name = BACKUP_PALETTE_FILE_FMT.format(character)
-        backup_palette_path = os.path.join(self.config.bbcf_install, "data", "Char", backup_palette_name)
+        backup_palette_path = os.path.join(bbcf_install, "data", "Char", backup_palette_name)
 
         pac_palette_name = PALETTE_FILE_FMT.format(character)
-        pac_palette_path = os.path.join(self.config.bbcf_install, "data", "Char", pac_palette_name)
+        pac_palette_path = os.path.join(bbcf_install, "data", "Char", pac_palette_name)
 
         os.remove(pac_palette_path)
         shutil.copyfile(backup_palette_path, pac_palette_path)
@@ -353,20 +364,20 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         self._restore_character_palettes(self.current_char)
 
-    def select_bbcf_install(self):
+    def select_steam_install(self):
         """
         Select the BBCF installation location to be used by the app.
         """
-        bbcf_install = QtWidgets.QFileDialog.getExistingDirectory(
+        steam_install = QtWidgets.QFileDialog.getExistingDirectory(
             parent=self,
-            caption="Select BBCF installation location",
+            caption="Select Steam installation location",
         )
 
         # If we cancelled the dialog we do not want to save anything.
-        if bbcf_install:
-            # Save our BBCF install path to our config.
-            self.config.update(bbcf_install=bbcf_install)
-            self.ui.bbcf_path.setText(bbcf_install)
+        if steam_install:
+            # Save our Steam install path to our config.
+            self.config.update(steam_install=steam_install)
+            self.ui.steam_path.setText(steam_install)
 
             # Enable the character select if it is not already.
             if not self.ui.char_select.isEnabled():
@@ -537,8 +548,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_char = abbreviation
 
         # Extract character data.
+        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
         thread = self.run_work_thread(ExtractThread, "Extracting Sprite Data...", "Sprite Extractor",
-                                      self.config.bbcf_install, self.data_dir, abbreviation)
+                                      bbcf_install, self.data_dir, abbreviation)
 
         # Store the meta data our thread so kindly gathered for us.
         self.hip_images = thread.hip_images

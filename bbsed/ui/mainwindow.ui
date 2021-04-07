@@ -18,18 +18,18 @@
     <item>
      <widget class="QGroupBox" name="install_box">
       <property name="title">
-       <string>BBCF Installation</string>
+       <string>Steam Installation</string>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QPushButton" name="select_path">
+        <widget class="QPushButton" name="select_steam">
          <property name="text">
           <string>Select</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="bbcf_path">
+        <widget class="QLineEdit" name="steam_path">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -135,8 +135,10 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
+    <addaction name="launch_bbcf"/>
+    <addaction name="separator"/>
     <addaction name="exit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -232,6 +234,14 @@
    </property>
    <property name="toolTip">
     <string>Reset cached selected palette to backed up version</string>
+   </property>
+  </action>
+  <action name="launch_bbcf">
+   <property name="text">
+    <string>&amp;Launch BBCF</string>
+   </property>
+   <property name="toolTip">
+    <string>Launch BBCF</string>
    </property>
   </action>
  </widget>

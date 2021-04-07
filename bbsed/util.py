@@ -1,3 +1,5 @@
+BBCF_STEAM_APP_ID = "586140"
+
 IMAGE_FILE_FMT = "char_{}_img.pac"
 PALETTE_FILE_FMT = "char_{}_pal.pac"
 BACKUP_PALETTE_FILE_FMT = "char_{}_pal.orig.pac"
