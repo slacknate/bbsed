@@ -5,10 +5,10 @@ import traceback
 from collections import defaultdict
 
 from PyQt5 import QtCore
+
 from libpac import extract_pac, enumerate_pac
 
-IMAGE_FILE_FMT = "char_{}_img.pac"
-PALETTE_FILE_FMT = "char_{}_pal.pac"
+from .util import *
 
 
 def get_missing_files(pac_file_path, cache_path):
@@ -77,7 +77,7 @@ class ExtractThread(QtCore.QThread):
             # If we dont have a backup of the original game files we should make one.
             # Realistically Steam can restore "bad" files but we should probably allow the users of the tool to do
             # that from the tool if so desired as a good UX.
-            palette_backup_path = palette_file_path.replace(".pac", ".orig.pac")
+            palette_backup_path = palette_file_path.replace(GAME_PALETTE_EXT, BACKUP_GAME_PALETTE_EXT)
             if not os.path.exists(palette_backup_path):
                 self.message.emit("Backing up game palette files...")
                 shutil.copyfile(palette_file_path, palette_backup_path)
@@ -106,10 +106,12 @@ class ExtractThread(QtCore.QThread):
 
             # Back up our HPL palette file if we have not already.
             # We create backups of these files so we can restore the game-provided content if desired.
-            hpl_backup_path = os.path.join(palette_cache_path, hpl_file.replace(".hpl", ".orig.hpl"))
-            if not os.path.exists(hpl_backup_path):
-                hpl_file_path = os.path.join(palette_cache_path, hpl_file)
-                shutil.copyfile(hpl_file_path, hpl_backup_path)
+            # Note that we do not create backups of the dirty files.
+            if not hpl_file.endswith(DIRTY_PALETTE_EXT):
+                hpl_backup_path = os.path.join(palette_cache_path, hpl_file.replace(PALETTE_EXT, BACKUP_PALETTE_EXT))
+                if not os.path.exists(hpl_backup_path):
+                    hpl_file_path = os.path.join(palette_cache_path, hpl_file)
+                    shutil.copyfile(hpl_file_path, hpl_backup_path)
 
     def _extract_sprites(self, image_cache_path):
         """
