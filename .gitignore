@@ -1,0 +1,6 @@
+# PyCharm meta data directory
+idea/*
+
+# Ignore shell scripts so we can make some convience commands
+*.cmd
+*.sh
