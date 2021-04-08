@@ -164,7 +164,15 @@
     <addaction name="view_palette"/>
     <addaction name="view_zoom"/>
    </widget>
+   <widget class="QMenu" name="menuPalettes">
+    <property name="title">
+     <string>Palettes</string>
+    </property>
+    <addaction name="import_palettes"/>
+    <addaction name="export_palettes"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuPalettes"/>
    <addaction name="menuView"/>
   </widget>
   <action name="exit">
@@ -309,6 +317,16 @@
    </property>
    <property name="toolTip">
     <string>Clear cached palette files</string>
+   </property>
+  </action>
+  <action name="import_palettes">
+   <property name="text">
+    <string>Import</string>
+   </property>
+  </action>
+  <action name="export_palettes">
+   <property name="text">
+    <string>Export</string>
    </property>
   </action>
  </widget>

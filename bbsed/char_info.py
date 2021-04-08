@@ -77,3 +77,5 @@ CHARACTER_INFO = {
     MU: ("Mu-12", "mu"),
     NU: ("Nu-13", "ny")  # Nyu
 }
+
+VALID_ABBREVIATIONS = tuple([abbreviation for _, abbreviation in CHARACTER_INFO.values()])

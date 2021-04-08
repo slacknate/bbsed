@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import sys
 import shutil
 import subprocess
@@ -18,6 +19,11 @@ from .extract import ExtractThread
 from .apply import ApplyThread
 from .char_info import *
 from .util import *
+
+HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})")
+# The game only allows the user to pick palettes 1-24, but palettes 25 and 26 exist in the files? Weird.
+MAX_PALETTES = 24
+HPL_MAX_FILES_PER_PALETTE = 7
 
 
 def get_data_dir():
@@ -89,6 +95,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Setup menu and toolbar actions so they actually do stuff!
         self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
         self.ui.exit.triggered.connect(self.exit_app)
+        self.ui.import_palettes.triggered.connect(self.import_palettes)
+        self.ui.export_palettes.triggered.connect(self.export_palettes)
         self.ui.view_palette.triggered.connect(self.toggle_palette)
         self.ui.view_zoom.triggered.connect(self.toggle_zoom)
         self.ui.apply_all.triggered.connect(self.apply_all)
@@ -127,6 +135,84 @@ class MainWindow(QtWidgets.QMainWindow):
         QtWidgets.QMainWindow.closeEvent(self, evt)
         self.palette_dialog.hide()
         self.zoom_dialog.hide()
+
+    def import_palettes(self, _):
+        """
+        Callback for the palette import action. Allow the user to import palettes they may have
+        created prior to using this tool or palettes they received from others.
+        """
+        import_files = []
+
+        hpl_file_list, _ = QtWidgets.QFileDialog.getOpenFileNames(
+
+            parent=self,
+            caption="Select Steam installation location",
+            filter="HPL palettes (*.hpl)"
+        )
+
+        # NOTE: if we cancel the dialog then `hpl_file_list` will be empty.
+
+        # Check all the selected files for validity before attempting import.
+        for hpl_src_path in hpl_file_list:
+            hpl_file = os.path.basename(hpl_src_path)
+
+            # Assert that imported HPL files must have file names that match the names we would see in
+            # game data so we know which cache directory to import the files to.
+            format_match = HPL_IMPORT_REGEX.search(hpl_file)
+            if format_match is None:
+                message = "Imported HPL palettes must have name format matching game data!\n\nExample:\n\nam00_00.hpl"
+                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
+                return
+
+            # Assert that the file name starts with a valid character abbreviation.
+            # If it does not we cannot know where to put the data in the cache or where to apply the file
+            # to the actual game data.
+            abbreviation = format_match.group(1)
+            if abbreviation not in VALID_ABBREVIATIONS:
+                message = f"HPL file name {hpl_file} does not begin with a known character abbreviation!"
+                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
+                return
+
+            # Assert that the palette index is valid.
+            palette_index = int(format_match.group(2))
+            if palette_index < 0 or palette_index >= MAX_PALETTES:
+                message = f"HPL palette index must 00 to {MAX_PALETTES}!"
+                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
+                return
+
+            # Assert that the palette file number is valid.
+            file_number = int(format_match.group(3))
+            if file_number < 0 or file_number > HPL_MAX_FILES_PER_PALETTE:
+                message = f"HPL file number must be 00 to {HPL_MAX_FILES_PER_PALETTE:02}!"
+                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
+                return
+
+            # Import the palette as a dirty copy so if we have not cached the data for this character yet
+            # then when we eventually do cache the data the imported palette is not overwritten.
+            # Dirty palettes take precedence so when we load up the character we should see this palette when
+            # we select the palette index associated to this file.
+            dirty_hpl_file = hpl_file.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
+            hpl_dst_path = os.path.join(self.data_dir, abbreviation, "pal", dirty_hpl_file)
+
+            import_files.append((hpl_src_path, hpl_dst_path))
+
+        # If we got here then our files our valid. Not very efficient to loop twice... but whatever.
+        for hpl_src_path, hpl_dst_path in import_files:
+            hpl_dst_dir = os.path.dirname(hpl_dst_path)
+
+            # If our destination directory does not exist we should create it before attempting the import.
+            if not os.path.exists(hpl_dst_dir):
+                os.makedirs(hpl_dst_dir)
+
+            shutil.copyfile(hpl_src_path, hpl_dst_path)
+
+    def export_palettes(self):
+        """
+        Callback for the palette export action. Allow for sharing palettes with friends :D
+        """
+        self.show_message_dialog("Feature Not Implemented",
+                                 "Export is not yet implemented! Coming soon!",
+                                 QtWidgets.QMessageBox.Icon.Warning)
 
     def toggle_palette(self, check_state):
         """
@@ -732,16 +818,22 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.ui.palette_toolbar.isEnabled():
             self.ui.palette_toolbar.setEnabled(True)
 
+    def show_message_dialog(self, title, message, icon):
+        """
+        Show a message to the user.
+        """
+        message_box = QtWidgets.QMessageBox(icon, title, message, parent=self)
+        message_box.exec_()
+
     def show_error_dialog(self, title, message, exc_info=None):
         """
         Show a dialog for an error that just occurred.
         We should not fail any operations silently.
-        Note that this method must be called within an `except:` block if `exc_info` is None.
         """
         if exc_info is None:
             exc_info = sys.exc_info()
 
-        dialog = ErrorDialog(title, message, exc_info, self)
+        dialog = ErrorDialog(title, message, exc_info, parent=self)
         dialog.exec_()
 
     def run_work_thread(self, thread, title, initial_message):
