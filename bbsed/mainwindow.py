@@ -468,6 +468,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Select the BBCF installation location to be used by the app.
         """
         steam_install = QtWidgets.QFileDialog.getExistingDirectory(
+
             parent=self,
             caption="Select Steam installation location",
         )
