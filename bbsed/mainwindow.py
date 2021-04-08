@@ -242,33 +242,21 @@ class MainWindow(QtWidgets.QMainWindow):
         if pac_path:
             palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
             palette_id = self.ui.palette_select.currentText()
-            files_to_export = []
 
             palette_num_in_files = int(palette_id) - 1
             hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
 
-            def _filter_hpl_files(_hpl_file):
+            hpl_file_list = self._get_character_palettes(palette_cache_path)
+
+            def _filter_hpl_files(_hpl_full_path):
+                """
+                Remove any files not associated to our selected palette.
+                """
+                _hpl_file = os.path.basename(_hpl_full_path)
                 return _hpl_file.startswith(hpl_file_prefix)
 
             # We only want to export the files from the selected palette.
-            files_list = filter(_filter_hpl_files, os.listdir(palette_cache_path))
-
-            for hpl_file in files_list:
-                hpl_full_path = os.path.join(palette_cache_path, hpl_file)
-
-                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
-                backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
-
-                # For palette files associated to the current palette we include the dirty versions if they exist
-                # and only include non-dirty versions of the palette files if a dirty version does not exist.
-                # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
-                #       that defines what sprites/data the other files are associated to, so for the time being
-                #       we will only ever have a dirty version of this first palette file from each PAC file.
-                # We do not include backup files in the export process.
-                dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
-
-                if (dirty or (not dirty and not dirty_exists)) and not backup:
-                    files_to_export.append(hpl_full_path)
+            files_to_export = filter(_filter_hpl_files, hpl_file_list)
 
             self._run_export_thread(pac_path, files_to_export)
 
@@ -314,6 +302,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
             dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
             backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
+
+            # For palette files associated to the current palette we include the dirty versions if they exist
+            # and only include non-dirty versions of the palette files if a dirty version does not exist.
+            # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
+            #       that defines what sprites/data the other files are associated to, so for the time being
+            #       we will only ever have a dirty version of this first palette file from each PAC file.
+            # We purposefully do not include backup files in the hpl files list.
             dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
 
             if (dirty or (not dirty and not dirty_exists)) and not backup:
