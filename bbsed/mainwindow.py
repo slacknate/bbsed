@@ -160,6 +160,15 @@ class MainWindow(QtWidgets.QMainWindow):
             thread = ImportThread(hpl_file_list, pac_file_list, self.data_dir)
             self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
 
+            char_index = self.ui.char_select.currentIndex()
+            pal_index = self.ui.palette_select.currentIndex()
+
+            # If we have a selected character and palette then we should update the sprite preview
+            # on the off chance that one of the imported palettes corresponds to the character and
+            # palette that we are currently viewing.
+            if char_index != -1 and pal_index != -1:
+                self._update_sprite_preview(pal_index)
+
     def export_palettes(self):
         """
         Callback for the palette export action. Allow for sharing palettes with friends :D
