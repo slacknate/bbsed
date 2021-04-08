@@ -43,7 +43,7 @@ class ApplyThread(WorkThread):
                 create_pac(temp_dir, pac_full_path)
 
             except Exception:
-                raise WorkThreadException("Error Extracting PAC File",
+                raise WorkThreadException("Error Creating PAC File",
                                           f"Failed to create PAC file from HIP file list!")
 
             finally:
