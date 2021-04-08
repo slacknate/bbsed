@@ -168,8 +168,16 @@
     <property name="title">
      <string>Palettes</string>
     </property>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <addaction name="export_all"/>
+     <addaction name="export_character"/>
+     <addaction name="export_palette"/>
+    </widget>
     <addaction name="import_palettes"/>
-    <addaction name="export_palettes"/>
+    <addaction name="menuExport"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPalettes"/>
@@ -324,9 +332,28 @@
     <string>Import</string>
    </property>
   </action>
-  <action name="export_palettes">
+  <action name="export_all">
    <property name="text">
-    <string>Export</string>
+    <string>All</string>
+   </property>
+   <property name="toolTip">
+    <string>Export all palettes</string>
+   </property>
+  </action>
+  <action name="export_character">
+   <property name="text">
+    <string>Character</string>
+   </property>
+   <property name="toolTip">
+    <string>Export character palettes</string>
+   </property>
+  </action>
+  <action name="export_palette">
+   <property name="text">
+    <string>Palette</string>
+   </property>
+   <property name="toolTip">
+    <string>Export selected palette</string>
    </property>
   </action>
  </widget>
