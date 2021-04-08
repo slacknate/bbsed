@@ -1,8 +1,6 @@
 import os
 import re
 import shutil
-import tempfile
-import contextlib
 
 from libpac import extract_pac, enumerate_pac
 
@@ -14,17 +12,6 @@ HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2}).hpl")
 # The game only allows the user to pick palettes 1-24, but palettes 25 and 26 exist in the files? Weird.
 MAX_PALETTES = 25
 HPL_MAX_FILES_PER_PALETTE = 7
-
-
-@contextlib.contextmanager
-def temp_directory():
-    temp_dir = tempfile.mkdtemp()
-
-    try:
-        yield temp_dir
-
-    finally:
-        shutil.rmtree(temp_dir)
 
 
 class ImportThread(WorkThread):

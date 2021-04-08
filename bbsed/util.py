@@ -17,8 +17,11 @@ __all__ = [
 
     # Functions
     "block_signals",
+    "temp_directory",
 ]
 
+import shutil
+import tempfile
 import contextlib
 
 BBCF_STEAM_APP_ID = "586140"
@@ -54,3 +57,18 @@ def block_signals(widget):
 
     finally:
         widget.blockSignals(False)
+
+
+@contextlib.contextmanager
+def temp_directory():
+    """
+    Context manager to create a temp directory and delete it when the block is exited.
+    Useful for our file import/export procedures.
+    """
+    temp_dir = tempfile.mkdtemp()
+
+    try:
+        yield temp_dir
+
+    finally:
+        shutil.rmtree(temp_dir)

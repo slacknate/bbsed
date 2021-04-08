@@ -14,6 +14,7 @@ from .palettedialog import PaletteDialog
 from .zoomdialog import ZoomDialog
 from .errordialog import ErrorDialog
 from .config import Configuration
+from .exporter import ExportThread
 from .importer import ImportThread
 from .extract import ExtractThread
 from .apply import ApplyThread
@@ -92,7 +93,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
         self.ui.exit.triggered.connect(self.exit_app)
         self.ui.import_palettes.triggered.connect(self.import_palettes)
-        self.ui.export_palettes.triggered.connect(self.export_palettes)
+        self.ui.export_all.triggered.connect(self.export_all)
+        self.ui.export_character.triggered.connect(self.export_character)
+        self.ui.export_palette.triggered.connect(self.export_palette)
         self.ui.view_palette.triggered.connect(self.toggle_palette)
         self.ui.view_zoom.triggered.connect(self.toggle_zoom)
         self.ui.apply_all.triggered.connect(self.apply_all)
@@ -177,13 +180,97 @@ class MainWindow(QtWidgets.QMainWindow):
             if char_index != -1 and pal_index != -1:
                 self._update_sprite_preview(pal_index)
 
-    def export_palettes(self):
+    def _get_export_pac(self):
         """
-        Callback for the palette export action. Allow for sharing palettes with friends :D
+        Helper to get the export PAC file path which will be our export destination.
         """
-        self.show_message_dialog("Feature Not Implemented",
-                                 "Export is not yet implemented! Coming soon!",
-                                 QtWidgets.QMessageBox.Icon.Warning)
+        pac_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+
+            parent=self,
+            caption="Select Palette Export directory",
+            filter="PAC files (*.pac)"
+        )
+
+        return pac_path
+
+    def _run_export_thread(self, pac_path, files_to_export):
+        """
+        Helper to run our export thread based on a set of files to export that was generated
+        in the various export button UI callbacks.
+        """
+        thread = ExportThread(pac_path, files_to_export)
+
+        self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
+
+    def export_all(self):
+        """
+        Callback for the Export All action. Share all your palettes with friends :D
+        """
+        pac_path = self._get_export_pac()
+
+        if pac_path:
+            files_to_export = []
+
+            for character in os.listdir(self.data_dir):
+                # The app config file lives in this directory, we should ignore it.
+                if character not in ("app.conf",):
+                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
+
+                    hpl_file_list = self._get_character_palettes(palette_cache_path)
+                    files_to_export.extend(hpl_file_list)
+
+            self._run_export_thread(pac_path, files_to_export)
+
+    def export_character(self):
+        """
+        Callback for the Export Character action. Share your character palettes with friends :D
+        """
+        pac_path = self._get_export_pac()
+
+        if pac_path:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            files_to_export = self._get_character_palettes(palette_cache_path)
+
+            self._run_export_thread(pac_path, files_to_export)
+
+    def export_palette(self):
+        """
+        Callback for the Export Palette action. Share your current palette with friends :D
+        """
+        pac_path = self._get_export_pac()
+
+        if pac_path:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_id = self.ui.palette_select.currentText()
+            files_to_export = []
+
+            palette_num_in_files = int(palette_id) - 1
+            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
+
+            def _filter_hpl_files(_hpl_file):
+                return _hpl_file.startswith(hpl_file_prefix)
+
+            # We only want to export the files from the selected palette.
+            files_list = filter(_filter_hpl_files, os.listdir(palette_cache_path))
+
+            for hpl_file in files_list:
+                hpl_full_path = os.path.join(palette_cache_path, hpl_file)
+
+                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
+                backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
+
+                # For palette files associated to the current palette we include the dirty versions if they exist
+                # and only include non-dirty versions of the palette files if a dirty version does not exist.
+                # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
+                #       that defines what sprites/data the other files are associated to, so for the time being
+                #       we will only ever have a dirty version of this first palette file from each PAC file.
+                # We do not include backup files in the export process.
+                dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
+
+                if (dirty or (not dirty and not dirty_exists)) and not backup:
+                    files_to_export.append(hpl_full_path)
+
+            self._run_export_thread(pac_path, files_to_export)
 
     def toggle_palette(self, check_state):
         """
@@ -216,12 +303,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.view_zoom.setChecked(is_visible)
 
     @staticmethod
-    def _get_character_files(files_to_apply, palette_cache_path, palette_file_name):
+    def _get_character_palettes(palette_cache_path):
         """
         Helper to get all palette files associated to a character.
         """
         hpl_file_list = []
-        files_to_apply[palette_file_name] = hpl_file_list
 
         for hpl_file in os.listdir(palette_cache_path):
             hpl_full_path = os.path.join(palette_cache_path, hpl_file)
@@ -232,6 +318,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if (dirty or (not dirty and not dirty_exists)) and not backup:
                 hpl_file_list.append(hpl_full_path)
+
+        return hpl_file_list
 
     def _run_apply_thread(self, files_to_apply):
         """
@@ -257,7 +345,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 if character not in ("app.conf",):
                     palette_cache_path = os.path.join(self.data_dir, character, "pal")
                     palette_file_name = PALETTE_FILE_FMT.format(character)
-                    self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
+
+                    hpl_file_list = self._get_character_palettes(palette_cache_path)
+                    files_to_apply[palette_file_name] = hpl_file_list
 
             self._run_apply_thread(files_to_apply)
 
@@ -271,11 +361,12 @@ class MainWindow(QtWidgets.QMainWindow):
         apply = self.show_confirm_dialog("Apply Character Palettes", message)
 
         if apply:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
             files_to_apply = {}
-
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
             palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
-            self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
+
+            hpl_file_list = self._get_character_palettes(palette_cache_path)
+            files_to_apply[palette_file_name] = hpl_file_list
 
             self._run_apply_thread(files_to_apply)
 
