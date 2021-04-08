@@ -30,7 +30,7 @@ def get_data_dir():
         data_dir = os.path.join(os.environ["APPDATA"], "bbsed")
 
     else:
-        data_dir = os.path.expanduser("~/.bbsed")
+        data_dir = os.path.join(os.path.expanduser("~"), "bbsed")
 
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
