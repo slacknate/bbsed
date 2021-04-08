@@ -19,29 +19,6 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QGroupBox" name="install_box">
-      <property name="title">
-       <string>Steam Installation</string>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QPushButton" name="select_steam">
-         <property name="text">
-          <string>Select</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="steam_path">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
      <widget class="QGroupBox" name="character_box">
       <property name="enabled">
        <bool>false</bool>
@@ -154,6 +131,8 @@
      <string>&amp;File</string>
     </property>
     <addaction name="launch_bbcf"/>
+    <addaction name="separator"/>
+    <addaction name="settings"/>
     <addaction name="separator"/>
     <addaction name="exit"/>
    </widget>
@@ -354,6 +333,14 @@
    </property>
    <property name="toolTip">
     <string>Export selected palette</string>
+   </property>
+  </action>
+  <action name="settings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Edit settings</string>
    </property>
   </action>
  </widget>

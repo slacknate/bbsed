@@ -11,6 +11,7 @@ from libhip import convert_from_hip
 from libhpl import convert_to_hpl, replace_palette, get_palette_index
 
 from .ui.mainwindow_ui import Ui_MainWindow
+from .settingsdialog import SettingsDialog
 from .palettedialog import PaletteDialog
 from .zoomdialog import ZoomDialog
 from .errordialog import ErrorDialog
@@ -52,12 +53,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data_dir = get_data_dir()
         self.config = Configuration(os.path.join(self.data_dir, "app.conf"))
 
-        # Set our previously used Steam install path if it exists.
-        # If we have an install we should enable relevant UI elements.
-        if self.config.steam_install:
-            self.ui.steam_path.setText(self.config.steam_install)
-            self.ui.character_box.setEnabled(True)
-            self.ui.sprite_group.setEnabled(True)
+        self._check_steam_install()
 
         self.current_char = ""
         self.current_sprite = io.BytesIO()
@@ -73,7 +69,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sprite_scene = QtWidgets.QGraphicsScene()
         self.ui.sprite_preview.setScene(self.sprite_scene)
 
-        self.ui.select_steam.clicked.connect(self.select_steam_install)
         # FIXME: there's something weird about drag select being off by one...
         self.ui.file_list.itemSelectionChanged.connect(self.select_sprite)
         self.ui.palette_select.currentIndexChanged[int].connect(self.select_palette)
@@ -97,6 +92,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Setup menu and toolbar actions so they actually do stuff!
         self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
+        self.ui.settings.triggered.connect(self.edit_settings)
         self.ui.exit.triggered.connect(self.exit_app)
         self.ui.import_palettes.triggered.connect(self.import_palettes)
         self.ui.export_all.triggered.connect(self.export_all)
@@ -132,6 +128,24 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         steam_exe_path = os.path.join(self.config.steam_install, "steam.exe")
         subprocess.call([steam_exe_path, "-applaunch", BBCF_STEAM_APP_ID])
+
+    def edit_settings(self, _):
+        """
+        Callback for the settings action. Display a dialog showing our app settings.
+        """
+        dialog = SettingsDialog(self.config, parent=self)
+        dialog.exec_()
+
+        # This will enable UI elements if we set a Steam install in the dialog.
+        self._check_steam_install()
+
+    def _check_steam_install(self):
+        """
+        Helper to check if we have a Steam install configured and should enable relevant UI elements.
+        """
+        if self.config.steam_install:
+            self.ui.character_box.setEnabled(True)
+            self.ui.sprite_group.setEnabled(True)
 
     def exit_app(self, _):
         """
@@ -681,30 +695,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if restore:
             self._restore_character_palettes(self.current_char)
-
-    def select_steam_install(self):
-        """
-        Select the BBCF installation location to be used by the app.
-        """
-        steam_install = QtWidgets.QFileDialog.getExistingDirectory(
-
-            parent=self,
-            caption="Select Steam installation location",
-        )
-
-        # If we cancelled the dialog we do not want to save anything.
-        if steam_install:
-            # Save our Steam install path to our config.
-            self.config.update(steam_install=steam_install)
-            self.ui.steam_path.setText(steam_install)
-
-            # Enable the character select if it is not already.
-            if not self.ui.character_box.isEnabled():
-                self.ui.character_box.setEnabled(True)
-
-            # Enable the sprite preview if it is not already.
-            if not self.ui.sprite_group.isEnabled():
-                self.ui.sprite_group.setEnabled(True)
 
     def _clear_sprite_data(self):
         """
