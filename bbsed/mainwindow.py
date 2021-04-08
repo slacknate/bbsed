@@ -22,6 +22,8 @@ from .apply import ApplyThread
 from .char_info import *
 from .util import *
 
+BASE_WINDOW_TITLE = "BBCF Sprite Editor"
+
 
 def get_data_dir():
     if platform.system().upper() == "WINDOWS":
@@ -45,7 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.setWindowTitle("BBCF Sprite Editor")
+        self.setWindowTitle(BASE_WINDOW_TITLE)
 
         self.data_dir = get_data_dir()
         self.config = Configuration(os.path.join(self.data_dir, "app.conf"))
@@ -736,6 +738,8 @@ class MainWindow(QtWidgets.QMainWindow):
             with block_signals(self.ui.char_select):
                 self.ui.char_select.setCurrentIndex(-1)
 
+        self.setWindowTitle(BASE_WINDOW_TITLE)
+
         self._clear_sprite_data()
 
     def _update_sprite_preview(self, palette_index):
@@ -886,6 +890,11 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         item = self.ui.file_list.currentItem()
 
+        character_name = self.ui.char_select.currentText()
+        palette_id = self.ui.palette_select.currentText()
+
+        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
+
         # Only update the preview is we have a selected sprite and we have also have a selected palette.
         if item is not None and index >= 0:
             self._update_sprite_preview(index)
@@ -917,6 +926,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Update the current character string.
         _, self.current_char = CHARACTER_INFO[char_id]
+        character_name = self.ui.char_select.itemText(char_id)
 
         # Extract the character data.
         self._run_extract_thread()
@@ -944,6 +954,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # If the user clicks any of the buttons with no character or palette selected then bad things happen.
         if not self.ui.palette_toolbar.isEnabled():
             self.ui.palette_toolbar.setEnabled(True)
+
+        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - 01")
 
     def show_confirm_dialog(self, title, message):
         """
