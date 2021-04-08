@@ -134,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def import_palettes(self, _):
         """
         Callback for the palette import action. Allow the user to import palettes they may have
-        created prior to using this tool or palettes they received from others.
+        created prior to using this tool or palettes they received from friends :D
         """
         hpl_file_list = []
         pac_file_list = []
