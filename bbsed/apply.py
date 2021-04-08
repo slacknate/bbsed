@@ -4,7 +4,7 @@ import tempfile
 
 from libpac import create_pac
 
-from .work_thread import WorkThread, WorkThreadError
+from .work_thread import WorkThread, WorkThreadException
 from .util import *
 
 
@@ -43,7 +43,8 @@ class ApplyThread(WorkThread):
                 create_pac(temp_dir, pac_full_path)
 
             except Exception:
-                raise WorkThreadError("Error Extracting PAC File", f"Failed to create PAC file from HIP file list!")
+                raise WorkThreadException("Error Extracting PAC File",
+                                          f"Failed to create PAC file from HIP file list!")
 
             finally:
                 shutil.rmtree(temp_dir)

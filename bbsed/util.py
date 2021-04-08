@@ -1,3 +1,24 @@
+__all__ = [
+
+    # Constants
+    "BBCF_STEAM_APP_ID",
+    "IMAGE_FILE_FMT",
+    "PALETTE_FILE_FMT",
+    "BACKUP_PALETTE_FILE_FMT",
+    "GAME_PALETTE_SUFFIX",
+    "BACKUP_GAME_PALETTE_EXT",
+    "GAME_PALETTE_EXT",
+    "BACKUP_PALETTE_EXT",
+    "DIRTY_PALETTE_EXT",
+    "PALETTE_EXT",
+    "SPRITE_EXT",
+    "PNG_EXT",
+    "CHAR_ABBR_LEN",
+
+    # Functions
+    "block_signals",
+]
+
 import contextlib
 
 BBCF_STEAM_APP_ID = "586140"
@@ -16,6 +37,8 @@ DIRTY_PALETTE_EXT = ".dirty.hpl"
 PALETTE_EXT = ".hpl"
 SPRITE_EXT = ".hip"
 PNG_EXT = ".png"
+
+CHAR_ABBR_LEN = 2
 
 
 @contextlib.contextmanager

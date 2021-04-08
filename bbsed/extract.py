@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from libpac import extract_pac, enumerate_pac
 
-from .work_thread import WorkThread, WorkThreadError
+from .work_thread import WorkThread, WorkThreadException
 from .util import *
 
 
@@ -21,7 +21,7 @@ def get_missing_files(pac_file_path, cache_path):
         required_files = {item[0] for item in file_list}
 
     except Exception:
-        raise WorkThreadError("Error Enumerating PAC File", f"Failed to get files list from {base_name}!")
+        raise WorkThreadException("Error Enumerating PAC File", f"Failed to get files list from {base_name}!")
 
     # Determine if we are missing any files that the PAC file says we need.
     existing_files = set(os.listdir(cache_path))
@@ -90,7 +90,7 @@ class ExtractThread(WorkThread):
 
             except Exception:
                 message = f"Failed to extract HPL files from {palette_file_name}!"
-                raise WorkThreadError("Error Extracting PAC File", message)
+                raise WorkThreadException("Error Extracting PAC File", message)
 
         # Listing this directory will include backup files if they exist. We should not iterate those to save time.
         hpl_file_list = os.listdir(palette_cache_path)
@@ -137,7 +137,7 @@ class ExtractThread(WorkThread):
 
             except Exception:
                 message = f"Failed to extract HIP files from {img_file_name}!"
-                raise WorkThreadError("Error Extracting PAC File", message)
+                raise WorkThreadException("Error Extracting PAC File", message)
 
         # Iterate our cached image files and maintain a list of the HIP files.
         # This list is used as a user-facing file list, as these are the actual game files.

@@ -1,6 +1,5 @@
 import io
 import os
-import re
 import sys
 import shutil
 import subprocess
@@ -15,15 +14,11 @@ from .palettedialog import PaletteDialog
 from .zoomdialog import ZoomDialog
 from .errordialog import ErrorDialog
 from .config import Configuration
+from .importer import ImportThread
 from .extract import ExtractThread
 from .apply import ApplyThread
 from .char_info import *
 from .util import *
-
-HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})")
-# The game only allows the user to pick palettes 1-24, but palettes 25 and 26 exist in the files? Weird.
-MAX_PALETTES = 24
-HPL_MAX_FILES_PER_PALETTE = 7
 
 
 def get_data_dir():
@@ -141,70 +136,29 @@ class MainWindow(QtWidgets.QMainWindow):
         Callback for the palette import action. Allow the user to import palettes they may have
         created prior to using this tool or palettes they received from others.
         """
-        import_files = []
+        hpl_file_list = []
+        pac_file_list = []
 
-        hpl_file_list, _ = QtWidgets.QFileDialog.getOpenFileNames(
+        palette_file_list, _ = QtWidgets.QFileDialog.getOpenFileNames(
 
             parent=self,
             caption="Select Steam installation location",
-            filter="HPL palettes (*.hpl)"
+            filter="BBCF palettes (*.hpl; *.pac);;HPL files (*.hpl);;PAC files (*.pac)"
         )
 
-        # NOTE: if we cancel the dialog then `hpl_file_list` will be empty.
+        # NOTE: if we cancel the dialog then `palette_file_list` will be empty.
 
-        # Check all the selected files for validity before attempting import.
-        for hpl_src_path in hpl_file_list:
-            hpl_file = os.path.basename(hpl_src_path)
+        for palette_full_path in palette_file_list:
+            if palette_full_path.endswith(PALETTE_EXT):
+                hpl_file_list.append(palette_full_path)
 
-            # Assert that imported HPL files must have file names that match the names we would see in
-            # game data so we know which cache directory to import the files to.
-            format_match = HPL_IMPORT_REGEX.search(hpl_file)
-            if format_match is None:
-                message = "Imported HPL palettes must have name format matching game data!\n\nExample:\n\nam00_00.hpl"
-                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
-                return
+            elif palette_full_path.endswith(GAME_PALETTE_EXT):
+                pac_file_list.append(palette_full_path)
 
-            # Assert that the file name starts with a valid character abbreviation.
-            # If it does not we cannot know where to put the data in the cache or where to apply the file
-            # to the actual game data.
-            abbreviation = format_match.group(1)
-            if abbreviation not in VALID_ABBREVIATIONS:
-                message = f"HPL file name {hpl_file} does not begin with a known character abbreviation!"
-                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
-                return
-
-            # Assert that the palette index is valid.
-            palette_index = int(format_match.group(2))
-            if palette_index < 0 or palette_index >= MAX_PALETTES:
-                message = f"HPL palette index must 00 to {MAX_PALETTES}!"
-                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
-                return
-
-            # Assert that the palette file number is valid.
-            file_number = int(format_match.group(3))
-            if file_number < 0 or file_number > HPL_MAX_FILES_PER_PALETTE:
-                message = f"HPL file number must be 00 to {HPL_MAX_FILES_PER_PALETTE:02}!"
-                self.show_message_dialog("Invalid HPL palette file!", message, QtWidgets.QMessageBox.Icon.Critical)
-                return
-
-            # Import the palette as a dirty copy so if we have not cached the data for this character yet
-            # then when we eventually do cache the data the imported palette is not overwritten.
-            # Dirty palettes take precedence so when we load up the character we should see this palette when
-            # we select the palette index associated to this file.
-            dirty_hpl_file = hpl_file.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
-            hpl_dst_path = os.path.join(self.data_dir, abbreviation, "pal", dirty_hpl_file)
-
-            import_files.append((hpl_src_path, hpl_dst_path))
-
-        # If we got here then our files our valid. Not very efficient to loop twice... but whatever.
-        for hpl_src_path, hpl_dst_path in import_files:
-            hpl_dst_dir = os.path.dirname(hpl_dst_path)
-
-            # If our destination directory does not exist we should create it before attempting the import.
-            if not os.path.exists(hpl_dst_dir):
-                os.makedirs(hpl_dst_dir)
-
-            shutil.copyfile(hpl_src_path, hpl_dst_path)
+        # Don't run any thread's if we do not need to.
+        if hpl_file_list or pac_file_list:
+            thread = ImportThread(hpl_file_list, pac_file_list, self.data_dir)
+            self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
 
     def export_palettes(self):
         """
@@ -271,9 +225,6 @@ class MainWindow(QtWidgets.QMainWindow):
         thread = ApplyThread(bbcf_install, files_to_apply)
 
         self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
-
-        if thread.error is not None:
-            self.show_error_dialog(*thread.error.get_details())
 
     def apply_all(self, _):
         """
@@ -767,15 +718,12 @@ class MainWindow(QtWidgets.QMainWindow):
         bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
         thread = ExtractThread(bbcf_install, self.data_dir, self.current_char)
 
-        self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
-
-        if thread.error is not None:
-            self.show_error_dialog(*thread.error.get_details())
-            return
+        success = self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
 
         # Store the meta data our thread so kindly gathered for us.
-        self.hip_images = thread.hip_images
-        self.palette_info = thread.palette_info
+        if success:
+            self.palette_info = thread.palette_info
+            self.hip_images = thread.hip_images
 
     def character_selected(self, char_id):
         """
@@ -818,7 +766,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.ui.palette_toolbar.isEnabled():
             self.ui.palette_toolbar.setEnabled(True)
 
-    def show_message_dialog(self, title, message, icon):
+    def show_message_dialog(self, title, message, icon=QtWidgets.QMessageBox.Icon.NoIcon):
         """
         Show a message to the user.
         """
@@ -867,3 +815,15 @@ class MainWindow(QtWidgets.QMainWindow):
         # Show our dialog and once it closes we ensure our thread is joined.
         dialog.exec_()
         thread.wait()
+
+        # If we have a standard error display it to the user with a normal message dialog.
+        if thread.error is not None:
+            self.show_message_dialog(*thread.error.get_details())
+
+        # If we have an exceptional error display it to the user with an error dialog (i.e. show a traceback).
+        if thread.exc is not None:
+            self.show_error_dialog(*thread.error.get_details())
+
+        # Return the success status of the thread. A thread is considered successful if no errors, exceptional
+        # or otherwise, were encountered while performing the work procedure.
+        return thread.error is None and thread.exc is None
