@@ -1018,7 +1018,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # If we have an exceptional error display it to the user with an error dialog (i.e. show a traceback).
         if thread.exc is not None:
-            self.show_error_dialog(*thread.error.get_details())
+            self.show_error_dialog(*thread.exc.get_details())
 
         # Return the success status of the thread. A thread is considered successful if no errors, exceptional
         # or otherwise, were encountered while performing the work procedure.
