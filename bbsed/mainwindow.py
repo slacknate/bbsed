@@ -109,6 +109,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.clear_character_cache.triggered.connect(self.clear_character_cache)
         self.ui.clear_palette_cache.triggered.connect(self.clear_palette_cache)
 
+    @property
+    def bbcf_install(self):
+        """
+        Helper property to get our BBCF install location based on our configured Steam install location.
+        """
+        return os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
+
     def launch_bbcf(self, _):
         """
         Launch BBCF via Steam.
@@ -230,8 +237,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Helper to run our apply thread based on a set of files to apply that was generated
         in the various apply button UI callbacks.
         """
-        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-        thread = ApplyThread(bbcf_install, files_to_apply)
+        thread = ApplyThread(self.bbcf_install, files_to_apply)
 
         self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
@@ -437,13 +443,11 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Helper to delete the existing PAC palette file and replace it with the backed version from the game data.
         """
-        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-
         backup_palette_name = BACKUP_PALETTE_FILE_FMT.format(character)
-        backup_palette_path = os.path.join(bbcf_install, "data", "Char", backup_palette_name)
+        backup_palette_path = os.path.join(self.bbcf_install, "data", "Char", backup_palette_name)
 
         pac_palette_name = PALETTE_FILE_FMT.format(character)
-        pac_palette_path = os.path.join(bbcf_install, "data", "Char", pac_palette_name)
+        pac_palette_path = os.path.join(self.bbcf_install, "data", "Char", pac_palette_name)
 
         os.remove(pac_palette_path)
         shutil.copyfile(backup_palette_path, pac_palette_path)
@@ -724,8 +728,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Helper method to extract game data. Note that this procedure will only extract files
         called out in the sprite and palette PAC files that it cannot find in the cache.
         """
-        bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-        thread = ExtractThread(bbcf_install, self.data_dir, self.current_char)
+        thread = ExtractThread(self.bbcf_install, self.data_dir, self.current_char)
 
         success = self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
 
