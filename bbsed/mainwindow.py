@@ -42,7 +42,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data_dir = get_data_dir()
         self.config = Configuration(os.path.join(self.data_dir, "app.conf"))
 
-        # Set our previously used BBCF install path if it exists.
+        # Set our previously used Steam install path if it exists.
         # If we have an install we should enable relevant UI elements.
         if self.config.steam_install:
             self.ui.steam_path.setText(self.config.steam_install)
