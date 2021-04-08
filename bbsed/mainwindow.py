@@ -134,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Mostly useful for recovering the dialog if it was closed, but maybe some folks wanna hide it anyway.
         # TODO: can we make this state a setting and have it always hidden for people that want it that way?
         """
-        self.palette_dialog.setHidden(not check_state)
+        self.palette_dialog.setVisible(check_state)
 
     def set_palette_visibility(self, is_visible):
         """
