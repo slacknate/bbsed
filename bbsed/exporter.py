@@ -18,7 +18,9 @@ class ExportThread(WorkThread):
         with temp_directory() as temp_dir:
             for hpl_src_path in self.files_to_export:
                 hpl_file = os.path.basename(hpl_src_path)
-                hpl_dst_path = os.path.join(temp_dir, hpl_file)
+
+                # Ensure we replace the dirty extension so we can safely export dirty palettes.
+                hpl_dst_path = os.path.join(temp_dir, hpl_file).replace(DIRTY_PALETTE_EXT, PALETTE_EXT)
 
                 # Copy the palette file to our PAC source directory.
                 shutil.copyfile(hpl_src_path, hpl_dst_path)
