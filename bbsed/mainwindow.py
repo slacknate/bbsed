@@ -101,6 +101,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.reset_palette.triggered.connect(self.reset_palette)
         self.ui.restore_all.triggered.connect(self.restore_all)
         self.ui.restore_character.triggered.connect(self.restore_character)
+        self.ui.clear_entire_cache.triggered.connect(self.clear_entire_cache)
+        self.ui.clear_character_cache.triggered.connect(self.clear_character_cache)
+        self.ui.clear_palette_cache.triggered.connect(self.clear_palette_cache)
 
     def launch_bbcf(self, _):
         """
@@ -413,6 +416,52 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         self._restore_character_palettes(self.current_char)
 
+    def clear_entire_cache(self, _):
+        """
+        Remove all cached data.
+        """
+        for character in os.listdir(self.data_dir):
+            # The app config file lives in this directory, we should ignore it.
+            if character not in ("app.conf",):
+                character_full_path = os.path.join(self.data_dir, character)
+                shutil.rmtree(character_full_path)
+
+        # We no longer have sprite data. We should reset the UI so the user must re-select things
+        # which will subsequently cause the app to re-cache data.
+        self._reset_ui(deselect_character=True)
+
+    def clear_character_cache(self, _):
+        """
+        Remove all cached data for the selected character.
+        """
+        shutil.rmtree(os.path.join(self.data_dir, self.current_char))
+
+        # We no longer have sprite data. We should reset the UI so the user must re-select things
+        # which will subsequently cause the app to re-cache data.
+        self._reset_ui(deselect_character=True)
+
+    def clear_palette_cache(self, _):
+        """
+        Remove all cached data for the selected palette.
+        """
+        palette_id = self.ui.palette_select.currentText()
+
+        palette_num_in_files = int(palette_id) - 1
+        hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
+
+        palette_cache_dir = os.path.join(self.data_dir, self.current_char, "pal")
+
+        for hpl_file in os.listdir(palette_cache_dir):
+            if hpl_file.startswith(hpl_file_prefix):
+                hpl_full_path = os.path.join(palette_cache_dir, hpl_file)
+                os.remove(hpl_full_path)
+
+        with block_signals(self.ui.file_list):
+            # Empty QModelIndex is the list widget equivalent to -1 for combo boxes.
+            self.ui.file_list.setCurrentIndex(QtCore.QModelIndex())
+
+        self._clear_sprite_data()
+
     def select_steam_install(self):
         """
         Select the BBCF installation location to be used by the app.
@@ -435,6 +484,40 @@ class MainWindow(QtWidgets.QMainWindow):
             # Enable the sprite preview if it is not already.
             if not self.ui.sprite_group.isEnabled():
                 self.ui.sprite_group.setEnabled(True)
+
+    def _clear_sprite_data(self):
+        """
+        Reset all graphics views to be blank.
+        """
+        # Clear our image data.
+        self.sprite_scene.clear()
+        # Ensure the graphics view is refreshed so our changes are visible to the user.
+        self.ui.sprite_preview.viewport().update()
+        # Clear palette data.
+        self.palette_dialog.reset()
+        # Clear zoom view.
+        self.zoom_dialog.reset()
+
+    def _reset_ui(self, deselect_character):
+        """
+        Reset the state of the UI. This includes clearing all graphics views, emptying the selectable
+        sprite file list, and resetting combo box selections. We also clear meta data associated to these things.
+        """
+        self.hip_images = []
+        self.palette_info = {}
+        self.current_char = ""
+
+        with block_signals(self.ui.palette_select):
+            self.ui.palette_select.setCurrentIndex(-1)
+
+        with block_signals(self.ui.file_list):
+            self.ui.file_list.clear()
+
+        if deselect_character:
+            with block_signals(self.ui.char_select):
+                self.ui.char_select.setCurrentIndex(-1)
+
+        self._clear_sprite_data()
 
     def _update_sprite_preview(self, palette_index):
         """
@@ -459,6 +542,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # The "normal" HPL file is kept in sync with what exists in the game data at the BBCF install path.
         if os.path.exists(dirty_full_path):
             palette_full_path = dirty_full_path
+
+        # If we have cleared the cache recently we may need to re-extract the palette data.
+        # We will only need to perform extraction here if we have cleared a specific palette from the cache.
+        # When the entire cache or a character cache is cleared we are forced to re-select a character
+        # which will result in data extraction occurring before we reach this point.
+        if not os.path.exists(palette_full_path):
+            self._run_extract_thread()
 
         try:
             # We are only updating the palette data we aren't writing out any pixel information.
@@ -557,23 +647,15 @@ class MainWindow(QtWidgets.QMainWindow):
         hip_file = item.text()
 
         img_cache_dir = os.path.join(self.data_dir, self.current_char, "img")
-
         hip_full_path = os.path.join(img_cache_dir, hip_file)
-        png_full_path = os.path.join(img_cache_dir, hip_file.replace(SPRITE_EXT, PNG_EXT))
 
-        # If we have not cached a PNG of the sprite we should do so now.
-        if not os.path.exists(png_full_path):
-            try:
-                convert_from_hip(hip_full_path, png_full_path)
+        try:
+            self.current_sprite = io.BytesIO()
+            convert_from_hip(hip_full_path, self.current_sprite)
 
-            except Exception:
-                self.show_error_dialog("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
-                return
-
-        # Load the sprite into memory from cache.
-        self.current_sprite = io.BytesIO()
-        with open(png_full_path, "rb") as png_fp:
-            self.current_sprite.write(png_fp.read())
+        except Exception:
+            self.show_error_dialog("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
+            return
 
         pal_index = self.ui.palette_select.currentIndex()
         self._update_sprite_preview(pal_index)
@@ -589,64 +671,64 @@ class MainWindow(QtWidgets.QMainWindow):
         if item is not None and index >= 0:
             self._update_sprite_preview(index)
 
-    def character_selected(self, char_id):
+    def _run_extract_thread(self):
         """
-        A new character was picked from the character combobox.
+        Helper method to extract game data. Note that this procedure will only extract files
+        called out in the sprite and palette PAC files that it cannot find in the cache.
         """
-        # Disable signals on the file list as it will be changing shortly.
-        self.ui.file_list.blockSignals(True)
-        # Don't allow the user to interact with these parts of the UI while we are updating them.
-        self.ui.sprite_group.setEnabled(False)
-
-        # Clear our image data.
-        self.sprite_scene.clear()
-        # Ensure the graphics view is refreshed so our changes are visible to the user.
-        self.ui.sprite_preview.viewport().update()
-
-        # Hide the palette and zoom dialogs while no palette is selected.
-        self.set_palette_visibility(False)
-        self.set_zoom_visibility(False)
-
-        _, abbreviation = CHARACTER_INFO[char_id]
-        self.current_char = abbreviation
-
         bbcf_install = os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
+        thread = ExtractThread(bbcf_install, self.data_dir, self.current_char)
 
-        # Extract character data.
-        thread = ExtractThread(bbcf_install, self.data_dir, abbreviation)
         self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
+
         if thread.error is not None:
             self.show_error_dialog(*thread.error.get_details())
+            return
 
         # Store the meta data our thread so kindly gathered for us.
         self.hip_images = thread.hip_images
         self.palette_info = thread.palette_info
 
+    def character_selected(self, char_id):
+        """
+        A new character was picked from the character combobox.
+        """
+        # Don't allow the user to interact with these parts of the UI while we are updating them.
+        self.ui.sprite_group.setEnabled(False)
+
+        # Reset all the things. This method actually has the deselect_character argument specifically
+        # so we can use it here without immediately deselecting the character we just picked.
+        self._reset_ui(deselect_character=False)
+
+        # Update the current character string.
+        _, self.current_char = CHARACTER_INFO[char_id]
+
+        # Extract the character data.
+        self._run_extract_thread()
+
         # Reset our HIP file list and add the new HIP files so we only have the currently selected character files.
-        self.ui.file_list.clear()
-        self.ui.file_list.addItems(self.hip_images)
+        with block_signals(self.ui.file_list):
+            self.ui.file_list.addItems(self.hip_images)
 
         # Block signals while we add items so the signals are not emitted.
         # We do not want to try to select a palette before a sprite is selected, and
         # at the very least we do not want to spam the signals in a loop regardless.
-        self.ui.palette_select.blockSignals(True)
-        for palette_id, _ in self.palette_info.items():
-            self.ui.palette_select.addItem(palette_id)
+        with block_signals(self.ui.palette_select):
+            for palette_id, _ in self.palette_info.items():
+                self.ui.palette_select.addItem(palette_id)
 
-        # Automatically select the first palette.
-        self.ui.palette_select.setCurrentIndex(0)
+            # Automatically select the first palette.
+            # We intentionally select this in the block_signals block so we do not try to set
+            # palette data before a sprite is selected.
+            self.ui.palette_select.setCurrentIndex(0)
 
-        # Re-enable signals on palette select so it works as expected for the user.
-        self.ui.palette_select.blockSignals(False)
         # Re-enable user interaction for everything else.
         self.ui.sprite_group.setEnabled(True)
-        # Re-enable signals on file select so the user can peruse the newly populated sprites.
-        self.ui.file_list.blockSignals(False)
         # If our toolbar is disabled (like it is at app launch) we should now enable it.
         # At launch it is disabled due to the fact that we will not have a selected character or palette.
         # If the user clicks any of the buttons with no character or palette selected then bad things happen.
-        if not self.ui.toolbar.isEnabled():
-            self.ui.toolbar.setEnabled(True)
+        if not self.ui.palette_toolbar.isEnabled():
+            self.ui.palette_toolbar.setEnabled(True)
 
     def show_error_dialog(self, title, message, exc_info=None):
         """

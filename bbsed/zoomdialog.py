@@ -31,6 +31,18 @@ class ZoomDialog(QtWidgets.QDialog):
         # Scale the view so we zoom in.
         self.ui.png_view.scale(ZOOM_VIEW_SCALE, ZOOM_VIEW_SCALE)
 
+    def reset(self):
+        """
+        Reset the zoom view to be blank.
+        """
+        # Clear our image data.
+        self.zoom_scene.clear()
+        # Ensure the graphics view is refreshed so our changes are visible to the user.
+        self.ui.png_view.viewport().update()
+        # Reset sprite and zoom information.
+        self.current_sprite = io.BytesIO()
+        self.current_position = Qt.QPoint(0, 0)
+
     def set_sprite(self, current_sprite):
         """
         Set the sprite that we are zooming in on.

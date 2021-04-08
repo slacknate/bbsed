@@ -77,6 +77,19 @@ class PaletteDialog(QtWidgets.QDialog):
             self._update_png_view()
             self.palette_data_changed.emit()
 
+    def reset(self):
+        """
+        Reset the palette view to be blank.
+        """
+        # Clear our image data.
+        self.palette_scene.clear()
+        # Ensure the graphics view is refreshed so our changes are visible to the user.
+        self.ui.png_view.viewport().update()
+        # Reset palette information.
+        self.palette_data = io.BytesIO()
+        self.palette_x = 0
+        self.palette_y = 0
+
     def mouse_double_click_event(self, _):
         """
         Event handler for double clicks on the palette view.

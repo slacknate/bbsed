@@ -1,3 +1,5 @@
+import contextlib
+
 BBCF_STEAM_APP_ID = "586140"
 
 IMAGE_FILE_FMT = "char_{}_img.pac"
@@ -14,3 +16,18 @@ DIRTY_PALETTE_EXT = ".dirty.hpl"
 PALETTE_EXT = ".hpl"
 SPRITE_EXT = ".hip"
 PNG_EXT = ".png"
+
+
+@contextlib.contextmanager
+def block_signals(widget):
+    """
+    Context manager to temporarily block signals on a widget.
+    Useful for resetting widgets without emitting signals that would otherwise cause error conditions.
+    """
+    widget.blockSignals(True)
+
+    try:
+        yield
+
+    finally:
+        widget.blockSignals(False)
