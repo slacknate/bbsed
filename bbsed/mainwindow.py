@@ -2,6 +2,7 @@ import io
 import os
 import sys
 import shutil
+import platform
 import subprocess
 
 from PyQt5 import Qt, QtCore, QtWidgets
@@ -23,8 +24,11 @@ from .util import *
 
 
 def get_data_dir():
-    # TODO: this assumes Windows for now...
-    data_dir = os.path.join(os.environ["APPDATA"], "bbsed")
+    if platform.system().upper() == "WINDOWS":
+        data_dir = os.path.join(os.environ["APPDATA"], "bbsed")
+
+    else:
+        data_dir = os.path.expanduser("~/.bbsed")
 
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
