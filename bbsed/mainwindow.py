@@ -31,6 +31,7 @@ def get_data_dir():
     return data_dir
 
 
+# TODO: icons
 # TODO: implement a help menu with About and Tutorial entries.
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
@@ -245,72 +246,89 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for the Apply All action. Apply all palettes to the BBCF game data.
         """
-        files_to_apply = {}
+        message = "Do you want to apply all palettes to BBCF game data?"
+        apply = self.show_confirm_dialog("Apply All Palettes", message)
 
-        for character in os.listdir(self.data_dir):
-            # The app config file lives in this directory, we should ignore it.
-            if character not in ("app.conf",):
-                palette_cache_path = os.path.join(self.data_dir, character, "pal")
-                palette_file_name = PALETTE_FILE_FMT.format(character)
-                self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
+        if apply:
+            files_to_apply = {}
 
-        self._run_apply_thread(files_to_apply)
+            for character in os.listdir(self.data_dir):
+                # The app config file lives in this directory, we should ignore it.
+                if character not in ("app.conf",):
+                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
+                    palette_file_name = PALETTE_FILE_FMT.format(character)
+                    self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
+
+            self._run_apply_thread(files_to_apply)
 
     def apply_character(self, _):
         """
         Callback for the Apply Character action. Apply all palettes for selected character to the BBCF game data.
         """
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
-        files_to_apply = {}
+        character_name = self.ui.char_select.currentText()
 
-        palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
-        self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
+        message = f"Do you want to apply all palettes for {character_name} to BBCF game data?"
+        apply = self.show_confirm_dialog("Apply Character Palettes", message)
 
-        self._run_apply_thread(files_to_apply)
+        if apply:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            files_to_apply = {}
+
+            palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
+            self._get_character_files(files_to_apply, palette_cache_path, palette_file_name)
+
+            self._run_apply_thread(files_to_apply)
 
     def apply_palette(self, _):
         """
         Callback for the Apply Character action. Apply current palette for selected character to the BBCF game data.
         """
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+        character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
-        files_to_apply = {}
 
-        palette_num_in_files = int(palette_id) - 1
-        hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
+        message = f"Do you want to apply {character_name} palette {palette_id} to BBCF game data?"
+        apply = self.show_confirm_dialog("Apply Character Palettes", message)
 
-        hpl_file_list = []
-        palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
-        files_to_apply[palette_file_name] = hpl_file_list
+        if apply:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_id = self.ui.palette_select.currentText()
+            files_to_apply = {}
 
-        # We have to create a PAC file with all our HPL files in order to edit character data in a valid way.
-        # However we need to ensure not to include duplicates (i.e. dirty and non-dirty versions of the same palette).
-        # We only want to look for dirty versions of files associated to the current palette.
-        for hpl_file in os.listdir(palette_cache_path):
-            hpl_full_path = os.path.join(palette_cache_path, hpl_file)
+            palette_num_in_files = int(palette_id) - 1
+            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
 
-            current = hpl_file.startswith(hpl_file_prefix)
-            dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
-            backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
+            hpl_file_list = []
+            palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
+            files_to_apply[palette_file_name] = hpl_file_list
 
-            # For palette files associated to the current palette we include the dirty versions if they exist
-            # and only include non-dirty versions of the palette files if a dirty version does not exist.
-            # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
-            #       that defines what sprites/data the other files are associated to, so for the time being
-            #       we will only ever have a dirty version of this first palette file from each PAC file.
-            # We do not include backup files in application-to-game-data process.
-            if current:
-                dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
+            # We have to create a PAC file with all our HPL files in order to edit character data in a valid way.
+            # However we need to ensure not to include both the dirty and non-dirty versions of the palette.
+            # We only want to look for dirty versions of files associated to the current palette.
+            for hpl_file in os.listdir(palette_cache_path):
+                hpl_full_path = os.path.join(palette_cache_path, hpl_file)
 
-                if (dirty or (not dirty and not dirty_exists)) and not backup:
+                current = hpl_file.startswith(hpl_file_prefix)
+                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
+                backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
+
+                # For palette files associated to the current palette we include the dirty versions if they exist
+                # and only include non-dirty versions of the palette files if a dirty version does not exist.
+                # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
+                #       that defines what sprites/data the other files are associated to, so for the time being
+                #       we will only ever have a dirty version of this first palette file from each PAC file.
+                # We do not include backup files in application-to-game-data process.
+                if current:
+                    dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
+
+                    if (dirty or (not dirty and not dirty_exists)) and not backup:
+                        hpl_file_list.append(hpl_full_path)
+
+                # For palette files not associated to the current palette we only include the non-dirty versions.
+                # We do not include backup files in application-to-game-data process.
+                elif not current and not dirty and not backup:
                     hpl_file_list.append(hpl_full_path)
 
-            # For palette files not associated to the current palette we only include the non-dirty versions.
-            # We do not include backup files in application-to-game-data process.
-            elif not current and not dirty and not backup:
-                hpl_file_list.append(hpl_full_path)
-
-        self._run_apply_thread(files_to_apply)
+            self._run_apply_thread(files_to_apply)
 
     @staticmethod
     def _delete_character_files(palette_cache_path):
@@ -327,45 +345,62 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Delete the dirty version of all palette files for all characters.
         """
-        for character in os.listdir(self.data_dir):
-            # The app config file lives in this directory, we should ignore it.
-            if character not in ("app.conf",):
-                palette_cache_path = os.path.join(self.data_dir, character, "pal")
-                self._delete_character_files(palette_cache_path)
+        message = "Do you wish to discard all edited palettes?"
+        discard = self.show_confirm_dialog("Discard All Edited Palettes", message)
 
-        pal_index = self.ui.palette_select.currentIndex()
-        self._update_sprite_preview(pal_index)
+        if discard:
+            for character in os.listdir(self.data_dir):
+                # The app config file lives in this directory, we should ignore it.
+                if character not in ("app.conf",):
+                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
+                    self._delete_character_files(palette_cache_path)
+
+            pal_index = self.ui.palette_select.currentIndex()
+            self._update_sprite_preview(pal_index)
 
     def discard_character(self, _):
         """
         Discard the dirty version of all palette files for the selected character.
         """
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
-        self._delete_character_files(palette_cache_path)
+        character_name = self.ui.char_select.currentText()
 
-        pal_index = self.ui.palette_select.currentIndex()
-        self._update_sprite_preview(pal_index)
+        message = f"Do you wish to discard all edited palettes for {character_name}?"
+        discard = self.show_confirm_dialog("Discard Edited Character Palettes", message)
+
+        if discard:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            self._delete_character_files(palette_cache_path)
+
+            pal_index = self.ui.palette_select.currentIndex()
+            self._update_sprite_preview(pal_index)
 
     def discard_palette(self, _):
         """
         Discard the dirty version of all files associated to the current palette.
         """
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+        character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
 
-        palette_num_in_files = int(palette_id) - 1
-        hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
+        message = f"Do you wish to discard edits for {character_name} palette {palette_id}?"
+        discard = self.show_confirm_dialog("Discard Edited Palette", message)
 
-        for hpl_file in os.listdir(palette_cache_path):
-            current = hpl_file.startswith(hpl_file_prefix)
-            dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
+        if discard:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_id = self.ui.palette_select.currentText()
 
-            if current and dirty:
-                hpl_full_path = os.path.join(palette_cache_path, hpl_file)
-                os.remove(hpl_full_path)
+            palette_num_in_files = int(palette_id) - 1
+            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
 
-        pal_index = self.ui.palette_select.currentIndex()
-        self._update_sprite_preview(pal_index)
+            for hpl_file in os.listdir(palette_cache_path):
+                current = hpl_file.startswith(hpl_file_prefix)
+                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
+
+                if current and dirty:
+                    hpl_full_path = os.path.join(palette_cache_path, hpl_file)
+                    os.remove(hpl_full_path)
+
+            pal_index = self.ui.palette_select.currentIndex()
+            self._update_sprite_preview(pal_index)
 
     @staticmethod
     def _reset_character_files(palette_cache_path):
@@ -392,52 +427,69 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Reset the all palettes for all characters to the versions from the game.
         """
-        for character in os.listdir(self.data_dir):
-            # The app config file lives in this directory, we should ignore it.
-            if character not in ("app.conf",):
-                palette_cache_path = os.path.join(self.data_dir, character, "pal")
-                self._reset_character_files(palette_cache_path)
+        message = "Do you wish to reset all palettes to the original game versions?"
+        reset = self.show_confirm_dialog("Reset All Palettes", message)
+
+        if reset:
+            for character in os.listdir(self.data_dir):
+                # The app config file lives in this directory, we should ignore it.
+                if character not in ("app.conf",):
+                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
+                    self._reset_character_files(palette_cache_path)
 
     def reset_character(self, _):
         """
         Reset the all palettes for the selected character to the versions from the game.
         """
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
-        self._reset_character_files(palette_cache_path)
+        character_name = self.ui.char_select.currentText()
 
-        pal_index = self.ui.palette_select.currentIndex()
-        self._update_sprite_preview(pal_index)
+        message = f"Do you wish to reset palettes for {character_name} to the original game versions?"
+        reset = self.show_confirm_dialog("Reset Character Palettes", message)
+
+        if reset:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            self._reset_character_files(palette_cache_path)
+
+            pal_index = self.ui.palette_select.currentIndex()
+            self._update_sprite_preview(pal_index)
 
     def reset_palette(self, _):
         """
         Reset the selected palette to the version from the game.
         """
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+        character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
 
-        palette_num_in_files = int(palette_id) - 1
-        hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
+        message = f"Do you wish to reset {character_name} palette {palette_id} to the original game version?"
+        reset = self.show_confirm_dialog("Reset All Palettes", message)
 
-        for hpl_file in os.listdir(palette_cache_path):
-            # Our backup files should be ignored here as we are using them to reset
-            # palette data to the version that comes with the game data.
-            if not hpl_file.endswith(BACKUP_PALETTE_EXT):
-                current = hpl_file.startswith(hpl_file_prefix)
-                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
+        if reset:
+            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_id = self.ui.palette_select.currentText()
 
-                if current:
-                    hpl_full_path = os.path.join(palette_cache_path, hpl_file)
+            palette_num_in_files = int(palette_id) - 1
+            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
 
-                    # We can just go ahead and remove any files we encounter regardless of the dirty state.
-                    os.remove(hpl_full_path)
+            for hpl_file in os.listdir(palette_cache_path):
+                # Our backup files should be ignored here as we are using them to reset
+                # palette data to the version that comes with the game data.
+                if not hpl_file.endswith(BACKUP_PALETTE_EXT):
+                    current = hpl_file.startswith(hpl_file_prefix)
+                    dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
 
-                    # For non-dirty files we need to replace the HPL file with a copy of the game data backup.
-                    if not dirty:
-                        hpl_backup_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
-                        shutil.copyfile(hpl_backup_path, hpl_full_path)
+                    if current:
+                        hpl_full_path = os.path.join(palette_cache_path, hpl_file)
 
-        pal_index = self.ui.palette_select.currentIndex()
-        self._update_sprite_preview(pal_index)
+                        # We can just go ahead and remove any files we encounter regardless of the dirty state.
+                        os.remove(hpl_full_path)
+
+                        # For non-dirty files we need to replace the HPL file with a copy of the game data backup.
+                        if not dirty:
+                            hpl_backup_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
+                            shutil.copyfile(hpl_backup_path, hpl_full_path)
+
+            pal_index = self.ui.palette_select.currentIndex()
+            self._update_sprite_preview(pal_index)
 
     def _restore_character_palettes(self, character):
         """
@@ -471,47 +523,100 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Remove all cached data.
         """
-        for character in os.listdir(self.data_dir):
-            # The app config file lives in this directory, we should ignore it.
-            if character not in ("app.conf",):
-                character_full_path = os.path.join(self.data_dir, character)
-                shutil.rmtree(character_full_path)
+        message = "Do you wish to clear all editor cache data?"
+        clear = self.show_confirm_dialog("Clear Editor Cache", message)
 
-        # We no longer have sprite data. We should reset the UI so the user must re-select things
-        # which will subsequently cause the app to re-cache data.
-        self._reset_ui(deselect_character=True)
+        if clear:
+            for character in os.listdir(self.data_dir):
+                # The app config file lives in this directory, we should ignore it.
+                if character not in ("app.conf",):
+                    character_full_path = os.path.join(self.data_dir, character)
+                    shutil.rmtree(character_full_path)
+
+            # We no longer have sprite data. We should reset the UI so the user must re-select things
+            # which will subsequently cause the app to re-cache data.
+            self._reset_ui(deselect_character=True)
 
     def clear_character_cache(self, _):
         """
         Remove all cached data for the selected character.
         """
-        shutil.rmtree(os.path.join(self.data_dir, self.current_char))
+        character_name = self.ui.char_select.currentText()
 
-        # We no longer have sprite data. We should reset the UI so the user must re-select things
-        # which will subsequently cause the app to re-cache data.
-        self._reset_ui(deselect_character=True)
+        message = f"Do you wish to clear editor cache data for {character_name}?"
+        clear = self.show_confirm_dialog("Clear Editor Character Cache", message)
+
+        if clear:
+            shutil.rmtree(os.path.join(self.data_dir, self.current_char))
+
+            # We no longer have sprite data. We should reset the UI so the user must re-select things
+            # which will subsequently cause the app to re-cache data.
+            self._reset_ui(deselect_character=True)
 
     def clear_palette_cache(self, _):
         """
         Remove all cached data for the selected palette.
         """
+        character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
 
-        palette_num_in_files = int(palette_id) - 1
-        hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
+        message = f"Do you wish to clear editor cache data for {character_name} palette {palette_id}?"
+        clear = self.show_confirm_dialog("Clear Editor Palette Cache", message)
 
-        palette_cache_dir = os.path.join(self.data_dir, self.current_char, "pal")
+        if clear:
+            palette_num_in_files = int(palette_id) - 1
+            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
 
-        for hpl_file in os.listdir(palette_cache_dir):
-            if hpl_file.startswith(hpl_file_prefix):
-                hpl_full_path = os.path.join(palette_cache_dir, hpl_file)
-                os.remove(hpl_full_path)
+            palette_cache_dir = os.path.join(self.data_dir, self.current_char, "pal")
 
-        with block_signals(self.ui.file_list):
-            # Empty QModelIndex is the list widget equivalent to -1 for combo boxes.
-            self.ui.file_list.setCurrentIndex(QtCore.QModelIndex())
+            for hpl_file in os.listdir(palette_cache_dir):
+                if hpl_file.startswith(hpl_file_prefix):
+                    hpl_full_path = os.path.join(palette_cache_dir, hpl_file)
+                    os.remove(hpl_full_path)
 
-        self._clear_sprite_data()
+            with block_signals(self.ui.file_list):
+                # Empty QModelIndex is the list widget equivalent to -1 for combo boxes.
+                self.ui.file_list.setCurrentIndex(QtCore.QModelIndex())
+
+            self._clear_sprite_data()
+
+    def _restore_character_palettes(self, character):
+        """
+        Helper to delete the existing PAC palette file and replace it with the backed version from the game data.
+        """
+        backup_palette_name = BACKUP_PALETTE_FILE_FMT.format(character)
+        backup_palette_path = os.path.join(self.bbcf_install, "data", "Char", backup_palette_name)
+
+        pac_palette_name = PALETTE_FILE_FMT.format(character)
+        pac_palette_path = os.path.join(self.bbcf_install, "data", "Char", pac_palette_name)
+
+        os.remove(pac_palette_path)
+        shutil.copyfile(backup_palette_path, pac_palette_path)
+
+    def restore_all(self, _):
+        """
+        Restore all character palettes from the backed up game data in the BBCF install directory.
+        """
+        message = "Do you wish to restore all game files to the original versions?"
+        restore = self.show_confirm_dialog("Restore Game Files", message)
+
+        if restore:
+            for character in os.listdir(self.data_dir):
+                # The app config file lives in this directory, we should ignore it.
+                if character not in ("app.conf",):
+                    self._restore_character_palettes(character)
+
+    def restore_character(self, _):
+        """
+        Restore the selected character palettes from the backed up game data in the BBCF install directory.
+        """
+        character_name = self.ui.char_select.currentText()
+
+        message = f"Do you wish to restore game files for {character_name} to the original versions?"
+        restore = self.show_confirm_dialog("Restore Game Files", message)
+
+        if restore:
+            self._restore_character_palettes(self.current_char)
 
     def select_steam_install(self):
         """
@@ -777,6 +882,22 @@ class MainWindow(QtWidgets.QMainWindow):
         # If the user clicks any of the buttons with no character or palette selected then bad things happen.
         if not self.ui.palette_toolbar.isEnabled():
             self.ui.palette_toolbar.setEnabled(True)
+
+    def show_confirm_dialog(self, title, message):
+        """
+        Ask the user to confirm an operation.
+        We set the default button to No so it is more difficult to accidentally accept the dialog.
+        Return a bool indicating if the dialog was accepted or rejected.
+        """
+        icon = QtWidgets.QMessageBox.Icon.Question
+
+        message_box = QtWidgets.QMessageBox(icon, title, message, parent=self)
+        message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        message_box.setDefaultButton(QtWidgets.QMessageBox.No)
+
+        # The return value for the `exec_()` method on a QMessageBox is the button type enum of the clicked button.
+        # Note that if the user exits the dialog with the escape key that we will still return `False`.
+        return message_box.exec_() == QtWidgets.QMessageBox.Yes
 
     def show_message_dialog(self, title, message, icon=QtWidgets.QMessageBox.Icon.NoIcon):
         """
