@@ -652,7 +652,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Show a dialog for an error that just occurred.
         We should not fail any operations silently.
-        Note that this method may only be called within an `except:` block if `exc_info` is None.
+        Note that this method must be called within an `except:` block if `exc_info` is None.
         """
         if exc_info is None:
             exc_info = sys.exc_info()
