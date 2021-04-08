@@ -159,7 +159,7 @@ class MainWindow(QtWidgets.QMainWindow):
         palette_file_list, _ = QtWidgets.QFileDialog.getOpenFileNames(
 
             parent=self,
-            caption="Select Steam installation location",
+            caption="Select Palette Files",
             filter="BBCF palettes (*.hpl; *.pac);;HPL files (*.hpl);;PAC files (*.pac)"
         )
 
