@@ -491,34 +491,6 @@ class MainWindow(QtWidgets.QMainWindow):
             pal_index = self.ui.palette_select.currentIndex()
             self._update_sprite_preview(pal_index)
 
-    def _restore_character_palettes(self, character):
-        """
-        Helper to delete the existing PAC palette file and replace it with the backed version from the game data.
-        """
-        backup_palette_name = BACKUP_PALETTE_FILE_FMT.format(character)
-        backup_palette_path = os.path.join(self.bbcf_install, "data", "Char", backup_palette_name)
-
-        pac_palette_name = PALETTE_FILE_FMT.format(character)
-        pac_palette_path = os.path.join(self.bbcf_install, "data", "Char", pac_palette_name)
-
-        os.remove(pac_palette_path)
-        shutil.copyfile(backup_palette_path, pac_palette_path)
-
-    def restore_all(self, _):
-        """
-        Restore all character palettes from the backed up game data in the BBCF install directory.
-        """
-        for character in os.listdir(self.data_dir):
-            # The app config file lives in this directory, we should ignore it.
-            if character not in ("app.conf",):
-                self._restore_character_palettes(character)
-
-    def restore_character(self, _):
-        """
-        Restore the selected character palettes from the backed up game data in the BBCF install directory.
-        """
-        self._restore_character_palettes(self.current_char)
-
     def clear_entire_cache(self, _):
         """
         Remove all cached data.
