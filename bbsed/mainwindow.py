@@ -30,6 +30,7 @@ def get_data_dir():
     return data_dir
 
 
+# TODO: implement a help menu with About and Tutorial entries.
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
