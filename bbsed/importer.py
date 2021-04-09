@@ -15,11 +15,11 @@ HPL_MAX_FILES_PER_PALETTE = 7
 
 
 class ImportThread(WorkThread):
-    def __init__(self, hpl_file_list, pac_file_list, data_dir):
+    def __init__(self, hpl_file_list, pac_file_list, paths):
         WorkThread.__init__(self)
         self.hpl_file_list = hpl_file_list
         self.pac_file_list = pac_file_list
-        self.data_dir = data_dir
+        self.paths = paths
 
     @staticmethod
     def _validate_hpl_file(hpl_file):
@@ -66,7 +66,8 @@ class ImportThread(WorkThread):
         we select the palette index associated to this file.
         """
         dirty_hpl_file = hpl_file.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
-        hpl_dst_path = os.path.join(self.data_dir, abbreviation, "pal", dirty_hpl_file)
+        palette_cache_dir = self.paths.get_palette_cache_path(abbreviation)
+        hpl_dst_path = os.path.join(palette_cache_dir, dirty_hpl_file)
         return hpl_dst_path
 
     def _get_palettes_hpl(self):

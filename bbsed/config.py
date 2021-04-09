@@ -5,9 +5,14 @@ SETTINGS = ("steam_install",)
 
 
 class Configuration:
-    def __init__(self, cfg_path):
-        self.cfg_path = cfg_path
+    def __init__(self, paths):
+        self.cfg_path = paths.app_config
         self.steam_install = ""
+
+        # Set the config reference in the Paths object to this Configuration object.
+        # We do this here to avoid a "chicken-and-egg" problem.
+        paths.set_config(self)
+
         self.load()
 
     def update(self, **kwargs):

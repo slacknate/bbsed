@@ -9,16 +9,14 @@ from .util import *
 
 
 class ApplyThread(WorkThread):
-    def __init__(self, bbcf_install, files_to_apply):
+    def __init__(self, files_to_apply, paths):
         WorkThread.__init__(self)
         self.files_to_apply = files_to_apply
-        self.bbcf_install = bbcf_install
+        self.paths = paths
 
     def work(self):
-        bbcf_game_data_dir = os.path.join(self.bbcf_install, "data", "Char")
-
         for pac_file_name, hpl_file_list in self.files_to_apply.items():
-            pac_full_path = os.path.join(bbcf_game_data_dir, pac_file_name)
+            pac_full_path = os.path.join(self.paths.bbcf_data_dir, pac_file_name)
             temp_dir = tempfile.mkdtemp()
 
             self.message.emit("Gathering HPL palette files...")

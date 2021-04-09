@@ -2,7 +2,6 @@ import io
 import os
 import sys
 import shutil
-import platform
 import subprocess
 
 from PyQt5 import Qt, QtCore, QtWidgets
@@ -20,23 +19,11 @@ from .exporter import ExportThread
 from .importer import ImportThread
 from .extract import ExtractThread
 from .apply import ApplyThread
+from .pathing import Paths
 from .char_info import *
 from .util import *
 
 BASE_WINDOW_TITLE = "BBCF Sprite Editor"
-
-
-def get_data_dir():
-    if platform.system().upper() == "WINDOWS":
-        data_dir = os.path.join(os.environ["APPDATA"], "bbsed")
-
-    else:
-        data_dir = os.path.join(os.path.expanduser("~"), "bbsed")
-
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-
-    return data_dir
 
 
 # TODO: icons
@@ -50,8 +37,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setWindowTitle(BASE_WINDOW_TITLE)
 
-        self.data_dir = get_data_dir()
-        self.config = Configuration(os.path.join(self.data_dir, "app.conf"))
+        self.paths = Paths()
+        self.config = Configuration(self.paths)
 
         self._check_steam_install()
 
@@ -115,19 +102,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.clear_character_cache.triggered.connect(self.clear_character_cache)
         self.ui.clear_palette_cache.triggered.connect(self.clear_palette_cache)
 
-    @property
-    def bbcf_install(self):
-        """
-        Helper property to get our BBCF install location based on our configured Steam install location.
-        """
-        return os.path.join(self.config.steam_install, "steamapps", "common", "BlazBlue Centralfiction")
-
     def launch_bbcf(self, _):
         """
         Launch BBCF via Steam.
         """
-        steam_exe_path = os.path.join(self.config.steam_install, "steam.exe")
-        subprocess.call([steam_exe_path, "-applaunch", BBCF_STEAM_APP_ID])
+        subprocess.call([self.paths.steam_exe, "-applaunch", BBCF_STEAM_APP_ID])
 
     def edit_settings(self, _):
         """
@@ -188,7 +167,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Don't run any thread's if we do not need to.
         if hpl_file_list or pac_file_list:
-            thread = ImportThread(hpl_file_list, pac_file_list, self.data_dir)
+            thread = ImportThread(hpl_file_list, pac_file_list, self.paths)
             self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
 
             char_index = self.ui.char_select.currentIndex()
@@ -231,13 +210,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if pac_path:
             files_to_export = []
 
-            for character in os.listdir(self.data_dir):
-                # The app config file lives in this directory, we should ignore it.
-                if character not in ("app.conf",):
-                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
+            for character in self.paths.iter_data_dir():
+                palette_cache_path = self.paths.get_palette_cache_path(character)
 
-                    hpl_file_list = self._get_character_palettes(palette_cache_path)
-                    files_to_export.extend(hpl_file_list)
+                hpl_file_list = self._get_character_palettes(palette_cache_path)
+                files_to_export.extend(hpl_file_list)
 
             self._run_export_thread(pac_path, files_to_export)
 
@@ -248,7 +225,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pac_path = self._get_export_pac()
 
         if pac_path:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             files_to_export = self._get_character_palettes(palette_cache_path)
 
             self._run_export_thread(pac_path, files_to_export)
@@ -260,7 +237,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pac_path = self._get_export_pac()
 
         if pac_path:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             palette_id = self.ui.palette_select.currentText()
 
             palette_num_in_files = int(palette_id) - 1
@@ -341,7 +318,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Helper to run our apply thread based on a set of files to apply that was generated
         in the various apply button UI callbacks.
         """
-        thread = ApplyThread(self.bbcf_install, files_to_apply)
+        thread = ApplyThread(files_to_apply, self.paths)
 
         self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
@@ -355,14 +332,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if apply:
             files_to_apply = {}
 
-            for character in os.listdir(self.data_dir):
-                # The app config file lives in this directory, we should ignore it.
-                if character not in ("app.conf",):
-                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
-                    palette_file_name = PALETTE_FILE_FMT.format(character)
+            for character in self.paths.iter_data_dir():
+                palette_cache_path = self.paths.get_palette_cache_path(character)
+                palette_file_name = PALETTE_FILE_FMT.format(character)
 
-                    hpl_file_list = self._get_character_palettes(palette_cache_path)
-                    files_to_apply[palette_file_name] = hpl_file_list
+                hpl_file_list = self._get_character_palettes(palette_cache_path)
+                files_to_apply[palette_file_name] = hpl_file_list
 
             self._run_apply_thread(files_to_apply)
 
@@ -377,7 +352,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if apply:
             files_to_apply = {}
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
 
             hpl_file_list = self._get_character_palettes(palette_cache_path)
@@ -396,7 +371,7 @@ class MainWindow(QtWidgets.QMainWindow):
         apply = self.show_confirm_dialog("Apply Character Palettes", message)
 
         if apply:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             palette_id = self.ui.palette_select.currentText()
             files_to_apply = {}
 
@@ -455,11 +430,9 @@ class MainWindow(QtWidgets.QMainWindow):
         discard = self.show_confirm_dialog("Discard All Edited Palettes", message)
 
         if discard:
-            for character in os.listdir(self.data_dir):
-                # The app config file lives in this directory, we should ignore it.
-                if character not in ("app.conf",):
-                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
-                    self._delete_character_files(palette_cache_path)
+            for character in self.paths.iter_data_dir():
+                palette_cache_path = self.paths.get_palette_cache_path(character)
+                self._delete_character_files(palette_cache_path)
 
             pal_index = self.ui.palette_select.currentIndex()
             self._update_sprite_preview(pal_index)
@@ -474,7 +447,7 @@ class MainWindow(QtWidgets.QMainWindow):
         discard = self.show_confirm_dialog("Discard Edited Character Palettes", message)
 
         if discard:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             self._delete_character_files(palette_cache_path)
 
             pal_index = self.ui.palette_select.currentIndex()
@@ -491,7 +464,7 @@ class MainWindow(QtWidgets.QMainWindow):
         discard = self.show_confirm_dialog("Discard Edited Palette", message)
 
         if discard:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             palette_id = self.ui.palette_select.currentText()
 
             palette_num_in_files = int(palette_id) - 1
@@ -537,11 +510,9 @@ class MainWindow(QtWidgets.QMainWindow):
         reset = self.show_confirm_dialog("Reset All Palettes", message)
 
         if reset:
-            for character in os.listdir(self.data_dir):
-                # The app config file lives in this directory, we should ignore it.
-                if character not in ("app.conf",):
-                    palette_cache_path = os.path.join(self.data_dir, character, "pal")
-                    self._reset_character_files(palette_cache_path)
+            for character in self.paths.iter_data_dir():
+                palette_cache_path = self.paths.get_palette_cache_path(character)
+                self._reset_character_files(palette_cache_path)
 
     def reset_character(self, _):
         """
@@ -553,7 +524,7 @@ class MainWindow(QtWidgets.QMainWindow):
         reset = self.show_confirm_dialog("Reset Character Palettes", message)
 
         if reset:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             self._reset_character_files(palette_cache_path)
 
             pal_index = self.ui.palette_select.currentIndex()
@@ -570,7 +541,7 @@ class MainWindow(QtWidgets.QMainWindow):
         reset = self.show_confirm_dialog("Reset All Palettes", message)
 
         if reset:
-            palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
             palette_id = self.ui.palette_select.currentText()
 
             palette_num_in_files = int(palette_id) - 1
@@ -605,11 +576,9 @@ class MainWindow(QtWidgets.QMainWindow):
         clear = self.show_confirm_dialog("Clear Editor Cache", message)
 
         if clear:
-            for character in os.listdir(self.data_dir):
-                # The app config file lives in this directory, we should ignore it.
-                if character not in ("app.conf",):
-                    character_full_path = os.path.join(self.data_dir, character)
-                    shutil.rmtree(character_full_path)
+            for character in self.paths.iter_data_dir():
+                character_full_path = self.paths.get_character_cache_path(character)
+                shutil.rmtree(character_full_path)
 
             # We no longer have sprite data. We should reset the UI so the user must re-select things
             # which will subsequently cause the app to re-cache data.
@@ -625,7 +594,7 @@ class MainWindow(QtWidgets.QMainWindow):
         clear = self.show_confirm_dialog("Clear Editor Character Cache", message)
 
         if clear:
-            shutil.rmtree(os.path.join(self.data_dir, self.current_char))
+            shutil.rmtree(self.paths.get_character_cache_path(self.current_char))
 
             # We no longer have sprite data. We should reset the UI so the user must re-select things
             # which will subsequently cause the app to re-cache data.
@@ -645,7 +614,7 @@ class MainWindow(QtWidgets.QMainWindow):
             palette_num_in_files = int(palette_id) - 1
             hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
 
-            palette_cache_dir = os.path.join(self.data_dir, self.current_char, "pal")
+            palette_cache_dir = self.paths.get_palette_cache_path(self.current_char)
 
             for hpl_file in os.listdir(palette_cache_dir):
                 if hpl_file.startswith(hpl_file_prefix):
@@ -663,10 +632,10 @@ class MainWindow(QtWidgets.QMainWindow):
         Helper to delete the existing PAC palette file and replace it with the backed version from the game data.
         """
         backup_palette_name = BACKUP_PALETTE_FILE_FMT.format(character)
-        backup_palette_path = os.path.join(self.bbcf_install, "data", "Char", backup_palette_name)
+        backup_palette_path = os.path.join(self.paths.bbcf_data_dir, backup_palette_name)
 
         pac_palette_name = PALETTE_FILE_FMT.format(character)
-        pac_palette_path = os.path.join(self.bbcf_install, "data", "Char", pac_palette_name)
+        pac_palette_path = os.path.join(self.paths.bbcf_data_dir, pac_palette_name)
 
         os.remove(pac_palette_path)
         shutil.copyfile(backup_palette_path, pac_palette_path)
@@ -679,10 +648,8 @@ class MainWindow(QtWidgets.QMainWindow):
         restore = self.show_confirm_dialog("Restore Game Files", message)
 
         if restore:
-            for character in os.listdir(self.data_dir):
-                # The app config file lives in this directory, we should ignore it.
-                if character not in ("app.conf",):
-                    self._restore_character_palettes(character)
+            for character in self.paths.iter_data_dir():
+                self._restore_character_palettes(character)
 
     def restore_character(self, _):
         """
@@ -742,7 +709,7 @@ class MainWindow(QtWidgets.QMainWindow):
         palette_id = self.ui.palette_select.itemText(palette_index)
         hpl_files = self.palette_info[palette_id]
 
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+        palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
 
         # FIXME: how do we determine which file is for what? e.g. izayoi phorizor?
         #        for now just assume that the first palette is the one that matters, as that is true frequently.
@@ -832,7 +799,7 @@ class MainWindow(QtWidgets.QMainWindow):
         character_name = self.ui.char_select.currentText()
         hpl_files = self.palette_info[palette_id]
 
-        palette_cache_path = os.path.join(self.data_dir, self.current_char, "pal")
+        palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
 
         # FIXME: see other FIXME about HPL files
         first_palette = hpl_files[0]
@@ -859,8 +826,8 @@ class MainWindow(QtWidgets.QMainWindow):
         item = self.ui.file_list.currentItem()
         hip_file = item.text()
 
-        img_cache_dir = os.path.join(self.data_dir, self.current_char, "img")
-        hip_full_path = os.path.join(img_cache_dir, hip_file)
+        img_cache_path = self.paths.get_image_cache_path(self.current_char)
+        hip_full_path = os.path.join(img_cache_path, hip_file)
 
         try:
             self.current_sprite = io.BytesIO()
@@ -894,7 +861,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Helper method to extract game data. Note that this procedure will only extract files
         called out in the sprite and palette PAC files that it cannot find in the cache.
         """
-        thread = ExtractThread(self.bbcf_install, self.data_dir, self.current_char)
+        thread = ExtractThread(self.current_char, self.paths)
 
         success = self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
 
