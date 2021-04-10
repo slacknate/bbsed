@@ -1,8 +1,6 @@
 import os
 import shutil
 
-from collections import defaultdict
-
 from libpac import extract_pac, enumerate_pac
 
 from .work_thread import WorkThread, WorkThreadException
