@@ -282,7 +282,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for our palette toggle action. Set the visibility state of the palette dialog.
         Mostly useful for recovering the dialog if it was closed, but maybe some folks wanna hide it anyway.
-        # TODO: can we make this state a setting and have it always hidden for people that want it that way?
         """
         self.palette_dialog.setVisible(check_state)
 
@@ -297,7 +296,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for our zoom toggle action. Set the visibility state of the zoom dialog.
         Mostly useful for recovering the dialog if it was closed, but maybe some folks wanna hide it anyway.
-        # TODO: can we make this state a setting and have it always hidden for people that want it that way?
         """
         self.zoom_dialog.setVisible(check_state)
 
@@ -636,12 +634,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # until we change the current palette.
 
         # Show our palette dialog if we need to.
-        # TODO: implement an app setting and keep this hidden if the user wants.
         if self.palette_dialog.isHidden():
             self.set_palette_visibility(True)
 
         # Show our zoom dialog if we need to.
-        # TODO: implement an app setting and keep this hidden if the user wants.
         if self.zoom_dialog.isHidden():
             self.set_zoom_visibility(True)
 
