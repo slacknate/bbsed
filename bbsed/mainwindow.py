@@ -363,6 +363,10 @@ class MainWindow(QtWidgets.QMainWindow):
         backup_palette_name = BACKUP_PALETTE_FILE_FMT.format(character)
         backup_palette_path = os.path.join(self.paths.bbcf_data_dir, backup_palette_name)
 
+        # If a backup does not exist then we should not attempt restore as legitimately can't do it.
+        if not os.path.exists(backup_palette_path):
+            return
+
         pac_palette_name = PALETTE_FILE_FMT.format(character)
         pac_palette_path = os.path.join(self.paths.bbcf_data_dir, pac_palette_name)
 
