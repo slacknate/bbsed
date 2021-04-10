@@ -229,7 +229,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # NOTE: if we cancel the dialog then `palette_file_list` will be empty.
 
-        # TODO: what if a PAC file has collisions with selected HPL files?
+        # FIXME: what if a PAC file has collisions with selected HPL files?
         for palette_full_path in palette_file_list:
             if palette_full_path.endswith(PALETTE_EXT):
                 if not self._detect_nameless_hpl(palette_full_path, hpl_file_list, save_name_map):
