@@ -525,7 +525,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.delete_palette.setEnabled(False)
             self.ui.save_select.setEnabled(False)
             self.ui.save_select.clear()
-            self.ui.save_select.addItem(EDIT_SLOT_NAME, PALETTE_EDIT)
+            self.ui.save_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
         if deselect_character:
             with block_signals(self.ui.char_select):
@@ -710,7 +710,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Clearing the save select and re-adding items will auto-select the first item
             # which will always be a non-saved palette.
             self.ui.save_select.clear()
-            self.ui.save_select.addItem(EDIT_SLOT_NAME, PALETTE_EDIT)
+            self.ui.save_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
             # Set the save select enable state based on the presence of files on disk.
             self.ui.save_select.setEnabled(bool(character_saves))
