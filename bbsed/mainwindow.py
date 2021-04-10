@@ -311,7 +311,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def discard_palette(self, _):
         """
-        Discard the dirty version of all files associated to the current palette.
+        Discard the any edited palette files.
         """
         character = self.ui.char_select.currentData()
         character_name = self.ui.char_select.currentText()
@@ -321,19 +321,18 @@ class MainWindow(QtWidgets.QMainWindow):
         discard = self.show_confirm_dialog("Discard Edited Palette", message)
 
         if discard:
-            palette_edit_path = self.paths.get_edit_palette_path(character, palette_id)
-            palette_id = self.ui.palette_select.currentText()
+            hpl_hash_list = self.paths.get_edit_palette_hashes(character, palette_id)
 
-            palette_num = palette_id_to_number(palette_id)
-            hpl_file_prefix = f"{character}{palette_num}_"
+            for hpl_full_path, edit_hash, orig_hash in hpl_hash_list:
+                is_dirty = (edit_hash != orig_hash)
 
-            for hpl_file in os.listdir(palette_edit_path):
-                current = hpl_file.startswith(hpl_file_prefix)
-                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
-
-                if current and dirty:
-                    hpl_full_path = os.path.join(palette_edit_path, hpl_file)
+                # If the hashes don't match then the file was edited.
+                # In this case where we are discarding changes we then remove
+                # the palette file and copy the backup in place of it.
+                if is_dirty:
                     os.remove(hpl_full_path)
+                    backup_full_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
+                    shutil.copyfile(backup_full_path, hpl_full_path)
 
             self._update_sprite_preview()
 
@@ -395,13 +394,12 @@ class MainWindow(QtWidgets.QMainWindow):
         for hpl_src_path in files_to_save:
             hpl_file = os.path.basename(hpl_src_path)
 
-            # Do not save the palette with the dirty palette extension. We want the standard extension.
-            hpl_dst_path = os.path.join(save_dst_path, hpl_file).replace(DIRTY_PALETTE_EXT, PALETTE_EXT)
+            hpl_dst_path = os.path.join(save_dst_path, hpl_file)
             shutil.copyfile(hpl_src_path, hpl_dst_path)
 
-            # If our file was indeed a dirty version we should remove it how that it has been saved elsewhere.
-            if hpl_src_path.endswith(DIRTY_PALETTE_EXT):
-                os.remove(hpl_src_path)
+            os.remove(hpl_src_path)
+            backup_full_path = hpl_src_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
+            shutil.copyfile(backup_full_path, hpl_src_path)
 
         # Add this palette to the selectable saved palettes.
         with block_signals(self.ui.save_select):
@@ -550,12 +548,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # FIXME: how do we determine which file is for what? e.g. izayoi phorizor?
         #        for now just assume that the first palette is the one that matters, as that is true frequently.
         palette_full_path = hpl_files[0]
-        dirty_full_path = palette_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
-
-        # If we have made changes to a palette we should load those.
-        # The "normal" HPL file is kept in sync with what exists in the game data at the BBCF install path.
-        if os.path.exists(dirty_full_path):
-            palette_full_path = dirty_full_path
 
         try:
             # We are only updating the palette data we aren't writing out any pixel information.
@@ -628,10 +620,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # FIXME: see other FIXME about HPL files
         palette_full_path = hpl_files[0]
-
-        # Save our changes in a "dirty" file so we can discard them easily if we want.
-        if not palette_full_path.endswith(DIRTY_PALETTE_EXT):
-            palette_full_path = palette_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
 
         try:
             convert_to_hpl(self.palette_dialog.get_palette_img(), palette_full_path)

@@ -24,7 +24,7 @@ class ApplyThread(WorkThread):
 
         # Copy the user selected palettes to the temp directory.
         for hpl_full_path in hpl_file_list:
-            temp_hpl_file = os.path.basename(hpl_full_path).replace(DIRTY_PALETTE_EXT, PALETTE_EXT)
+            temp_hpl_file = os.path.basename(hpl_full_path)
             shutil.copyfile(hpl_full_path, os.path.join(temp_dir, temp_hpl_file))
 
         # Copy game-version-palettes to the temp directory as necessary.

@@ -51,13 +51,6 @@ def exclude_extra_palettes(missing_hpl_files):
             missing_hpl_files.remove(hpl_file)
 
 
-def hpl_filter_func(hpl_file):
-    """
-    Filter function to exclude palette backups and dirty files from the palette info dict.
-    """
-    return not hpl_file.endswith(BACKUP_PALETTE_EXT) and not hpl_file.endswith(DIRTY_PALETTE_EXT)
-
-
 class ExtractThread(WorkThread):
     def __init__(self, character, paths):
         WorkThread.__init__(self)
@@ -115,11 +108,15 @@ class ExtractThread(WorkThread):
                     if not os.path.exists(palette_edit_path):
                         os.makedirs(palette_edit_path)
 
-                    # This is the first extraction of the palettes.
-                    # We create the backup/original version of the palette as well as the file which will be edited.
+                    # On extract of a palette we create a backup/original version at the same time
+                    # we create the file which we expose to the user for editing.
                     hpl_dst_path = os.path.join(palette_edit_path, hpl_file)
                     shutil.copyfile(hpl_src_path, hpl_dst_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT))
                     shutil.copyfile(hpl_src_path, hpl_dst_path)
+
+                    # Additionally we save a hash of the backup/original version of the palette.
+                    with open(get_hash_path(hpl_dst_path), "w") as hash_fp:
+                        hash_fp.write(hash_file(hpl_src_path))
 
     def _extract_sprites(self):
         """

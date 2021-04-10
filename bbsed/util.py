@@ -9,10 +9,10 @@ __all__ = [
     "BACKUP_GAME_PALETTE_EXT",
     "GAME_PALETTE_EXT",
     "BACKUP_PALETTE_EXT",
-    "DIRTY_PALETTE_EXT",
     "PALETTE_EXT",
     "SPRITE_EXT",
     "PNG_EXT",
+    "HASH_EXT",
     "PALETTE_SAVE_MARKER",
     "SLOT_NAME_EDIT",
     "PALETTE_EDIT",
@@ -26,9 +26,12 @@ __all__ = [
     "temp_directory",
     "palette_id_to_number",
     "palette_number_to_id",
+    "get_hash_path",
+    "hash_file",
 ]
 
 import shutil
+import hashlib
 import tempfile
 import contextlib
 
@@ -44,10 +47,10 @@ BACKUP_GAME_PALETTE_EXT = ".orig.pac"
 GAME_PALETTE_EXT = ".pac"
 
 BACKUP_PALETTE_EXT = ".orig.hpl"
-DIRTY_PALETTE_EXT = ".dirty.hpl"
 PALETTE_EXT = ".hpl"
 SPRITE_EXT = ".hip"
 PNG_EXT = ".png"
+HASH_EXT = ".sha256"
 
 PALETTE_SAVE_MARKER = ".save-"
 
@@ -108,3 +111,24 @@ def palette_number_to_id(palette_number):
     """
     palette_num_in_game = int(palette_number) + 1
     return f"{palette_num_in_game:02}"
+
+
+def hash_file(full_path):
+    """
+    Return the SHA-256 hash of the given file.
+    """
+    hpl_hash = hashlib.sha256()
+
+    with open(full_path, "rb") as hpl_fp:
+        hpl_hash.update(hpl_fp.read())
+
+    return hpl_hash.hexdigest()
+
+
+def get_hash_path(full_path):
+    """
+    Get the hash path for the given file.
+    We just stick our defined hash extension on the end of the path.
+    This way we also maintain compatibility with our pathing module.
+    """
+    return full_path + HASH_EXT

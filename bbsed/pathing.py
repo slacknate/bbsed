@@ -180,21 +180,31 @@ class Paths:
         for hpl_file in edit_files_list:
             hpl_full_path = os.path.join(character_edit_path, hpl_file)
 
-            dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
+            is_hpl = hpl_file.endswith(PALETTE_EXT)
             backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
 
-            # For palette files associated to this palette we include the dirty versions if they exist
-            # and only include non-dirty versions of the palette files if a dirty version does not exist.
-            # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
-            #       that defines what sprites/data the other files are associated to, so for the time being
-            #       we will only ever have a dirty version of this first palette file from each PAC file.
-            # We purposefully do not include backup files in the hpl files list.
-            dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
-
-            if (dirty or (not dirty and not dirty_exists)) and not backup:
+            # We ignore backup HPL files.
+            if is_hpl and not backup:
                 hpl_files_list.append(hpl_full_path)
 
         return hpl_files_list
+
+    def get_edit_palette_hashes(self, character, palette_id):
+        """
+        Get a list of edit palette files combined with their current and original hashes.
+        """
+        hpl_files_list = self.get_edit_palette(character, palette_id)
+        palette_hashes_list = []
+
+        for hpl_full_path in hpl_files_list:
+            edit_hash = hash_file(hpl_full_path)
+
+            with open(get_hash_path(hpl_full_path), "r") as hash_fp:
+                orig_hash = hash_fp.read()
+
+            palette_hashes_list.append((hpl_full_path, edit_hash, orig_hash))
+
+        return palette_hashes_list
 
     def walk_edit(self, *characters):
         """
