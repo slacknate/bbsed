@@ -165,23 +165,31 @@ class ApplyDialog(QtWidgets.QDialog):
                 for save_name in character_saves:
                     select_combo.addItem(save_name, PALETTE_SAVE)
 
-                # Always select "None" initially.
                 select_name = self._get_palette_selected(character, palette_id)
 
                 # If the config data is the initial value or "No Palette" value we pick the first item.
                 # The first item in the selection combobox will always be the "No Palette" option.
                 if select_name in (SLOT_NAME_INITIAL, SLOT_NAME_NONE):
                     select_combo.setCurrentIndex(0)
+                    select_type = PALETTE_NONE
+                    hpl_files = []
 
                 # If the config data called out the edit slot we need to look for an associated edit slot..
                 elif select_name in (SLOT_NAME_EDIT,):
                     index = select_combo.findData(PALETTE_EDIT)
                     select_combo.setCurrentIndex(normalize_index(index))
+                    hpl_files = self.paths.get_edit_palette(character, palette_id)
+                    select_type = PALETTE_EDIT
 
                 # Otherwise we are working with a save name and need to ask the combo box what index is associated.
                 else:
                     index = select_combo.findText(select_name)
                     select_combo.setCurrentIndex(normalize_index(index))
+                    hpl_files = self.paths.get_saved_palette(character, palette_id, select_name)
+                    select_type = PALETTE_SAVE
+
+                # Update the selected state of this palette.
+                self._mark_palette_selected(character, palette_id, select_name, select_type, hpl_files)
 
     def _update_sprite_preview(self, sprite_cache, hpl_files):
         """
