@@ -85,12 +85,11 @@ class ImportThread(WorkThread):
         However, we asked the user to name this import so we can grab the save name from that map.
         """
         character = hpl_file[:CHAR_ABBR_LEN]
-
         palette_number = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
         palette_id = palette_number_to_id(palette_number)
+        key = (character, palette_id)
 
-        char_pal_id = hpl_file[:CHAR_ABBR_LEN+PALETTE_ID_LEN]
-        save_name = self.save_name_map[char_pal_id]
+        save_name = self.save_name_map[key]
 
         char_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
         hpl_dst_path = os.path.join(char_save_path, hpl_file)

@@ -173,17 +173,21 @@ class MainWindow(QtWidgets.QMainWindow):
         a character/palette ID basis.
         """
         hpl_file = os.path.basename(hpl_full_path)
-        char_pal_id = hpl_file[:CHAR_ABBR_LEN+PALETTE_ID_LEN]
 
-        if PALETTE_SAVE_MARKER not in hpl_full_path and char_pal_id not in save_name_map:
-            palette_name, accepted = self._choose_palette_name(hpl_file)
+        character = hpl_file[:CHAR_ABBR_LEN]
+        palette_num = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
+        palette_id = palette_number_to_id(palette_num)
+        key = (character, palette_id)
+
+        if PALETTE_SAVE_MARKER not in hpl_full_path and key not in save_name_map:
+            palette_name, accepted = self._choose_palette_name(character, palette_id, hpl_file)
 
             if not accepted:
                 message = "Did not specify import save name! Aborting import!"
                 self.show_message_dialog("Aborting Import", message, icon=QtWidgets.QMessageBox.Icon.Critical)
                 return False
 
-            save_name_map[char_pal_id] = palette_name
+            save_name_map[key] = palette_name
 
         hpl_file_list.append(hpl_full_path)
         return True
@@ -207,7 +211,6 @@ class MainWindow(QtWidgets.QMainWindow):
         pac_file_list.append(pac_full_path)
         return True
 
-    # FIXME: does not update the slot select correctly.
     def import_palettes(self, _):
         """
         Callback for the palette import action. Allow the user to import palettes they may have
@@ -239,7 +242,19 @@ class MainWindow(QtWidgets.QMainWindow):
         # Don't run any thread's if we do not need to.
         if hpl_file_list or pac_file_list:
             thread = ImportThread(hpl_file_list, pac_file_list, save_name_map, self.paths)
-            self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
+            success = self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
+
+            # If the import succeeded we should check if we need to update the UI:
+            if success:
+                character = self.ui.char_select.currentData()
+                palette_id = self.ui.palette_select.currentText()
+
+                # Update the save slots to include the newly imported files, but only if we have imported
+                # palettes for the current selected character and palette ID.
+                with block_signals(self.ui.slot_select):
+                    for (save_char, save_pal_id), save_name in save_name_map.items():
+                        if save_char == character and save_pal_id == palette_id:
+                            self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
     def _choose_export_pac(self):
         """
