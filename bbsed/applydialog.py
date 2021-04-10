@@ -143,11 +143,10 @@ class ApplyDialog(QtWidgets.QDialog):
             self.ui.palette_pages.setEnabled(True)
 
         character = self.ui.character_select.currentData()
-        has_sprites = bool(self.paths.get_sprite_cache(character))
+        sprites_are_extracted = bool(self.paths.get_sprite_cache(character))
 
         for palette_id, _, select_combo in self.iter_widgets():
-            # TODO: we can probably improve "has edits" detection -> hashing?
-            has_edits = bool(self.paths.get_edit_palette(character, palette_id))
+            palettes_are_extracted = bool(self.paths.get_edit_palette(character, palette_id))
 
             with block_signals(select_combo):
                 select_combo.clear()
@@ -157,7 +156,7 @@ class ApplyDialog(QtWidgets.QDialog):
                 # Only show the edit slot if sprites and palettes have been extracted
                 # We have encounter a scenario where someone imports palettes without
                 # editing or extracting any palettes on their own.
-                if has_sprites and has_edits:
+                if sprites_are_extracted and palettes_are_extracted:
                     select_combo.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
                 # Show any saved palettes that map to this palette ID.
