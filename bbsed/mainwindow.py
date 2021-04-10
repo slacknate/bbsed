@@ -289,25 +289,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.zoom_dialog.setVisible(is_visible)
         self.ui.view_zoom.setChecked(is_visible)
 
-    @staticmethod
-    def _get_character_palettes(palette_cache_path):
-        """
-        Helper to get all palette files associated to a character.
-        """
-        hpl_file_list = []
-
-        for hpl_file in os.listdir(palette_cache_path):
-            hpl_full_path = os.path.join(palette_cache_path, hpl_file)
-
-            dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
-            backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
-
-            # Only get our dirty files from the edit cache.
-            if dirty and not backup:
-                hpl_file_list.append(hpl_full_path)
-
-        return hpl_file_list
-
     def _run_apply_thread(self, files_to_apply):
         """
         Helper to run our apply thread based on a set of files to apply that was generated
