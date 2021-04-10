@@ -23,6 +23,20 @@ def get_data_dir():
     return data_dir
 
 
+def listdir_safe(full_path):
+    """
+    Helper to iterate a directory.
+    The builtin `os.listdir()` raises an exception if the directory does not exist.
+    Avoid that and return an empty list when we are given a path that does not exist.
+    """
+    dir_contents = []
+
+    if os.path.exists(full_path):
+        dir_contents = os.listdir(full_path)
+
+    return dir_contents
+
+
 class Paths:
     """
     Object to manage directories tracked within the app.
@@ -87,15 +101,14 @@ class Paths:
         sprite_cache_path = self._get_sprite_cache_path(character)
         sprite_cache = []
 
-        if os.path.exists(sprite_cache_path):
-            for hip_image in os.listdir(sprite_cache_path):
-                # We check for the character abbreviation in the file name as some characters seem to have
-                # sprite data in their PAC files that belongs to other characters? I don't understand why.
-                # For now, we are not editing this information so we can just... not deal with it :D
-                # Hopefully this change does not exclude any actually important sprites.
-                if character in hip_image:
-                    hip_full_path = os.path.join(sprite_cache_path, hip_image)
-                    sprite_cache.append(hip_full_path)
+        for hip_image in listdir_safe(sprite_cache_path):
+            # We check for the character abbreviation in the file name as some characters seem to have
+            # sprite data in their PAC files that belongs to other characters? I don't understand why.
+            # For now, we are not editing this information so we can just... not deal with it :D
+            # Hopefully this change does not exclude any actually important sprites.
+            if character in hip_image:
+                hip_full_path = os.path.join(sprite_cache_path, hip_image)
+                sprite_cache.append(hip_full_path)
 
         return sprite_cache
 
@@ -154,13 +167,10 @@ class Paths:
         character_edit_path = self._get_edit_path(character, palette_id)
         hpl_files_list = []
 
-        edit_files_list = []
-        if os.path.exists(character_edit_path):
-            edit_files_list = os.listdir(character_edit_path)
-
-        for hpl_file in edit_files_list:
+        for hpl_file in listdir_safe(character_edit_path):
             hpl_full_path = os.path.join(character_edit_path, hpl_file)
 
+            # We explicitly want the backup HPL file.
             if hpl_file.endswith(BACKUP_PALETTE_EXT):
                 hpl_files_list.append(hpl_full_path)
 
@@ -173,11 +183,7 @@ class Paths:
         character_edit_path = self._get_edit_path(character, palette_id)
         hpl_files_list = []
 
-        edit_files_list = []
-        if os.path.exists(character_edit_path):
-            edit_files_list = os.listdir(character_edit_path)
-
-        for hpl_file in edit_files_list:
+        for hpl_file in listdir_safe(character_edit_path):
             hpl_full_path = os.path.join(character_edit_path, hpl_file)
 
             is_hpl = hpl_file.endswith(PALETTE_EXT)
@@ -217,10 +223,9 @@ class Paths:
             for palette_num in range(GAME_MAX_PALETTES):
                 palette_id = palette_number_to_id(palette_num)
 
-                char_edit_path = self._get_edit_path(character, palette_id)
+                hpl_files_list = self.get_edit_palette(character, palette_id)
 
-                if os.path.exists(char_edit_path):
-                    hpl_files_list = [os.path.join(char_edit_path, hpl_file) for hpl_file in os.listdir(char_edit_path)]
+                if hpl_files_list:
                     yield character, palette_id, hpl_files_list
 
     def _get_save_path(self, *pcs):
@@ -242,12 +247,7 @@ class Paths:
         Get a list of saved palettes for the given character and palette ID.
         """
         character_save_path = self._get_save_path(character, palette_id)
-
-        save_names = []
-        if os.path.exists(character_save_path):
-            save_names = list(os.listdir(character_save_path))
-
-        return save_names
+        return listdir_safe(character_save_path)
 
     def get_saved_palette(self, character, palette_id, save_name):
         """
@@ -267,8 +267,5 @@ class Paths:
             for palette_num in range(GAME_MAX_PALETTES):
                 palette_id = palette_number_to_id(palette_num)
 
-                pal_save_path = self._get_save_path(character, palette_id)
-
-                if os.path.exists(pal_save_path):
-                    for save_name in os.listdir(pal_save_path):
-                        yield character, palette_id, save_name
+                for save_name in self.get_character_saves(character, palette_id):
+                    yield character, palette_id, save_name
