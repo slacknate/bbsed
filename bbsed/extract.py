@@ -66,8 +66,15 @@ class ExtractThread(WorkThread):
             existing_hpl_files.extend([os.path.basename(hpl_full_path) for hpl_full_path in hpl_files_list])
 
         # Get the file name for the palette PAC file associated to the given character.
-        palette_file_name = PALETTE_FILE_FMT.format(self.character)
+        # We look for the backup file first as we want to extract data from the original source
+        # and not from files the tool itself has modified.
+        palette_file_name = BACKUP_PALETTE_FILE_FMT.format(self.character)
         palette_file_path = os.path.join(self.paths.bbcf_data_dir, palette_file_name)
+
+        # If the backup file does not exist we assume the game files are unmodified by the tool.
+        if not os.path.exists(palette_file_path):
+            palette_file_name = PALETTE_FILE_FMT.format(self.character)
+            palette_file_path = os.path.join(self.paths.bbcf_data_dir, palette_file_name)
 
         self.message.emit("Looking for missing HPL files...")
         missing_hpl_files = get_missing_files(palette_file_path, existing_hpl_files)
