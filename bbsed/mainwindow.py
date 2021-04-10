@@ -750,7 +750,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self._reset_ui(deselect_character=False)
 
         # Extract the character data.
-        character = self.ui.char_select.currentData()
         thread = ExtractThread(character, self.paths)
         self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
 
@@ -772,6 +771,16 @@ class MainWindow(QtWidgets.QMainWindow):
             # We intentionally select this in the block_signals block so we do not try to set
             # palette data before a sprite is selected.
             self.ui.palette_select.setCurrentIndex(0)
+
+        # Update the UI to show any save slots for the first palette.
+        with block_signals(self.ui.save_select):
+            # Get the palette ID from the widget for the sake of consistency.
+            palette_id = self.ui.palette_select.currentText()
+            character_saves = self.paths.get_character_saves(character, palette_id)
+            # Set the save select enable state based on the presence of files on disk.
+            self.ui.save_select.setEnabled(bool(character_saves))
+            for save_name in character_saves:
+                self.ui.save_select.addItem(save_name, PALETTE_SAVE)
 
         # Re-enable user interaction for everything else.
         self.ui.sprite_group.setEnabled(True)

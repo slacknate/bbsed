@@ -57,7 +57,6 @@ PALETTE_SAVE = 2
 
 CHAR_ABBR_LEN = 2
 PALETTE_ID_LEN = 2
-# The game only offers palettes 1-24, but there are files for 1-26? Odd.
 GAME_MAX_PALETTES = 24
 
 

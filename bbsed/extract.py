@@ -38,6 +38,19 @@ def missing_file_filter(missing_files):
     return _filter_func
 
 
+def exclude_extra_palettes(missing_hpl_files):
+    """
+    The game only shows palettes 1-24, but there are files for more palettes than that.
+    Ignore palettes with a greater palette ID than 24 as they are not usable in game.
+    """
+    for hpl_file in list(missing_hpl_files):
+        palette_num = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
+
+        # Palette number is 0-23 so `palette_num` >= `GAME_MAX_PALETTES` is our filter.
+        if int(palette_num) >= GAME_MAX_PALETTES:
+            missing_hpl_files.remove(hpl_file)
+
+
 def hpl_filter_func(hpl_file):
     """
     Filter function to exclude palette backups and dirty files from the palette info dict.
@@ -65,6 +78,7 @@ class ExtractThread(WorkThread):
 
         self.message.emit("Looking for missing HPL files...")
         missing_hpl_files = get_missing_files(palette_file_path, existing_hpl_files)
+        exclude_extra_palettes(missing_hpl_files)
 
         # Only perform a PAC extraction if we are missing any files called out in the PAC.
         if missing_hpl_files:

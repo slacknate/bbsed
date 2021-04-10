@@ -1,7 +1,7 @@
 import os
 import platform
 
-from .util import PALETTE_EXT, BACKUP_PALETTE_EXT, DIRTY_PALETTE_EXT
+from .util import *
 
 BBCF_PATH_COMPONENTS = ("steamapps", "common", "BlazBlue Centralfiction", "data", "Char")
 
@@ -200,23 +200,18 @@ class Paths:
         """
         Iterate our top level cache directory.
         """
-        edit_base_path = self._get_edit_path()
-
         if not characters:
-            characters = os.listdir(edit_base_path)
+            characters = os.listdir(self._get_edit_path())
 
         for character in characters:
-            character_edit_path = os.path.join(edit_base_path, character)
+            for palette_num in range(GAME_MAX_PALETTES):
+                palette_id = palette_number_to_id(palette_num)
 
-            palette_list = []
-            if os.path.exists(character_edit_path):
-                palette_list = os.listdir(character_edit_path)
+                char_edit_path = self._get_edit_path(character, palette_id)
 
-            for palette_id in palette_list:
-                pal_edit_path = os.path.join(character_edit_path, palette_id)
-
-                hpl_files_list = [os.path.join(pal_edit_path, hpl_file) for hpl_file in os.listdir(pal_edit_path)]
-                yield character, palette_id, hpl_files_list
+                if os.path.exists(char_edit_path):
+                    hpl_files_list = [os.path.join(char_edit_path, hpl_file) for hpl_file in os.listdir(char_edit_path)]
+                    yield character, palette_id, hpl_files_list
 
     def _get_save_path(self, *pcs):
         """
@@ -255,16 +250,15 @@ class Paths:
         """
         Walk our top level save directory.
         """
-        save_base_path = self._get_save_path()
-
         if not characters:
-            characters = os.listdir(save_base_path)
+            characters = os.listdir(self._get_save_path())
 
         for character in characters:
-            character_save_path = os.path.join(save_base_path, character)
+            for palette_num in range(GAME_MAX_PALETTES):
+                palette_id = palette_number_to_id(palette_num)
 
-            for palette_id in os.listdir(character_save_path):
-                palette_save_path = os.path.join(character_save_path, palette_id)
+                pal_save_path = self._get_save_path(character, palette_id)
 
-                for save_name in os.listdir(palette_save_path):
-                    yield character, palette_id, save_name
+                if os.path.exists(pal_save_path):
+                    for save_name in os.listdir(pal_save_path):
+                        yield character, palette_id, save_name
