@@ -149,7 +149,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         if self.config.steam_install:
             self.ui.character_box.setEnabled(True)
-            self.ui.sprite_group.setEnabled(True)
 
     def exit_app(self, _):
         """
@@ -551,34 +550,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Clear zoom view.
         self.zoom_dialog.reset()
 
-    def _reset_ui(self, deselect_character):
-        """
-        Reset the state of the UI. This includes clearing all graphics views, emptying the selectable
-        sprite file list, and resetting combo box selections. We also clear meta data associated to these things.
-        """
-        with block_signals(self.ui.palette_select):
-            self.ui.palette_select.setCurrentIndex(-1)
-
-        with block_signals(self.ui.sprite_list):
-            self.ui.sprite_list.clear()
-
-        with block_signals(self.ui.slot_select):
-            self.ui.delete_palette.setEnabled(False)
-            self.ui.slot_select.setEnabled(False)
-            self.ui.slot_select.clear()
-            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
-
-        if deselect_character:
-            with block_signals(self.ui.char_select):
-                self.ui.char_select.setCurrentIndex(-1)
-
-            self.set_game_files_tools_enable(False)
-            self.set_palette_tools_enable(False)
-
-        self.setWindowTitle(BASE_WINDOW_TITLE)
-
-        self._clear_sprite_data()
-
     def _update_sprite_preview(self, palette_index=None):
         """
         Update the sprite preview with the given palette index.
@@ -797,6 +768,27 @@ class MainWindow(QtWidgets.QMainWindow):
         if selected_sprite is not None:
             self._update_sprite_preview()
 
+    def _reset_ui(self):
+        """
+        Reset the state of the UI. This includes clearing all graphics views, emptying the selectable
+        sprite file list, and resetting combo box selections. We also clear meta data associated to these things.
+        """
+        with block_signals(self.ui.palette_select):
+            self.ui.palette_select.setCurrentIndex(-1)
+
+        with block_signals(self.ui.sprite_list):
+            self.ui.sprite_list.clear()
+
+        with block_signals(self.ui.slot_select):
+            self.ui.delete_palette.setEnabled(False)
+            self.ui.slot_select.setEnabled(False)
+            self.ui.slot_select.clear()
+            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
+
+        self.setWindowTitle(BASE_WINDOW_TITLE)
+
+        self._clear_sprite_data()
+
     def select_character(self):
         """
         A new character was picked from the character combobox.
@@ -809,11 +801,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Reset all the things. This method actually has the deselect_character argument specifically
         # so we can use it here without immediately deselecting the character we just picked.
-        self._reset_ui(deselect_character=False)
+        self._reset_ui()
 
         # Extract the character data.
         thread = ExtractThread(character, self.paths)
         self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
+        # TODO: do we need to worry if this thread does not return success?
 
         # Reset our HIP file list and add the new HIP files so we only have the currently selected character files.
         with block_signals(self.ui.sprite_list):
