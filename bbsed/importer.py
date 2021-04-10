@@ -4,7 +4,7 @@ import shutil
 
 from libpac import extract_pac, enumerate_pac
 
-from .work_thread import WorkThread, WorkThreadException, WorkThreadError
+from .work_thread import WorkThread, AppException, AppError
 from .char_info import VALID_CHARACTERS
 from .util import *
 
@@ -31,14 +31,14 @@ class ImportThread(WorkThread):
         # Assert that the import HPL file has the correct extension.
         if not hpl_file.endswith(PALETTE_EXT):
             message = "Imported HPL palettes must have extension '.hpl'!"
-            raise WorkThreadError("Invalid HPL palette file!", message)
+            raise AppError("Invalid HPL palette file!", message)
 
         # Assert that imported HPL files must have file names that match the names we would see in
         # game data so we know which cache directory to import the files to.
         format_match = HPL_IMPORT_REGEX.search(hpl_file)
         if format_match is None:
             message = "Imported HPL palettes must have name format matching game data!\n\nExample:\n\nam00_00.hpl"
-            raise WorkThreadError("Invalid HPL palette file!", message)
+            raise AppError("Invalid HPL palette file!", message)
 
         # Assert that the file name starts with a valid character abbreviation.
         # If it does not we cannot know where to put the data in the cache or where to apply the file
@@ -46,19 +46,19 @@ class ImportThread(WorkThread):
         abbreviation = format_match.group(1)
         if abbreviation not in VALID_CHARACTERS:
             message = f"HPL file name {hpl_file} does not begin with a known character abbreviation!"
-            raise WorkThreadError("Invalid HPL palette file!", message)
+            raise AppError("Invalid HPL palette file!", message)
 
         # Assert that the palette index is valid.
         palette_index = int(format_match.group(2))
         if palette_index < 0 or palette_index > HPL_MAX_PALETTES:
             message = f"HPL palette index must 00 to {HPL_MAX_PALETTES}!"
-            raise WorkThreadError("Invalid HPL palette file!", message)
+            raise AppError("Invalid HPL palette file!", message)
 
         # Assert that the palette file number is valid.
         file_number = int(format_match.group(3))
         if file_number < 0 or file_number > HPL_MAX_FILES_PER_PALETTE:
             message = f"HPL file number must be 00 to {HPL_MAX_FILES_PER_PALETTE:02}!"
-            raise WorkThreadError("Invalid HPL palette file!", message)
+            raise AppError("Invalid HPL palette file!", message)
 
     def _import_from_marker(self, hpl_file):
         """
@@ -139,7 +139,7 @@ class ImportThread(WorkThread):
 
             except Exception:
                 message = f"Failed to extract HPL files from {pac_full_path}!"
-                raise WorkThreadException("Error Extracting PAC File", message)
+                raise AppException("Error Extracting PAC File", message)
 
             for hpl_file in os.listdir(temp_dir):
                 hpl_src_path = os.path.join(temp_dir, hpl_file)

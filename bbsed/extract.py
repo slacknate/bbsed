@@ -3,7 +3,7 @@ import shutil
 
 from libpac import extract_pac, enumerate_pac
 
-from .work_thread import WorkThread, WorkThreadException
+from .work_thread import WorkThread, AppException
 from .util import *
 
 
@@ -19,7 +19,7 @@ def get_missing_files(pac_file_path, existing_files):
         required_files = {item[0] for item in file_list}
 
     except Exception:
-        raise WorkThreadException("Error Enumerating PAC File", f"Failed to get files list from {base_name}!")
+        raise AppException("Error Enumerating PAC File", f"Failed to get files list from {base_name}!")
 
     # Determine if we are missing any files that the PAC file says we need.
     existing_files = set(existing_files)
@@ -100,7 +100,7 @@ class ExtractThread(WorkThread):
 
                 except Exception:
                     message = f"Failed to extract HPL files from {palette_file_name}!"
-                    raise WorkThreadException("Error Extracting PAC File", message)
+                    raise AppException("Error Extracting PAC File", message)
 
                 # Extract new palettes to the edit palette directory for this character.
                 self.message.emit("Creating HPL palette file meta data...")
@@ -152,7 +152,7 @@ class ExtractThread(WorkThread):
 
             except Exception:
                 message = f"Failed to extract HIP files from {sprite_file_name}!"
-                raise WorkThreadException("Error Extracting PAC File", message)
+                raise AppException("Error Extracting PAC File", message)
 
     def work(self):
         self._extract_palettes()

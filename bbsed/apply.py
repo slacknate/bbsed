@@ -3,7 +3,7 @@ import shutil
 
 from libpac import create_pac
 
-from .work_thread import WorkThread, WorkThreadException
+from .work_thread import WorkThread, AppException
 from .util import *
 
 
@@ -43,7 +43,7 @@ class ApplyThread(WorkThread):
             create_pac(temp_dir, pac_full_path)
 
         except Exception:
-            raise WorkThreadException("Error Creating PAC File",
+            raise AppException("Error Creating PAC File",
                                       f"Failed to create PAC file from HIP file list!")
 
     def work(self):

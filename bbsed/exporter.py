@@ -3,7 +3,7 @@ import shutil
 
 from libpac import create_pac
 
-from .work_thread import WorkThread, WorkThreadException
+from .work_thread import WorkThread, AppException
 from .util import *
 
 
@@ -46,7 +46,7 @@ class ExportThread(WorkThread):
                 create_pac(temp_dir, self.pac_path)
 
             except Exception:
-                raise WorkThreadException("Error Creating PAC File", f"Failed to create PAC file from HPL file list!")
+                raise AppException("Error Creating PAC File", f"Failed to create PAC file from HPL file list!")
 
     def work(self):
         files_to_export = self._get_export_list()
