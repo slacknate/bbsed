@@ -34,7 +34,7 @@
         <widget class="QComboBox" name="palette_select"/>
        </item>
        <item>
-        <widget class="QComboBox" name="save_select"/>
+        <widget class="QComboBox" name="slot_select"/>
        </item>
        <item>
         <spacer name="horizontalSpacer">
@@ -152,6 +152,7 @@
     <addaction name="export_palettes"/>
     <addaction name="separator"/>
     <addaction name="save_palette"/>
+    <addaction name="save_palette_as"/>
     <addaction name="delete_palette"/>
     <addaction name="separator"/>
     <addaction name="copy_palette"/>
@@ -193,6 +194,7 @@
    <addaction name="export_palettes"/>
    <addaction name="separator"/>
    <addaction name="save_palette"/>
+   <addaction name="save_palette_as"/>
    <addaction name="delete_palette"/>
    <addaction name="separator"/>
    <addaction name="copy_palette"/>
@@ -315,6 +317,14 @@
    </property>
    <property name="toolTip">
     <string>Delete selected saved palette</string>
+   </property>
+  </action>
+  <action name="save_palette_as">
+   <property name="text">
+    <string>Save As</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current palette as</string>
    </property>
   </action>
  </widget>

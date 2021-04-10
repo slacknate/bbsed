@@ -171,7 +171,7 @@ class ApplyDialog(QtWidgets.QDialog):
                 # The first item in the selection combobox will always be the "No Palette" option.
                 if select_name in (SLOT_NAME_INITIAL, SLOT_NAME_NONE):
                     select_combo.setCurrentIndex(0)
-                    select_type = PALETTE_NONE
+                    slot_type = PALETTE_NONE
                     hpl_files = []
 
                 # If the config data called out the edit slot we need to look for an associated edit slot..
@@ -179,17 +179,17 @@ class ApplyDialog(QtWidgets.QDialog):
                     index = select_combo.findData(PALETTE_EDIT)
                     select_combo.setCurrentIndex(normalize_index(index))
                     hpl_files = self.paths.get_edit_palette(character, palette_id)
-                    select_type = PALETTE_EDIT
+                    slot_type = PALETTE_EDIT
 
                 # Otherwise we are working with a save name and need to ask the combo box what index is associated.
                 else:
                     index = select_combo.findText(select_name)
                     select_combo.setCurrentIndex(normalize_index(index))
                     hpl_files = self.paths.get_saved_palette(character, palette_id, select_name)
-                    select_type = PALETTE_SAVE
+                    slot_type = PALETTE_SAVE
 
                 # Update the selected state of this palette.
-                self._mark_palette_selected(character, palette_id, select_name, select_type, hpl_files)
+                self._mark_palette_selected(character, palette_id, select_name, slot_type, hpl_files)
 
     def _update_sprite_preview(self, sprite_cache, hpl_files):
         """
@@ -235,7 +235,7 @@ class ApplyDialog(QtWidgets.QDialog):
         """
         return getattr(self.config, character + "_" + palette_id)
 
-    def _mark_palette_selected(self, character, palette_id, select_name, select_type, hpl_files):
+    def _mark_palette_selected(self, character, palette_id, select_name, slot_type, hpl_files):
         """
         Update our selections that will be saved to disk in the apply config as well as
         the selections data we use to generate the data to apply to game files.
@@ -243,7 +243,7 @@ class ApplyDialog(QtWidgets.QDialog):
         """
         self.updated[character + "_" + palette_id] = select_name
 
-        if select_type == PALETTE_NONE:
+        if slot_type == PALETTE_NONE:
             self.selected_palettes.pop((character, palette_id), None)
 
         else:
@@ -260,7 +260,7 @@ class ApplyDialog(QtWidgets.QDialog):
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
 
-        select_type = select_combo.currentData()
+        slot_type = select_combo.currentData()
         select_name = select_combo.currentText()
 
         character = self.ui.character_select.currentData()
@@ -275,16 +275,16 @@ class ApplyDialog(QtWidgets.QDialog):
 
         hpl_files = []
 
-        if select_type == PALETTE_EDIT:
+        if slot_type == PALETTE_EDIT:
             hpl_files = self.paths.get_edit_palette(character, palette_id)
 
-        if select_type == PALETTE_SAVE:
+        if slot_type == PALETTE_SAVE:
             hpl_files = self.paths.get_saved_palette(character, palette_id, select_name)
 
-        self._mark_palette_selected(character, palette_id, select_name, select_type, hpl_files)
+        self._mark_palette_selected(character, palette_id, select_name, slot_type, hpl_files)
 
         # Only update the preview with a new image if we did not pick the "No Palette" slot.
-        if select_type != PALETTE_NONE:
+        if slot_type != PALETTE_NONE:
             self._update_sprite_preview(sprite_cache, hpl_files)
 
     def get_files_to_apply(self):
