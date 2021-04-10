@@ -9,7 +9,7 @@ from .work_thread import WorkThread, WorkThreadException
 from .util import *
 
 
-def get_missing_files(pac_file_path, cache_path):
+def get_missing_files(pac_file_path, existing_files):
     """
     Helper to get a set of missing files called out/required by a PAC file.
     These files are "required" as they are part of a character definition.
@@ -24,7 +24,7 @@ def get_missing_files(pac_file_path, cache_path):
         raise WorkThreadException("Error Enumerating PAC File", f"Failed to get files list from {base_name}!")
 
     # Determine if we are missing any files that the PAC file says we need.
-    existing_files = set(os.listdir(cache_path))
+    existing_files = set(existing_files)
     missing_files = required_files - existing_files
 
     return missing_files
@@ -48,28 +48,25 @@ def hpl_filter_func(hpl_file):
 
 
 class ExtractThread(WorkThread):
-    def __init__(self, abbreviation, paths):
+    def __init__(self, character, paths):
         WorkThread.__init__(self)
-        self.abbreviation = abbreviation
+        self.character = character
         self.paths = paths
 
-        self.hip_images = []
-        self.palette_info = defaultdict(list)
-
-    def _extract_palettes(self, palette_cache_path):
+    def _extract_palettes(self):
         """
-        Helper to extract HPL palette files and dump them to `palette_cache_path`.
+        Helper to extract HPL palette files and dump them to `palette_edit_path`.
         """
-        # If our cache directory doesn't exist we should create it.
-        if not os.path.exists(palette_cache_path):
-            os.makedirs(palette_cache_path)
+        existing_hpl_files = []
+        for _, __, hpl_files_list in self.paths.walk_edit(self.character):
+            existing_hpl_files.extend([os.path.basename(hpl_full_path) for hpl_full_path in hpl_files_list])
 
-        # Get the file name for the palette PAC file associated to the the character `self.abbreviation`.
-        palette_file_name = PALETTE_FILE_FMT.format(self.abbreviation)
+        # Get the file name for the palette PAC file associated to the given character.
+        palette_file_name = PALETTE_FILE_FMT.format(self.character)
         palette_file_path = os.path.join(self.paths.bbcf_data_dir, palette_file_name)
 
         self.message.emit("Looking for missing HPL files...")
-        missing_hpl_files = get_missing_files(palette_file_path, palette_cache_path)
+        missing_hpl_files = get_missing_files(palette_file_path, existing_hpl_files)
 
         # Only perform a PAC extraction if we are missing any files called out in the PAC.
         if missing_hpl_files:
@@ -83,48 +80,51 @@ class ExtractThread(WorkThread):
                 self.message.emit("Backing up game palette files...")
                 shutil.copyfile(palette_file_path, palette_backup_path)
 
-            try:
-                self.message.emit("Extracting HPL palette files...")
-                extract_pac(palette_file_path, palette_cache_path, extract_filter=hpl_file_filter)
+            # Extract the PAC to a temporary location that will be deleted when we are done.
+            with temp_directory() as temp_dir:
+                try:
+                    self.message.emit("Extracting HPL palette files...")
+                    extract_pac(palette_file_path, temp_dir, extract_filter=hpl_file_filter)
 
-            except Exception:
-                message = f"Failed to extract HPL files from {palette_file_name}!"
-                raise WorkThreadException("Error Extracting PAC File", message)
+                except Exception:
+                    message = f"Failed to extract HPL files from {palette_file_name}!"
+                    raise WorkThreadException("Error Extracting PAC File", message)
 
-        # Listing this directory will include backup files if they exist. We should not iterate those to save time.
-        hpl_file_list = os.listdir(palette_cache_path)
-        hpl_file_list = filter(hpl_filter_func, hpl_file_list)
+                # Extract new palettes to the edit palette directory for this character.
+                self.message.emit("Creating HPL palette file meta data...")
+                for hpl_file in os.listdir(temp_dir):
+                    hpl_src_path = os.path.join(temp_dir, hpl_file)
+                    palette_num = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
+                    palette_id = palette_number_to_id(palette_num)
 
-        # Iterate our cached palette files and create a mapping of palette IDs to a list of associated files.
-        # A palette ID is the in-game palette number you choose at character select.
-        self.message.emit("Creating HPL palette file meta data...")
-        for hpl_file in hpl_file_list:
-            palette_num = hpl_file[2:4]
-            palette_num_in_game = int(palette_num) + 1
-            palette_id = f"{palette_num_in_game:02}"
-            self.palette_info[palette_id].append(hpl_file)
+                    palette_edit_path = self.paths.get_edit_palette_path(self.character, palette_id)
 
-            # Back up our HPL palette file if we have not already.
-            # We create backups of these files so we can restore the game-provided content if desired.
-            hpl_backup_path = os.path.join(palette_cache_path, hpl_file.replace(PALETTE_EXT, BACKUP_PALETTE_EXT))
-            if not os.path.exists(hpl_backup_path):
-                hpl_file_path = os.path.join(palette_cache_path, hpl_file)
-                shutil.copyfile(hpl_file_path, hpl_backup_path)
+                    # If our edit path doesnt exist yet we should make it..
+                    if not os.path.exists(palette_edit_path):
+                        os.makedirs(palette_edit_path)
 
-    def _extract_sprites(self, img_cache_path):
+                    # This is the first extraction of the palettes.
+                    # We create the backup/original version of the palette as well as the file which will be edited.
+                    hpl_dst_path = os.path.join(palette_edit_path, hpl_file)
+                    shutil.copyfile(hpl_src_path, hpl_dst_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT))
+                    shutil.copyfile(hpl_src_path, hpl_dst_path)
+
+    def _extract_sprites(self):
         """
-        Helper to extract HIP image files and dump them to `image_cache_path`.
+        Helper to extract HIP image files and dump them to the cache path for the selected character.
         """
+        sprite_cache_path = self.paths.get_sprite_cache_path(self.character)
+ 
         # If our cache directory doesn't exist we should create it.
-        if not os.path.exists(img_cache_path):
-            os.makedirs(img_cache_path)
+        if not os.path.exists(sprite_cache_path):
+            os.makedirs(sprite_cache_path)
 
-        # Get the file name for the sprite PAC file associated to the the character `self.abbreviation`.
-        img_file_name = IMAGE_FILE_FMT.format(self.abbreviation)
-        img_file_path = os.path.join(self.paths.bbcf_data_dir, img_file_name)
+        # Get the file name for the sprite PAC file associated to the the character `self.character`.
+        sprite_file_name = SPRITE_FILE_FMT.format(self.character)
+        sprite_file_path = os.path.join(self.paths.bbcf_data_dir, sprite_file_name)
 
         self.message.emit("Looking for missing HIP files...")
-        missing_hip_files = get_missing_files(img_file_path, img_cache_path)
+        missing_hip_files = get_missing_files(sprite_file_path, os.listdir(sprite_cache_path))
 
         # Only perform a PAC extraction if we are missing any files called out in the PAC.
         if missing_hip_files:
@@ -132,27 +132,12 @@ class ExtractThread(WorkThread):
 
             try:
                 self.message.emit("Extracting image files...")
-                extract_pac(img_file_path, img_cache_path, extract_filter=hip_file_filter)
+                extract_pac(sprite_file_path, sprite_cache_path, extract_filter=hip_file_filter)
 
             except Exception:
-                message = f"Failed to extract HIP files from {img_file_name}!"
+                message = f"Failed to extract HIP files from {sprite_file_name}!"
                 raise WorkThreadException("Error Extracting PAC File", message)
 
-        # Iterate our cached image files and maintain a list of the HIP files.
-        # This list is used as a user-facing file list, as these are the actual game files.
-        # Any PNGs generated by the tool are "internal".
-        self.message.emit("Creating HIP image list...")
-        for hip_image in os.listdir(img_cache_path):
-            # We check for the character abbreviation in the file name as some characters seem to have
-            # sprite data in their PAC files that belongs to other characters? I don't understand why.
-            # For now, we are not editing this information so we can just... not deal with it :D
-            # Hopefully this change does not exclude any actually important sprites.
-            if hip_image.endswith(".hip") and self.abbreviation in hip_image:
-                self.hip_images.append(hip_image)
-
     def work(self):
-        palette_cache_path = self.paths.get_palette_cache_path(self.abbreviation)
-        img_cache_path = self.paths.get_image_cache_path(self.abbreviation)
-
-        self._extract_palettes(palette_cache_path)
-        self._extract_sprites(img_cache_path)
+        self._extract_palettes()
+        self._extract_sprites()

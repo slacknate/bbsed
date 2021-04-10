@@ -1,6 +1,5 @@
 import os
 import shutil
-import tempfile
 
 from libpac import create_pac
 
@@ -14,35 +13,43 @@ class ApplyThread(WorkThread):
         self.files_to_apply = files_to_apply
         self.paths = paths
 
+    def _apply_palettes(self, temp_dir, character, selected_palettes, hpl_file_list):
+        """
+        Gather our HPL files for the given character and generate a PAC file to be copied to the BBCF
+        game data directory. For any palettes not explicitly selected by the user we will insert the game
+        version of the palette into the PAC file so we create a full valid character palette file.
+        """
+        pac_file_name = PALETTE_FILE_FMT.format(character)
+        pac_full_path = os.path.join(self.paths.bbcf_data_dir, pac_file_name)
+
+        # Copy the user selected palettes to the temp directory.
+        for hpl_full_path in hpl_file_list:
+            temp_hpl_file = os.path.basename(hpl_full_path).replace(DIRTY_PALETTE_EXT, PALETTE_EXT)
+            shutil.copyfile(hpl_full_path, os.path.join(temp_dir, temp_hpl_file))
+
+        # Copy game-version-palettes to the temp directory as necessary.
+        for palette_num in range(GAME_MAX_PALETTES):
+            palette_id = palette_number_to_id(palette_num)
+
+            # Only include game-version palettes if the user did not make a selection for this palette ID.
+            if palette_id not in selected_palettes:
+                for hpl_full_path in self.paths.get_game_palette(character, palette_id):
+                    temp_hpl_file = os.path.basename(hpl_full_path).replace(BACKUP_PALETTE_EXT, PALETTE_EXT)
+                    shutil.copyfile(hpl_full_path, os.path.join(temp_dir, temp_hpl_file))
+
+        try:
+            # Create a PAC file with the temp directory as the source.
+            self.message.emit(f"Creating {pac_file_name}...")
+            create_pac(temp_dir, pac_full_path)
+
+        except Exception:
+            raise WorkThreadException("Error Creating PAC File",
+                                      f"Failed to create PAC file from HIP file list!")
+
     def work(self):
-        for pac_file_name, hpl_file_list in self.files_to_apply.items():
-            pac_full_path = os.path.join(self.paths.bbcf_data_dir, pac_file_name)
-            temp_dir = tempfile.mkdtemp()
-
-            self.message.emit("Gathering HPL palette files...")
-            for hpl_full_path in hpl_file_list:
-                if hpl_full_path.endswith(DIRTY_PALETTE_EXT):
-                    updated_full_path = hpl_full_path.replace(DIRTY_PALETTE_EXT, PALETTE_EXT)
-                    base_name = os.path.basename(updated_full_path)
-
-                    temp_full_path = os.path.join(temp_dir, base_name)
-                    shutil.copyfile(hpl_full_path, temp_full_path)
-
-                    os.remove(updated_full_path)
-                    shutil.copyfile(hpl_full_path, updated_full_path)
-                    os.remove(hpl_full_path)
-
-                else:
-                    temp_full_path = os.path.join(temp_dir, os.path.basename(hpl_full_path))
-                    shutil.copyfile(hpl_full_path, temp_full_path)
-
-            try:
-                self.message.emit(f"Creating {pac_file_name}...")
-                create_pac(temp_dir, pac_full_path)
-
-            except Exception:
-                raise WorkThreadException("Error Creating PAC File",
-                                          f"Failed to create PAC file from HIP file list!")
-
-            finally:
-                shutil.rmtree(temp_dir)
+        self.message.emit("Gathering HPL palette files...")
+        for character, (selected_palettes, hpl_file_list) in self.files_to_apply.items():
+            # We have a helper method mostly so we can apply all these palettes within the temp_directory block
+            # but not have to have the extra indentation.
+            with temp_directory() as temp_dir:
+                self._apply_palettes(temp_dir, character, selected_palettes, hpl_file_list)

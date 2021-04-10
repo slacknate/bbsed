@@ -1,17 +1,20 @@
 import io
 import os
+import re
 import sys
 import shutil
 import subprocess
 
 from PyQt5 import Qt, QtCore, QtWidgets
 
+from libpac import enumerate_pac
 from libhip import convert_from_hip
 from libhpl import convert_to_hpl, replace_palette, get_palette_index
 
 from .ui.mainwindow_ui import Ui_MainWindow
 from .settingsdialog import SettingsDialog
 from .palettedialog import PaletteDialog
+from .applydialog import ApplyDialog
 from .zoomdialog import ZoomDialog
 from .errordialog import ErrorDialog
 from .config import Configuration
@@ -24,6 +27,26 @@ from .char_info import *
 from .util import *
 
 BASE_WINDOW_TITLE = "BBCF Sprite Editor"
+NON_ALPHANUM_REGEX = re.compile(r"[^\w]")
+
+
+class AppConfig(Configuration):
+
+    SETTINGS = {"bbsed": {"steam_install": ""}}
+
+    def __init__(self, paths):
+        Configuration.__init__(self, paths.app_config_file)
+        # Set the config reference in the Paths object to this Configuration object.
+        # We do this here to avoid a "chicken-and-egg" problem.
+        paths.set_app_config(self)
+
+    @property
+    def steam_install(self):
+        """
+        Property to get the setting value from the config
+        that will also make IDE introspection work correctly.
+        """
+        return getattr(self, "bbsed_steam_install")
 
 
 # TODO: icons
@@ -38,14 +61,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(BASE_WINDOW_TITLE)
 
         self.paths = Paths()
-        self.config = Configuration(self.paths)
-
+        self.config = AppConfig(self.paths)
         self._check_steam_install()
 
-        self.current_char = ""
         self.current_sprite = io.BytesIO()
-        self.hip_images = []
-        self.palette_info = {}
 
         self.palette_dialog = PaletteDialog(self)
         self.palette_dialog.palette_data_changed.connect(self.update_palette)
@@ -57,19 +76,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sprite_preview.setScene(self.sprite_scene)
 
         # FIXME: there's something weird about drag select being off by one...
-        self.ui.file_list.itemSelectionChanged.connect(self.select_sprite)
+        self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
         self.ui.palette_select.currentIndexChanged[int].connect(self.select_palette)
+        self.ui.save_select.currentIndexChanged.connect(self.select_saved_palette)
+        self.ui.delete_palette.setEnabled(False)
 
         # We need to sort the character info before adding to the selection combo box.
         # This way the combo box index will match the defined character IDs in the char_info module.
         sorted_chars = list(CHARACTER_INFO.items())
         sorted_chars.sort(key=lambda item: item[0])
 
-        for char_id, (char_name, _) in sorted_chars:
-            self.ui.char_select.addItem(char_name, char_id)
+        for _, (character_name, character) in sorted_chars:
+            self.ui.char_select.addItem(character_name, character)
 
         self.ui.char_select.setCurrentIndex(-1)
-        self.ui.char_select.currentIndexChanged[int].connect(self.character_selected)
+        self.ui.char_select.currentIndexChanged.connect(self.select_character)
 
         # Set out the sprite preview mouse events so we can update various app visuals.
         self.ui.sprite_preview.setMouseTracking(True)
@@ -77,30 +98,31 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sprite_preview.mouseMoveEvent = self.move_zoom_cursor
         self.ui.sprite_preview.enterEvent = self.set_cross_cursor
 
-        # Setup menu and toolbar actions so they actually do stuff!
+        # File Menu
         self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
         self.ui.settings.triggered.connect(self.edit_settings)
         self.ui.exit.triggered.connect(self.exit_app)
-        self.ui.import_palettes.triggered.connect(self.import_palettes)
-        self.ui.export_all.triggered.connect(self.export_all)
-        self.ui.export_character.triggered.connect(self.export_character)
-        self.ui.export_palette.triggered.connect(self.export_palette)
+        # View Menu
         self.ui.view_palette.triggered.connect(self.toggle_palette)
         self.ui.view_zoom.triggered.connect(self.toggle_zoom)
-        self.ui.apply_all.triggered.connect(self.apply_all)
-        self.ui.apply_character.triggered.connect(self.apply_character)
-        self.ui.apply_palette.triggered.connect(self.apply_palette)
-        self.ui.discard_all.triggered.connect(self.discard_all)
-        self.ui.discard_character.triggered.connect(self.discard_character)
-        self.ui.discard_palette.triggered.connect(self.discard_palette)
-        self.ui.reset_all.triggered.connect(self.reset_all)
-        self.ui.reset_character.triggered.connect(self.reset_character)
-        self.ui.reset_palette.triggered.connect(self.reset_palette)
+        # Game Files Toolbar and Menu
         self.ui.restore_all.triggered.connect(self.restore_all)
         self.ui.restore_character.triggered.connect(self.restore_character)
-        self.ui.clear_entire_cache.triggered.connect(self.clear_entire_cache)
-        self.ui.clear_character_cache.triggered.connect(self.clear_character_cache)
-        self.ui.clear_palette_cache.triggered.connect(self.clear_palette_cache)
+        self.ui.apply_palettes.triggered.connect(self.apply_palettes)
+        # Edit Palette Toolbar and Menu
+        self.ui.import_palettes.triggered.connect(self.import_palettes)
+        self.ui.export_palettes.triggered.connect(self.export_palettes)
+        self.ui.save_palette.triggered.connect(self.save_palette)
+        self.ui.delete_palette.triggered.connect(self.delete_palette)
+        # TODO: copy/paste here
+        self.ui.discard_palette.triggered.connect(self.discard_palette)
+
+    def set_palette_tools_enable(self, state):
+        """
+        Set the enable state of the palettes menu and toolbar together.
+        """
+        self.ui.palettes_toolbar.setEnabled(state)
+        self.ui.palettes_menu.setEnabled(state)
 
     def launch_bbcf(self, _):
         """
@@ -141,6 +163,47 @@ class MainWindow(QtWidgets.QMainWindow):
         self.palette_dialog.hide()
         self.zoom_dialog.hide()
 
+    def _detect_nameless_hpl(self, hpl_full_path, hpl_file_list, save_name_map):
+        """
+        Look for HPL files we are attempting to import that do not have a bbsed save marker.
+        If we find such a file we ask the user for a name to associate to the imported files on
+        a character/palette ID basis.
+        """
+        hpl_file = os.path.basename(hpl_full_path)
+        char_pal_id = hpl_file[:CHAR_ABBR_LEN+PALETTE_ID_LEN]
+
+        if PALETTE_SAVE_MARKER not in hpl_full_path and char_pal_id not in save_name_map:
+            palette_name, accepted = self._choose_palette_name(hpl_file)
+
+            if not accepted:
+                message = "Did not specify import save name! Aborting import!"
+                self.show_message_dialog("Aborting Import", message, icon=QtWidgets.QMessageBox.Icon.Critical)
+                return False
+
+            save_name_map[char_pal_id] = palette_name
+
+        hpl_file_list.append(hpl_full_path)
+        return True
+
+    def _detect_nameless_hpl_in_pac(self, pac_full_path, pac_file_list, save_name_map):
+        """
+        Enumerate the given PAC file and look for nameless HPL files in the files that are embedded.
+        """
+        try:
+            file_list = enumerate_pac(pac_full_path)
+
+        except Exception:
+            message = f"Failed to get files list from {pac_full_path}! Aborting import!"
+            self.show_error_dialog("Error Enumerating PAC File", message)
+            return False
+
+        for hpl_file, _, __, __ in file_list:
+            if not self._detect_nameless_hpl(hpl_file, [], save_name_map):
+                return False
+
+        pac_file_list.append(pac_full_path)
+        return True
+
     def import_palettes(self, _):
         """
         Callback for the palette import action. Allow the user to import palettes they may have
@@ -148,6 +211,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         hpl_file_list = []
         pac_file_list = []
+        save_name_map = {}
 
         palette_file_list, _ = QtWidgets.QFileDialog.getOpenFileNames(
 
@@ -158,28 +222,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # NOTE: if we cancel the dialog then `palette_file_list` will be empty.
 
+        # TODO: what if a PAC file has collisions with selected HPL files?
         for palette_full_path in palette_file_list:
             if palette_full_path.endswith(PALETTE_EXT):
-                hpl_file_list.append(palette_full_path)
+                if not self._detect_nameless_hpl(palette_full_path, hpl_file_list, save_name_map):
+                    return
 
             elif palette_full_path.endswith(GAME_PALETTE_EXT):
-                pac_file_list.append(palette_full_path)
+                if not self._detect_nameless_hpl_in_pac(palette_full_path, pac_file_list, save_name_map):
+                    return
 
         # Don't run any thread's if we do not need to.
         if hpl_file_list or pac_file_list:
-            thread = ImportThread(hpl_file_list, pac_file_list, self.paths)
+            thread = ImportThread(hpl_file_list, pac_file_list, save_name_map, self.paths)
             self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
 
-            char_index = self.ui.char_select.currentIndex()
-            pal_index = self.ui.palette_select.currentIndex()
-
-            # If we have a selected character and palette then we should update the sprite preview
-            # on the off chance that one of the imported palettes corresponds to the character and
-            # palette that we are currently viewing.
-            if char_index != -1 and pal_index != -1:
-                self._update_sprite_preview(pal_index)
-
-    def _get_export_pac(self):
+    def _choose_export_pac(self):
         """
         Helper to get the export PAC file path which will be our export destination.
         """
@@ -192,70 +250,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return pac_path
 
-    def _run_export_thread(self, pac_path, files_to_export):
-        """
-        Helper to run our export thread based on a set of files to export that was generated
-        in the various export button UI callbacks.
-        """
-        thread = ExportThread(pac_path, files_to_export)
-
-        self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
-
-    def export_all(self):
+    def export_palettes(self):
         """
         Callback for the Export All action. Share all your palettes with friends :D
         """
-        pac_path = self._get_export_pac()
-
+        pac_path = self._choose_export_pac()
         if pac_path:
-            files_to_export = []
-
-            for character in self.paths.iter_data_dir():
-                palette_cache_path = self.paths.get_palette_cache_path(character)
-
-                hpl_file_list = self._get_character_palettes(palette_cache_path)
-                files_to_export.extend(hpl_file_list)
-
-            self._run_export_thread(pac_path, files_to_export)
-
-    def export_character(self):
-        """
-        Callback for the Export Character action. Share your character palettes with friends :D
-        """
-        pac_path = self._get_export_pac()
-
-        if pac_path:
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
-            files_to_export = self._get_character_palettes(palette_cache_path)
-
-            self._run_export_thread(pac_path, files_to_export)
-
-    def export_palette(self):
-        """
-        Callback for the Export Palette action. Share your current palette with friends :D
-        """
-        pac_path = self._get_export_pac()
-
-        if pac_path:
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
-            palette_id = self.ui.palette_select.currentText()
-
-            palette_num_in_files = int(palette_id) - 1
-            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
-
-            hpl_file_list = self._get_character_palettes(palette_cache_path)
-
-            def _filter_hpl_files(_hpl_full_path):
-                """
-                Remove any files not associated to our selected palette.
-                """
-                _hpl_file = os.path.basename(_hpl_full_path)
-                return _hpl_file.startswith(hpl_file_prefix)
-
-            # We only want to export the files from the selected palette.
-            files_to_export = filter(_filter_hpl_files, hpl_file_list)
-
-            self._run_export_thread(pac_path, files_to_export)
+            thread = ExportThread(pac_path, self.paths)
+            self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
 
     def toggle_palette(self, check_state):
         """
@@ -300,15 +302,8 @@ class MainWindow(QtWidgets.QMainWindow):
             dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
             backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
 
-            # For palette files associated to the current palette we include the dirty versions if they exist
-            # and only include non-dirty versions of the palette files if a dirty version does not exist.
-            # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
-            #       that defines what sprites/data the other files are associated to, so for the time being
-            #       we will only ever have a dirty version of this first palette file from each PAC file.
-            # We purposefully do not include backup files in the hpl files list.
-            dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
-
-            if (dirty or (not dirty and not dirty_exists)) and not backup:
+            # Only get our dirty files from the edit cache.
+            if dirty and not backup:
                 hpl_file_list.append(hpl_full_path)
 
         return hpl_file_list
@@ -319,144 +314,25 @@ class MainWindow(QtWidgets.QMainWindow):
         in the various apply button UI callbacks.
         """
         thread = ApplyThread(files_to_apply, self.paths)
-
         self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
-    def apply_all(self, _):
+    def apply_palettes(self, _):
         """
         Callback for the Apply All action. Apply all palettes to the BBCF game data.
         """
-        message = "Do you want to apply all palettes to BBCF game data?"
-        apply = self.show_confirm_dialog("Apply All Palettes", message)
+        dialog = ApplyDialog(self.paths, parent=self)
+        apply = dialog.exec_()
 
+        # If we accepted the dialog then execute the application of files to game data.
         if apply:
-            files_to_apply = {}
-
-            for character in self.paths.iter_data_dir():
-                palette_cache_path = self.paths.get_palette_cache_path(character)
-                palette_file_name = PALETTE_FILE_FMT.format(character)
-
-                hpl_file_list = self._get_character_palettes(palette_cache_path)
-                files_to_apply[palette_file_name] = hpl_file_list
-
+            files_to_apply = dialog.get_files_to_apply()
             self._run_apply_thread(files_to_apply)
-
-    def apply_character(self, _):
-        """
-        Callback for the Apply Character action. Apply all palettes for selected character to the BBCF game data.
-        """
-        character_name = self.ui.char_select.currentText()
-
-        message = f"Do you want to apply all palettes for {character_name} to BBCF game data?"
-        apply = self.show_confirm_dialog("Apply Character Palettes", message)
-
-        if apply:
-            files_to_apply = {}
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
-            palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
-
-            hpl_file_list = self._get_character_palettes(palette_cache_path)
-            files_to_apply[palette_file_name] = hpl_file_list
-
-            self._run_apply_thread(files_to_apply)
-
-    def apply_palette(self, _):
-        """
-        Callback for the Apply Character action. Apply current palette for selected character to the BBCF game data.
-        """
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
-
-        message = f"Do you want to apply {character_name} palette {palette_id} to BBCF game data?"
-        apply = self.show_confirm_dialog("Apply Character Palettes", message)
-
-        if apply:
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
-            palette_id = self.ui.palette_select.currentText()
-            files_to_apply = {}
-
-            palette_num_in_files = int(palette_id) - 1
-            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
-
-            hpl_file_list = []
-            palette_file_name = PALETTE_FILE_FMT.format(self.current_char)
-            files_to_apply[palette_file_name] = hpl_file_list
-
-            # We have to create a PAC file with all our HPL files in order to edit character data in a valid way.
-            # However we need to ensure not to include both the dirty and non-dirty versions of the palette.
-            # We only want to look for dirty versions of files associated to the current palette.
-            for hpl_file in os.listdir(palette_cache_path):
-                hpl_full_path = os.path.join(palette_cache_path, hpl_file)
-
-                current = hpl_file.startswith(hpl_file_prefix)
-                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
-                backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
-
-                # For palette files associated to the current palette we include the dirty versions if they exist
-                # and only include non-dirty versions of the palette files if a dirty version does not exist.
-                # NOTE: Right now we can only edit palette file nnXX_00.hpl as we have not yet created a mapping
-                #       that defines what sprites/data the other files are associated to, so for the time being
-                #       we will only ever have a dirty version of this first palette file from each PAC file.
-                # We do not include backup files in application-to-game-data process.
-                if current:
-                    dirty_exists = os.path.exists(hpl_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
-
-                    if (dirty or (not dirty and not dirty_exists)) and not backup:
-                        hpl_file_list.append(hpl_full_path)
-
-                # For palette files not associated to the current palette we only include the non-dirty versions.
-                # We do not include backup files in application-to-game-data process.
-                elif not current and not dirty and not backup:
-                    hpl_file_list.append(hpl_full_path)
-
-            self._run_apply_thread(files_to_apply)
-
-    @staticmethod
-    def _delete_character_files(palette_cache_path):
-        """
-        Helper to list the contents of a character palette cache and remove the dirty files from it.
-        """
-        for hpl_file in os.listdir(palette_cache_path):
-            # Get rid of the dirty files.
-            if hpl_file.endswith(DIRTY_PALETTE_EXT):
-                hpl_full_path = os.path.join(palette_cache_path, hpl_file)
-                os.remove(hpl_full_path)
-
-    def discard_all(self, _):
-        """
-        Delete the dirty version of all palette files for all characters.
-        """
-        message = "Do you wish to discard all edited palettes?"
-        discard = self.show_confirm_dialog("Discard All Edited Palettes", message)
-
-        if discard:
-            for character in self.paths.iter_data_dir():
-                palette_cache_path = self.paths.get_palette_cache_path(character)
-                self._delete_character_files(palette_cache_path)
-
-            pal_index = self.ui.palette_select.currentIndex()
-            self._update_sprite_preview(pal_index)
-
-    def discard_character(self, _):
-        """
-        Discard the dirty version of all palette files for the selected character.
-        """
-        character_name = self.ui.char_select.currentText()
-
-        message = f"Do you wish to discard all edited palettes for {character_name}?"
-        discard = self.show_confirm_dialog("Discard Edited Character Palettes", message)
-
-        if discard:
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
-            self._delete_character_files(palette_cache_path)
-
-            pal_index = self.ui.palette_select.currentIndex()
-            self._update_sprite_preview(pal_index)
 
     def discard_palette(self, _):
         """
         Discard the dirty version of all files associated to the current palette.
         """
+        character = self.ui.char_select.currentData()
         character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
 
@@ -464,168 +340,21 @@ class MainWindow(QtWidgets.QMainWindow):
         discard = self.show_confirm_dialog("Discard Edited Palette", message)
 
         if discard:
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
+            palette_edit_path = self.paths.get_edit_palette_path(character, palette_id)
             palette_id = self.ui.palette_select.currentText()
 
-            palette_num_in_files = int(palette_id) - 1
-            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
+            palette_num = palette_id_to_number(palette_id)
+            hpl_file_prefix = f"{character}{palette_num}_"
 
-            for hpl_file in os.listdir(palette_cache_path):
+            for hpl_file in os.listdir(palette_edit_path):
                 current = hpl_file.startswith(hpl_file_prefix)
                 dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
 
                 if current and dirty:
-                    hpl_full_path = os.path.join(palette_cache_path, hpl_file)
+                    hpl_full_path = os.path.join(palette_edit_path, hpl_file)
                     os.remove(hpl_full_path)
 
-            pal_index = self.ui.palette_select.currentIndex()
-            self._update_sprite_preview(pal_index)
-
-    @staticmethod
-    def _reset_character_files(palette_cache_path):
-        """
-        Helper to list the files in a character palette cache and remove all dirty files
-        and restore non-dirty files to the game data backup.
-        """
-        for hpl_file in os.listdir(palette_cache_path):
-            # Our backup files should be ignored here as we are using them to reset
-            # palette data to the version that comes with the game data.
-            if not hpl_file.endswith(BACKUP_PALETTE_EXT):
-                dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
-                hpl_full_path = os.path.join(palette_cache_path, hpl_file)
-
-                # We can just go ahead and remove any files we encounter regardless of the dirty state.
-                os.remove(hpl_full_path)
-
-                # For non-dirty files we need to replace the HPL file with a copy of the game data backup.
-                if not dirty:
-                    hpl_backup_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
-                    shutil.copyfile(hpl_backup_path, hpl_full_path)
-
-    def reset_all(self, _):
-        """
-        Reset the all palettes for all characters to the versions from the game.
-        """
-        message = "Do you wish to reset all palettes to the original game versions?"
-        reset = self.show_confirm_dialog("Reset All Palettes", message)
-
-        if reset:
-            for character in self.paths.iter_data_dir():
-                palette_cache_path = self.paths.get_palette_cache_path(character)
-                self._reset_character_files(palette_cache_path)
-
-    def reset_character(self, _):
-        """
-        Reset the all palettes for the selected character to the versions from the game.
-        """
-        character_name = self.ui.char_select.currentText()
-
-        message = f"Do you wish to reset palettes for {character_name} to the original game versions?"
-        reset = self.show_confirm_dialog("Reset Character Palettes", message)
-
-        if reset:
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
-            self._reset_character_files(palette_cache_path)
-
-            pal_index = self.ui.palette_select.currentIndex()
-            self._update_sprite_preview(pal_index)
-
-    def reset_palette(self, _):
-        """
-        Reset the selected palette to the version from the game.
-        """
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
-
-        message = f"Do you wish to reset {character_name} palette {palette_id} to the original game version?"
-        reset = self.show_confirm_dialog("Reset All Palettes", message)
-
-        if reset:
-            palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
-            palette_id = self.ui.palette_select.currentText()
-
-            palette_num_in_files = int(palette_id) - 1
-            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
-
-            for hpl_file in os.listdir(palette_cache_path):
-                # Our backup files should be ignored here as we are using them to reset
-                # palette data to the version that comes with the game data.
-                if not hpl_file.endswith(BACKUP_PALETTE_EXT):
-                    current = hpl_file.startswith(hpl_file_prefix)
-                    dirty = hpl_file.endswith(DIRTY_PALETTE_EXT)
-
-                    if current:
-                        hpl_full_path = os.path.join(palette_cache_path, hpl_file)
-
-                        # We can just go ahead and remove any files we encounter regardless of the dirty state.
-                        os.remove(hpl_full_path)
-
-                        # For non-dirty files we need to replace the HPL file with a copy of the game data backup.
-                        if not dirty:
-                            hpl_backup_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
-                            shutil.copyfile(hpl_backup_path, hpl_full_path)
-
-            pal_index = self.ui.palette_select.currentIndex()
-            self._update_sprite_preview(pal_index)
-
-    def clear_entire_cache(self, _):
-        """
-        Remove all cached data.
-        """
-        message = "Do you wish to clear all editor cache data?"
-        clear = self.show_confirm_dialog("Clear Editor Cache", message)
-
-        if clear:
-            for character in self.paths.iter_data_dir():
-                character_full_path = self.paths.get_character_cache_path(character)
-                shutil.rmtree(character_full_path)
-
-            # We no longer have sprite data. We should reset the UI so the user must re-select things
-            # which will subsequently cause the app to re-cache data.
-            self._reset_ui(deselect_character=True)
-
-    def clear_character_cache(self, _):
-        """
-        Remove all cached data for the selected character.
-        """
-        character_name = self.ui.char_select.currentText()
-
-        message = f"Do you wish to clear editor cache data for {character_name}?"
-        clear = self.show_confirm_dialog("Clear Editor Character Cache", message)
-
-        if clear:
-            shutil.rmtree(self.paths.get_character_cache_path(self.current_char))
-
-            # We no longer have sprite data. We should reset the UI so the user must re-select things
-            # which will subsequently cause the app to re-cache data.
-            self._reset_ui(deselect_character=True)
-
-    def clear_palette_cache(self, _):
-        """
-        Remove all cached data for the selected palette.
-        """
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
-
-        message = f"Do you wish to clear editor cache data for {character_name} palette {palette_id}?"
-        clear = self.show_confirm_dialog("Clear Editor Palette Cache", message)
-
-        if clear:
-            palette_num_in_files = int(palette_id) - 1
-            hpl_file_prefix = f"{self.current_char}{palette_num_in_files:02}_"
-
-            palette_cache_dir = self.paths.get_palette_cache_path(self.current_char)
-
-            for hpl_file in os.listdir(palette_cache_dir):
-                if hpl_file.startswith(hpl_file_prefix):
-                    hpl_full_path = os.path.join(palette_cache_dir, hpl_file)
-                    os.remove(hpl_full_path)
-
-            with block_signals(self.ui.file_list):
-                # Empty QModelIndex is the list widget equivalent to -1 for combo boxes.
-                self.ui.file_list.setCurrentIndex(QtCore.QModelIndex())
-
-            self._clear_sprite_data()
+            self._update_sprite_preview()
 
     def _restore_character_palettes(self, character):
         """
@@ -648,7 +377,7 @@ class MainWindow(QtWidgets.QMainWindow):
         restore = self.show_confirm_dialog("Restore Game Files", message)
 
         if restore:
-            for character in self.paths.iter_data_dir():
+            for character in VALID_CHARACTERS:
                 self._restore_character_palettes(character)
 
     def restore_character(self, _):
@@ -661,7 +390,112 @@ class MainWindow(QtWidgets.QMainWindow):
         restore = self.show_confirm_dialog("Restore Game Files", message)
 
         if restore:
-            self._restore_character_palettes(self.current_char)
+            character = self.ui.char_select.currentData()
+            self._restore_character_palettes(character)
+
+    def _save_palette(self, palette_name):
+        """
+        Save the current palette with the given name.
+        We will be able to recall and export this palette after it is saved.
+        """
+        character = self.ui.char_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+
+        save_dst_path = self.paths.get_character_save_path(character, palette_id, palette_name)
+        if not os.path.exists(save_dst_path):
+            os.makedirs(save_dst_path)
+
+        files_to_save = self.paths.get_edit_palette(character, palette_id)
+
+        for hpl_src_path in files_to_save:
+            hpl_file = os.path.basename(hpl_src_path)
+
+            # Do not save the palette with the dirty palette extension. We want the standard extension.
+            hpl_dst_path = os.path.join(save_dst_path, hpl_file).replace(DIRTY_PALETTE_EXT, PALETTE_EXT)
+            shutil.copyfile(hpl_src_path, hpl_dst_path)
+
+            # If our file was indeed a dirty version we should remove it how that it has been saved elsewhere.
+            if hpl_src_path.endswith(DIRTY_PALETTE_EXT):
+                os.remove(hpl_src_path)
+
+        # Add this palette to the selectable saved palettes.
+        with block_signals(self.ui.save_select):
+            self.ui.save_select.addItem(palette_name, PALETTE_SAVE)
+
+        # If this is the first palette saved for this character and palette ID then we will need to enable
+        # the save select combobox.
+        if not self.ui.save_select.isEnabled():
+            self.ui.save_select.setEnabled(True)
+
+    def _choose_palette_name(self, hpl_file=None):
+        """
+        Helper method to show an input dialog to select the name for a palette
+        that we either created ourselves or are importing from something else.
+
+        The caller can optionally provide an HPL file name to display in the dialog
+        so the user has an idea of what palette they are naming. This is mostly useful
+        for importing PAC or HPL files that do not come from a bbsed export.
+        """
+        hpl_fmt = ""
+        if hpl_file is not None:
+            hpl_fmt = f" ({hpl_file})"
+
+        while True:
+            flags = QtCore.Qt.WindowType.WindowTitleHint
+            message = f"Choose a name for your palette{hpl_fmt}:"
+            palette_name, accepted = QtWidgets.QInputDialog.getText(self, "Name Your Palette", message, flags=flags)
+
+            # Restrict palette names to alphanumeric characters and underscore.
+            # However if the dialog is not accepted we ignore the restriction as we will be discarding
+            # any entered text anyway.
+            if not accepted or NON_ALPHANUM_REGEX.search(palette_name) is None:
+                return palette_name, accepted
+
+            message = "Palette names may only contain alpha-numeric characters and underscores!"
+            self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
+
+    def save_palette(self, _):
+        """
+        Save the current palette to disk.
+        """
+        select_type = self.ui.save_select.currentData()
+
+        # If we have a saved palette selected we keep the name previously chosen.
+        if select_type == PALETTE_SAVE:
+            palette_name = self.ui.save_select.currentText()
+
+        # If we have the edit slot selected then we prompt the user to choose a name.
+        else:
+            palette_name, accepted = self._choose_palette_name()
+
+            # If we did not accept the dialog then we do not want to save the palette.
+            if not accepted:
+                return
+
+        self._save_palette(palette_name)
+
+    def delete_palette(self, _):
+        """
+        Delete the current selected saved palette.
+        """
+        palette_id = self.ui.palette_select.currentText()
+
+        save_index = self.ui.save_select.currentIndex()
+        save_name = self.ui.save_select.currentText()
+
+        message = f"Do you want to delete saved palette {save_name}?"
+        delete = self.show_confirm_dialog("Delete Palette", message)
+
+        if delete:
+            with block_signals(self.ui.save_select):
+                self.ui.save_select.removeItem(save_index)
+
+            character = self.ui.char_select.currentData()
+            save_dst_path = self.paths.get_character_save_path(character, palette_id, save_name)
+            shutil.rmtree(save_dst_path)
+
+            # Re-select the edit slot after we delete a palette.
+            self.ui.save_select.setCurrentIndex(0)
 
     def _clear_sprite_data(self):
         """
@@ -681,54 +515,62 @@ class MainWindow(QtWidgets.QMainWindow):
         Reset the state of the UI. This includes clearing all graphics views, emptying the selectable
         sprite file list, and resetting combo box selections. We also clear meta data associated to these things.
         """
-        self.hip_images = []
-        self.palette_info = {}
-        self.current_char = ""
-
         with block_signals(self.ui.palette_select):
             self.ui.palette_select.setCurrentIndex(-1)
 
-        with block_signals(self.ui.file_list):
-            self.ui.file_list.clear()
+        with block_signals(self.ui.sprite_list):
+            self.ui.sprite_list.clear()
+
+        with block_signals(self.ui.save_select):
+            self.ui.delete_palette.setEnabled(False)
+            self.ui.save_select.setEnabled(False)
+            self.ui.save_select.clear()
+            self.ui.save_select.addItem(EDIT_SLOT_NAME, PALETTE_EDIT)
 
         if deselect_character:
             with block_signals(self.ui.char_select):
                 self.ui.char_select.setCurrentIndex(-1)
 
+            self.set_game_files_tools_enable(False)
+            self.set_palette_tools_enable(False)
+
         self.setWindowTitle(BASE_WINDOW_TITLE)
 
         self._clear_sprite_data()
 
-    def _update_sprite_preview(self, palette_index):
+    def _update_sprite_preview(self, palette_index=None):
         """
         Update the sprite preview with the given palette index.
+        If no index is provided we assume that the current index is to be used.
         This method is only invoked when we pick a new sprite or select a new palette.
         Our cached sprite uses a palette from the sprite data definition, NOT from the
         in-game palette data. This means that we should always be re-writing the palette.
         """
-        palette_id = self.ui.palette_select.itemText(palette_index)
-        hpl_files = self.palette_info[palette_id]
+        if palette_index is None:
+            palette_index = self.ui.palette_select.currentIndex()
 
-        palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
+        palette_id = self.ui.palette_select.itemText(palette_index)
+        select_type = self.ui.save_select.currentData()
+        character = self.ui.char_select.currentData()
+
+        # If we have a saved palette selected we should display that palette.
+        if select_type == PALETTE_SAVE:
+            save_name = self.ui.save_select.currentText()
+            hpl_files = self.paths.get_saved_palette(character, palette_id, save_name)
+
+        # Otherwise display the edit slot data.
+        else:
+            hpl_files = self.paths.get_edit_palette(character, palette_id)
 
         # FIXME: how do we determine which file is for what? e.g. izayoi phorizor?
         #        for now just assume that the first palette is the one that matters, as that is true frequently.
-        first_palette = hpl_files[0]
-
-        palette_full_path = os.path.join(palette_cache_path, first_palette)
-        dirty_full_path = os.path.join(palette_cache_path, first_palette.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
+        palette_full_path = hpl_files[0]
+        dirty_full_path = palette_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
 
         # If we have made changes to a palette we should load those.
         # The "normal" HPL file is kept in sync with what exists in the game data at the BBCF install path.
         if os.path.exists(dirty_full_path):
             palette_full_path = dirty_full_path
-
-        # If we have cleared the cache recently we may need to re-extract the palette data.
-        # We will only need to perform extraction here if we have cleared a specific palette from the cache.
-        # When the entire cache or a character cache is cleared we are forced to re-select a character
-        # which will result in data extraction occurring before we reach this point.
-        if not os.path.exists(palette_full_path):
-            self._run_extract_thread()
 
         try:
             # We are only updating the palette data we aren't writing out any pixel information.
@@ -796,38 +638,40 @@ class MainWindow(QtWidgets.QMainWindow):
         The color in a palette has been changed by the user. Save the changes to disk.
         """
         palette_id = self.ui.palette_select.currentText()
-        character_name = self.ui.char_select.currentText()
-        hpl_files = self.palette_info[palette_id]
-
-        palette_cache_path = self.paths.get_palette_cache_path(self.current_char)
+        character = self.ui.char_select.currentData()
+        hpl_files = self.paths.get_edit_palette(character, palette_id)
 
         # FIXME: see other FIXME about HPL files
-        first_palette = hpl_files[0]
+        palette_full_path = hpl_files[0]
 
         # Save our changes in a "dirty" file so we can discard them easily if we want.
-        palette_full_path = os.path.join(palette_cache_path, first_palette.replace(PALETTE_EXT, DIRTY_PALETTE_EXT))
+        if not palette_full_path.endswith(DIRTY_PALETTE_EXT):
+            palette_full_path = palette_full_path.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
 
         try:
             convert_to_hpl(self.palette_dialog.get_palette_img(), palette_full_path)
 
         except Exception:
+            character_name = self.ui.char_select.currentText()
             message = f"Failed to update palette {palette_id} for {character_name}!"
             self.show_error_dialog("Error Updating Palette", message)
             return
 
-        pal_index = self.ui.palette_select.currentIndex()
-        self._update_sprite_preview(pal_index)
+        self._update_sprite_preview()
 
     def select_sprite(self):
         """
         A new sprite has been selected.
         Update our image preview with the new sprite.
         """
-        item = self.ui.file_list.currentItem()
-        hip_file = item.text()
+        selected_sprite = self.ui.sprite_list.currentIndex()
+        character = self.ui.char_select.currentData()
 
-        img_cache_path = self.paths.get_image_cache_path(self.current_char)
-        hip_full_path = os.path.join(img_cache_path, hip_file)
+        sprite_cache = self.paths.get_sprite_cache(character)
+
+        list_index = selected_sprite.row()
+        hip_full_path = sprite_cache[list_index]
+        hip_file = os.path.basename(hip_full_path)
 
         try:
             self.current_sprite = io.BytesIO()
@@ -837,43 +681,67 @@ class MainWindow(QtWidgets.QMainWindow):
             self.show_error_dialog("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
             return
 
-        pal_index = self.ui.palette_select.currentIndex()
-        self._update_sprite_preview(pal_index)
+        try:
+            self._update_sprite_preview()
+
+        except Exception:
+            self.show_error_dialog("", "")
+            return
 
     def select_palette(self, index):
         """
         A new palette has been selected.
         Replace the palette of the currently selected sprite and update the image preview.
         """
-        item = self.ui.file_list.currentItem()
-
+        selected_sprite = self.ui.sprite_list.currentItem()
+        character = self.ui.char_select.currentData()
         character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
 
         self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
 
-        # Only update the preview is we have a selected sprite and we have also have a selected palette.
-        if item is not None and index >= 0:
+        # When we select a palette ID we need to look for existing saved palettes associated to it.
+        # Based on the presence of these files we also need to update the state of the UI.
+        character_saves = self.paths.get_character_saves(character, palette_id)
+
+        with block_signals(self.ui.save_select):
+            # Disable delete while we do not have a selected saved palette.
+            self.ui.delete_palette.setEnabled(False)
+            # Clearing the save select and re-adding items will auto-select the first item
+            # which will always be a non-saved palette.
+            self.ui.save_select.clear()
+            self.ui.save_select.addItem(EDIT_SLOT_NAME, PALETTE_EDIT)
+
+            # Set the save select enable state based on the presence of files on disk.
+            self.ui.save_select.setEnabled(bool(character_saves))
+            for save_name in character_saves:
+                self.ui.save_select.addItem(save_name, PALETTE_SAVE)
+
+        # Only update the preview if we have a selected sprite and we have also have a selected palette.
+        if selected_sprite is not None and index >= 0:
             self._update_sprite_preview(index)
 
-    def _run_extract_thread(self):
+    def select_saved_palette(self):
         """
-        Helper method to extract game data. Note that this procedure will only extract files
-        called out in the sprite and palette PAC files that it cannot find in the cache.
+        We have selected a palette which has been saved by the user.
         """
-        thread = ExtractThread(self.current_char, self.paths)
+        # Disable the delete button when we have the Edit slot selected.
+        can_delete = self.ui.save_select.currentData() == PALETTE_SAVE
+        self.ui.delete_palette.setEnabled(can_delete)
 
-        success = self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
+        # Only update the preview if we have a selected sprite.
+        # We cannot get here without first selecting a palette.
+        selected_sprite = self.ui.sprite_list.currentItem()
+        if selected_sprite is not None:
+            self._update_sprite_preview()
 
-        # Store the meta data our thread so kindly gathered for us.
-        if success:
-            self.palette_info = thread.palette_info
-            self.hip_images = thread.hip_images
-
-    def character_selected(self, char_id):
+    def select_character(self):
         """
         A new character was picked from the character combobox.
         """
+        character_name = self.ui.char_select.currentText()
+        character = self.ui.char_select.currentData()
+
         # Don't allow the user to interact with these parts of the UI while we are updating them.
         self.ui.sprite_group.setEnabled(False)
 
@@ -881,22 +749,23 @@ class MainWindow(QtWidgets.QMainWindow):
         # so we can use it here without immediately deselecting the character we just picked.
         self._reset_ui(deselect_character=False)
 
-        # Update the current character string.
-        _, self.current_char = CHARACTER_INFO[char_id]
-        character_name = self.ui.char_select.itemText(char_id)
-
         # Extract the character data.
-        self._run_extract_thread()
+        character = self.ui.char_select.currentData()
+        thread = ExtractThread(character, self.paths)
+        self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
 
         # Reset our HIP file list and add the new HIP files so we only have the currently selected character files.
-        with block_signals(self.ui.file_list):
-            self.ui.file_list.addItems(self.hip_images)
+        with block_signals(self.ui.sprite_list):
+            sprite_cache = self.paths.get_sprite_cache(character)
+            ui_sprite_cache = [os.path.basename(sprite_full_path) for sprite_full_path in sprite_cache]
+            self.ui.sprite_list.addItems(ui_sprite_cache)
 
         # Block signals while we add items so the signals are not emitted.
         # We do not want to try to select a palette before a sprite is selected, and
         # at the very least we do not want to spam the signals in a loop regardless.
         with block_signals(self.ui.palette_select):
-            for palette_id, _ in self.palette_info.items():
+            for palette_num in range(GAME_MAX_PALETTES):
+                palette_id = palette_number_to_id(palette_num)
                 self.ui.palette_select.addItem(palette_id)
 
             # Automatically select the first palette.
@@ -906,11 +775,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Re-enable user interaction for everything else.
         self.ui.sprite_group.setEnabled(True)
-        # If our toolbar is disabled (like it is at app launch) we should now enable it.
+        # If our menus and toolbars are disabled (like it is at app launch) we should now enable it.
         # At launch it is disabled due to the fact that we will not have a selected character or palette.
         # If the user clicks any of the buttons with no character or palette selected then bad things happen.
-        if not self.ui.palette_toolbar.isEnabled():
-            self.ui.palette_toolbar.setEnabled(True)
+        # Note that we set the state of the menus and toolbars together so we can just check the toolbar state
+        # here to probe the enable state of both UI elements.
+        if not self.ui.palettes_toolbar.isEnabled():
+            self.set_palette_tools_enable(True)
 
         self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - 01")
 

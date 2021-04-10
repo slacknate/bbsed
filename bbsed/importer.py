@@ -5,20 +5,22 @@ import shutil
 from libpac import extract_pac, enumerate_pac
 
 from .work_thread import WorkThread, WorkThreadException, WorkThreadError
-from .char_info import VALID_ABBREVIATIONS
+from .char_info import VALID_CHARACTERS
 from .util import *
 
-HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2}).hpl")
+HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})(" + PALETTE_SAVE_MARKER + r"\w+)?" + PALETTE_EXT)
+HPL_SAVE_REGEX = re.compile(PALETTE_SAVE_MARKER + r"(\w+)" + PALETTE_EXT)
 # The game only allows the user to pick palettes 1-24, but palettes 25 and 26 exist in the files? Weird.
-MAX_PALETTES = 25
+HPL_MAX_PALETTES = GAME_MAX_PALETTES - 1
 HPL_MAX_FILES_PER_PALETTE = 7
 
 
 class ImportThread(WorkThread):
-    def __init__(self, hpl_file_list, pac_file_list, paths):
+    def __init__(self, hpl_file_list, pac_file_list, save_name_map, paths):
         WorkThread.__init__(self)
         self.hpl_file_list = hpl_file_list
         self.pac_file_list = pac_file_list
+        self.save_name_map = save_name_map
         self.paths = paths
 
     @staticmethod
@@ -42,14 +44,14 @@ class ImportThread(WorkThread):
         # If it does not we cannot know where to put the data in the cache or where to apply the file
         # to the actual game data.
         abbreviation = format_match.group(1)
-        if abbreviation not in VALID_ABBREVIATIONS:
+        if abbreviation not in VALID_CHARACTERS:
             message = f"HPL file name {hpl_file} does not begin with a known character abbreviation!"
             raise WorkThreadError("Invalid HPL palette file!", message)
 
         # Assert that the palette index is valid.
         palette_index = int(format_match.group(2))
-        if palette_index < 0 or palette_index > MAX_PALETTES:
-            message = f"HPL palette index must 00 to {MAX_PALETTES}!"
+        if palette_index < 0 or palette_index > HPL_MAX_PALETTES:
+            message = f"HPL palette index must 00 to {HPL_MAX_PALETTES}!"
             raise WorkThreadError("Invalid HPL palette file!", message)
 
         # Assert that the palette file number is valid.
@@ -58,16 +60,40 @@ class ImportThread(WorkThread):
             message = f"HPL file number must be 00 to {HPL_MAX_FILES_PER_PALETTE:02}!"
             raise WorkThreadError("Invalid HPL palette file!", message)
 
-    def _make_import_path(self, hpl_file, abbreviation):
+    def _import_from_marker(self, hpl_file):
         """
-        Import the palette as a dirty copy so if we have not cached the data for this character yet
-        then when we eventually do cache the data the imported palette is not overwritten.
-        Dirty palettes take precedence so when we load up the character we should see this palette when
-        we select the palette index associated to this file.
+        Import an HPL that has a name containing a bbsed save marker.
+        This allows us to determine where to put the file from the HPL file name.
         """
-        dirty_hpl_file = hpl_file.replace(PALETTE_EXT, DIRTY_PALETTE_EXT)
-        palette_cache_dir = self.paths.get_palette_cache_path(abbreviation)
-        hpl_dst_path = os.path.join(palette_cache_dir, dirty_hpl_file)
+        character = hpl_file[:CHAR_ABBR_LEN]
+
+        palette_number = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
+        palette_id = palette_number_to_id(palette_number)
+
+        match = HPL_SAVE_REGEX.search(hpl_file)
+        save_ext = match.group(0)
+        save_name = match.group(1)
+
+        char_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
+        hpl_file = hpl_file.replace(save_ext, PALETTE_EXT)
+        hpl_dst_path = os.path.join(char_save_path, hpl_file)
+        return hpl_dst_path
+
+    def _import_from_map(self, hpl_file):
+        """
+        Import an HPL file that does not have a name containing a bbsed save marker.
+        However, we asked the user to name this import so we can grab the save name from that map.
+        """
+        character = hpl_file[:CHAR_ABBR_LEN]
+
+        palette_number = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
+        palette_id = palette_number_to_id(palette_number)
+
+        char_pal_id = hpl_file[:CHAR_ABBR_LEN+PALETTE_ID_LEN]
+        save_name = self.save_name_map[char_pal_id]
+
+        char_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
+        hpl_dst_path = os.path.join(char_save_path, hpl_file)
         return hpl_dst_path
 
     def _get_palettes_hpl(self):
@@ -82,8 +108,10 @@ class ImportThread(WorkThread):
             hpl_file = os.path.basename(hpl_src_path)
             self._validate_hpl_file(hpl_file)
 
-            abbreviation = hpl_file[:CHAR_ABBR_LEN]
-            hpl_dst_path = self._make_import_path(hpl_file, abbreviation)
+            if PALETTE_SAVE_MARKER in hpl_file:
+                hpl_dst_path = self._import_from_marker(hpl_file)
+            else:
+                hpl_dst_path = self._import_from_map(hpl_file)
 
             hpl_import_files.append((hpl_src_path, hpl_dst_path))
 
@@ -117,8 +145,10 @@ class ImportThread(WorkThread):
             for hpl_file in os.listdir(temp_dir):
                 hpl_src_path = os.path.join(temp_dir, hpl_file)
 
-                abbreviation = hpl_file[:CHAR_ABBR_LEN]
-                hpl_dst_path = self._make_import_path(hpl_file, abbreviation)
+                if PALETTE_SAVE_MARKER in hpl_file:
+                    hpl_dst_path = self._import_from_marker(hpl_file)
+                else:
+                    hpl_dst_path = self._import_from_map(hpl_file)
 
                 hpl_import_files.append((hpl_src_path, hpl_dst_path))
 
