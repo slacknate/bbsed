@@ -27,6 +27,8 @@ from .char_info import *
 from .util import *
 
 BASE_WINDOW_TITLE = "BBCF Sprite Editor"
+EDIT_MARKER_CHAR = "*"
+
 NON_ALPHANUM_REGEX = re.compile(r"[^\w]")
 
 
@@ -334,6 +336,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     backup_full_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
                     shutil.copyfile(backup_full_path, hpl_full_path)
 
+            # Remove the edit marker from the window title.
+            self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
+
             self._update_sprite_preview()
 
     def _restore_character_palettes(self, character):
@@ -615,6 +620,7 @@ class MainWindow(QtWidgets.QMainWindow):
         The color in a palette has been changed by the user. Save the changes to disk.
         """
         palette_id = self.ui.palette_select.currentText()
+        character_name = self.ui.char_select.currentText()
         character = self.ui.char_select.currentData()
         hpl_files = self.paths.get_edit_palette(character, palette_id)
 
@@ -625,10 +631,12 @@ class MainWindow(QtWidgets.QMainWindow):
             convert_to_hpl(self.palette_dialog.get_palette_img(), palette_full_path)
 
         except Exception:
-            character_name = self.ui.char_select.currentText()
             message = f"Failed to update palette {palette_id} for {character_name}!"
             self.show_error_dialog("Error Updating Palette", message)
             return
+
+        # Add a marker to the window that indicates the user has active changes.
+        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}{EDIT_MARKER_CHAR}")
 
         self._update_sprite_preview()
 
@@ -661,6 +669,23 @@ class MainWindow(QtWidgets.QMainWindow):
             self.show_error_dialog("", "")
             return
 
+    def _update_title_for_palette(self, character, palette_id, character_name):
+        """
+        Helper to update the window title based on presence of active changes from the user.
+        """
+        window_title = BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}"
+
+        # Look for any palette files with active changes.
+        for _, edit_hash, orig_hash in self.paths.get_edit_palette_hashes(character, palette_id):
+            is_dirty = (edit_hash != orig_hash)
+
+            # If the loaded character/palette has active changes our new window title should include the edit marker.
+            if is_dirty:
+                window_title += EDIT_MARKER_CHAR
+                break
+
+        self.setWindowTitle(window_title)
+
     def select_palette(self, index):
         """
         A new palette has been selected.
@@ -671,7 +696,7 @@ class MainWindow(QtWidgets.QMainWindow):
         character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
 
-        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
+        self._update_title_for_palette(character, palette_id, character_name)
 
         # When we select a palette ID we need to look for existing saved palettes associated to it.
         # Based on the presence of these files we also need to update the state of the UI.
@@ -745,10 +770,11 @@ class MainWindow(QtWidgets.QMainWindow):
             # palette data before a sprite is selected.
             self.ui.palette_select.setCurrentIndex(0)
 
+        # Get the palette ID from the widget for the sake of consistency.
+        palette_id = self.ui.palette_select.currentText()
+
         # Update the UI to show any save slots for the first palette.
         with block_signals(self.ui.save_select):
-            # Get the palette ID from the widget for the sake of consistency.
-            palette_id = self.ui.palette_select.currentText()
             character_saves = self.paths.get_character_saves(character, palette_id)
             # Set the save select enable state based on the presence of files on disk.
             self.ui.save_select.setEnabled(bool(character_saves))
@@ -765,7 +791,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.ui.palettes_toolbar.isEnabled():
             self.set_palette_tools_enable(True)
 
-        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - 01")
+        self._update_title_for_palette(character, palette_id, character_name)
 
     def show_confirm_dialog(self, title, message):
         """
