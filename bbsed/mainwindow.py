@@ -5,6 +5,8 @@ import sys
 import shutil
 import subprocess
 
+from collections import defaultdict
+
 from PyQt5 import Qt, QtCore, QtWidgets
 
 from libpac import enumerate_pac
@@ -12,6 +14,8 @@ from libhip import convert_from_hip
 from libhpl import convert_to_hpl, replace_palette, get_palette_index
 
 from .ui.mainwindow_ui import Ui_MainWindow
+
+from .exceptions import AppError, AppException
 from .settingsdialog import SettingsDialog
 from .palettedialog import PaletteDialog
 from .applydialog import ApplyDialog
@@ -29,7 +33,13 @@ from .util import *
 BASE_WINDOW_TITLE = "BBCF Sprite Editor"
 EDIT_MARKER_CHAR = "*"
 
+HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})(" + PALETTE_SAVE_MARKER + r"\w+)?" + PALETTE_EXT)
+HPL_SAVE_REGEX = re.compile(PALETTE_SAVE_MARKER + r"(\w+)" + PALETTE_EXT)
+
 NON_ALPHANUM_REGEX = re.compile(r"[^\w]")
+
+HPL_MAX_PALETTES = GAME_MAX_PALETTES - 1
+HPL_MAX_FILES_PER_PALETTE = 7
 
 
 class AppConfig(Configuration):
@@ -165,60 +175,183 @@ class MainWindow(QtWidgets.QMainWindow):
         self.palette_dialog.hide()
         self.zoom_dialog.hide()
 
-    def _detect_nameless_hpl(self, hpl_full_path, hpl_file_list, save_name_map):
+    def _detect_nameless_hpl(self, hpl_file, save_name_map):
         """
         Look for HPL files we are attempting to import that do not have a bbsed save marker.
         If we find such a file we ask the user for a name to associate to the imported files on
         a character/palette ID basis.
+        We return the key which is used to get a palette named associated to a given HPL file.
         """
-        hpl_file = os.path.basename(hpl_full_path)
+        # We might get a full path or basename file name as input.
+        hpl_file = os.path.basename(hpl_file)
 
         character = hpl_file[:CHAR_ABBR_LEN]
         palette_num = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
         palette_id = palette_number_to_id(palette_num)
-        key = (character, palette_id)
+        palette_name_key = (character, palette_id)
 
-        if PALETTE_SAVE_MARKER not in hpl_full_path and key not in save_name_map:
-            palette_name, accepted = self._choose_palette_name(character, palette_id, hpl_file)
+        # We have found an unnamed palette. Choose a name for it!
+        if PALETTE_SAVE_MARKER not in hpl_file and palette_name_key not in save_name_map:
+            palette_name, accepted = self._choose_palette_name(character, palette_id, *save_name_map.values())
 
             if not accepted:
                 message = "Did not specify import save name! Aborting import!"
-                self.show_message_dialog("Aborting Import", message, icon=QtWidgets.QMessageBox.Icon.Critical)
-                return False
+                raise AppException("Palette Name Required", message)
 
-            save_name_map[key] = palette_name
+            save_name_map[palette_name_key] = palette_name
 
-        hpl_file_list.append(hpl_full_path)
-        return True
+        # If the user previously chosen a name that applies to this file we should use it.
+        elif PALETTE_SAVE_MARKER not in hpl_file and palette_name_key in save_name_map:
+            palette_name = save_name_map[palette_name_key]
 
-    def _detect_nameless_hpl_in_pac(self, pac_full_path, pac_file_list, save_name_map):
+        # If we have a save marker then we can use that to get the palette name.
+        else:
+            # We don't do a None check on the search result because our previous validation
+            # will prevent this regex from not matching.
+            match = HPL_SAVE_REGEX.search(hpl_file)
+            palette_name = match.group(1)
+
+        return character, palette_id, palette_name
+
+    @staticmethod
+    def _validate_hpl_file(hpl_file):
         """
-        Enumerate the given PAC file and look for nameless HPL files in the files that are embedded.
+        Helper method to ensure the given HPL palette file is valid to the best of our ability.
         """
+        # Assert that the import HPL file has the correct extension.
+        if not hpl_file.endswith(PALETTE_EXT):
+            message = "Imported HPL palettes must have extension '.hpl'!"
+            raise AppError("Invalid HPL Palette File!", message)
+
+        # Assert that imported HPL files must have file names that match the names we would see in
+        # game data so we know which cache directory to import the files to.
+        format_match = HPL_IMPORT_REGEX.search(hpl_file)
+        if format_match is None:
+            message = "Imported HPL palettes must have name format matching game data!\n\nExample:\n\nam00_00.hpl"
+            raise AppError("Invalid HPL Palette File!", message)
+
+        # Assert that the file name starts with a valid character abbreviation.
+        # If it does not we cannot know where to put the data in the cache or where to apply the file
+        # to the actual game data.
+        abbreviation = format_match.group(1)
+        if abbreviation not in VALID_CHARACTERS:
+            message = f"HPL file name {hpl_file} does not begin with a known character abbreviation!"
+            raise AppError("Invalid HPL Palette File!", message)
+
+        # Assert that the palette index is valid.
+        palette_index = int(format_match.group(2))
+        if palette_index < 0 or palette_index > HPL_MAX_PALETTES:
+            message = f"HPL palette index must 00 to {HPL_MAX_PALETTES}!"
+            raise AppError("Invalid HPL Palette File!", message)
+
+        # Assert that the palette file number is valid.
+        file_number = int(format_match.group(3))
+        if file_number < 0 or file_number > HPL_MAX_FILES_PER_PALETTE:
+            message = f"HPL file number must be 00 to {HPL_MAX_FILES_PER_PALETTE:02}!"
+            raise AppError("Invalid HPL Palette File!", message)
+
+    def _scan_single_hpls(self, hpl_file_list, save_name_map):
+        """
+        Look for nameless HPL files in the HPL file selection list.
+        We also perform basic validation on the files to ensure there are no formatting issues.
+
+        We assume that we can't pick individual HPL files with the same name because
+        files cannot exist on disk with the same name and we don't allow for picking from
+        mulitple directories at the same time.
+
+        NTFS is not a case sensitive file system (which frankly is quite stupid), but our
+        validation regex is case sensitive so we eliminate the possibility of duplicate
+        individual HPL files during import.
+        """
+        hpl_to_import = defaultdict(list)
+
+        for hpl_full_path in hpl_file_list:
+            hpl_file = os.path.basename(hpl_full_path)
+            self._validate_hpl_file(hpl_file)
+
+            key = self._detect_nameless_hpl(hpl_full_path, save_name_map)
+            hpl_to_import[key].append(hpl_full_path)
+
+        return hpl_to_import
+
+    def _scan_pac(self, pac_full_path, hpl_file_list, save_name_map):
+        """
+        Enumerate the given PAC file and look for embedded nameless HPL files.
+        We perform basic validation on the HPL file names and look for HPL file names that
+        collide with any individually selected HPL files to avoid import issues.
+        """
+        individual_hpl_files = [os.path.basename(hpl_full_path) for hpl_full_path in hpl_file_list]
+
+        hpl_to_import = defaultdict(list)
+        enumerated_hpl_files = set()
+
         try:
             file_list = enumerate_pac(pac_full_path)
 
         except Exception:
             message = f"Failed to get files list from {pac_full_path}! Aborting import!"
-            self.show_error_dialog("Error Enumerating PAC File", message)
-            return False
+            raise AppException("Error Enumerating PAC File", message)
 
         for hpl_file, _, __, __ in file_list:
-            if not self._detect_nameless_hpl(hpl_file, [], save_name_map):
-                return False
+            self._validate_hpl_file(hpl_file)
 
-        pac_file_list.append(pac_full_path)
-        return True
+            if hpl_file in individual_hpl_files:
+                message = f"HPL file name ({hpl_file}) in {pac_full_path} matches manual HPL file selection!"
+                raise AppError("PAC Palette HPL File Collision!", message)
+
+            if hpl_file in enumerated_hpl_files:
+                message = f"Duplicate HPL file name ({hpl_file}) found in {pac_full_path}!"
+                raise AppError("Invalid PAC Palette File!", message)
+
+            key = self._detect_nameless_hpl(hpl_file, save_name_map)
+            hpl_to_import[key].append(hpl_file)
+
+            enumerated_hpl_files.add(hpl_file)
+
+        return hpl_to_import
+
+    def _scan_imports(self, hpl_file_list, pac_file_list):
+        """
+        Determine if we need to get user input for some of our files selected for import
+        and/or if some of those files are not valid for import.
+        """
+        save_name_map = {}
+
+        hpl_to_import = self._scan_single_hpls(hpl_file_list, save_name_map)
+
+        pac_to_import = {}
+        for pac_full_path in pac_file_list:
+            pac_to_import[pac_full_path] = self._scan_pac(pac_full_path, hpl_file_list, save_name_map)
+
+        return hpl_to_import, pac_to_import
+
+    @staticmethod
+    def _parse_palette_list(palette_file_list):
+        """
+        Split up our files by type so we can perform different operations on them.
+        """
+        hpl_file_list = []
+        pac_file_list = []
+
+        for palette_full_path in palette_file_list:
+            if palette_full_path.endswith(PALETTE_EXT):
+                hpl_file_list.append(palette_full_path)
+
+            elif palette_full_path.endswith(GAME_PALETTE_EXT):
+                pac_file_list.append(palette_full_path)
+
+            else:
+                _, ext = os.path.splitext(palette_full_path)
+                message = f"Unknown palette file type {ext}!"
+                raise AppError("Unknown Palette File Type", message)
+
+        return hpl_file_list, pac_file_list
 
     def import_palettes(self, _):
         """
         Callback for the palette import action. Allow the user to import palettes they may have
         created prior to using this tool or palettes they received from friends :D
         """
-        hpl_file_list = []
-        pac_file_list = []
-        save_name_map = {}
-
         palette_file_list, _ = QtWidgets.QFileDialog.getOpenFileNames(
 
             parent=self,
@@ -228,19 +361,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # NOTE: if we cancel the dialog then `palette_file_list` will be empty.
 
-        # FIXME: what if a PAC file has collisions with selected HPL files?
-        for palette_full_path in palette_file_list:
-            if palette_full_path.endswith(PALETTE_EXT):
-                if not self._detect_nameless_hpl(palette_full_path, hpl_file_list, save_name_map):
-                    return
+        try:
+            hpl_file_list, pac_file_list = self._parse_palette_list(palette_file_list)
+            hpl_to_import, pac_to_import = self._scan_imports(hpl_file_list, pac_file_list)
 
-            elif palette_full_path.endswith(GAME_PALETTE_EXT):
-                if not self._detect_nameless_hpl_in_pac(palette_full_path, pac_file_list, save_name_map):
-                    return
+        # If we encountered a problem during import we should not continue.
+        except AppError as error:
+            self.show_message_dialog(*error.get_details())
+            return
 
         # Don't run any thread's if we do not need to.
-        if hpl_file_list or pac_file_list:
-            thread = ImportThread(hpl_file_list, pac_file_list, save_name_map, self.paths)
+        if hpl_to_import or pac_to_import:
+            thread = ImportThread(hpl_to_import, pac_to_import, self.paths)
             success = self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
 
             # If the import succeeded we should check if we need to update the UI:
@@ -251,9 +383,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Update the save slots to include the newly imported files, but only if we have imported
                 # palettes for the current selected character and palette ID.
                 with block_signals(self.ui.slot_select):
-                    for (save_char, save_pal_id), save_name in save_name_map.items():
+                    for save_char, save_pal_id, save_name in hpl_to_import.keys():
                         if save_char == character and save_pal_id == palette_id:
                             self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
+
+                    for file_info in pac_to_import.values():
+                        for character, palette_id, save_name in file_info.keys():
+                            if save_char == character and save_pal_id == palette_id:
+                                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
     def _choose_export_pac(self):
         """
@@ -268,6 +405,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return pac_path
 
+    # TODO: fancy selection like the apply dialog
     def export_palettes(self):
         """
         Callback for the Export All action. Share all your palettes with friends :D
@@ -440,7 +578,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.ui.slot_select.isEnabled():
             self.ui.slot_select.setEnabled(True)
 
-    def _choose_palette_name(self, character, palette_id, hpl_file=None):
+    def _choose_palette_name(self, character, palette_id, *previous_choices):
         """
         Helper method to show an input dialog to select the name for a palette
         that we either created ourselves or are importing from something else.
@@ -448,16 +586,18 @@ class MainWindow(QtWidgets.QMainWindow):
         The caller can optionally provide an HPL file name to display in the dialog
         so the user has an idea of what palette they are naming. This is mostly useful
         for importing PAC or HPL files that do not come from a bbsed export.
-        """
-        hpl_fmt = ""
-        if hpl_file is not None:
-            hpl_fmt = f" ({hpl_file})"
 
+        We provide *args for previous palette name choices as in certain scenarios we
+        may need to choose a name multiple time during a single operation (like import).
+        """
         existing_saves = self.paths.get_character_saves(character, palette_id)
+
+        index = self.ui.char_select.findData(character)
+        character_name = self.ui.char_select.itemText(index)
 
         while True:
             flags = QtCore.Qt.WindowType.WindowTitleHint
-            message = f"Choose a name for your palette{hpl_fmt}:"
+            message = f"Choose a name for your palette ({character_name} - {palette_id}):"
             palette_name, accepted = QtWidgets.QInputDialog.getText(self, "Name Your Palette", message, flags=flags)
 
             # Restrict palette names to alphanumeric characters and underscore.
@@ -471,6 +611,13 @@ class MainWindow(QtWidgets.QMainWindow):
             # If the dialog was not accepted we ignore this restriction as we will be discarding this data.
             elif palette_name in existing_saves and accepted:
                 message = f"Palette name {palette_name} already exists!"
+                self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
+
+            # If the palette name was recently chosen as an import name then
+            # show a message and not overwrite any data that exists under this name.
+            # If the dialog was not accepted we ignore this restriction as we will be discarding this data.
+            elif palette_name in previous_choices and accepted:
+                message = f"Palette name {palette_name} was previously chosen for other palettes!"
                 self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
 
             # We picked a good name or the dialog was not accepted.
