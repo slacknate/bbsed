@@ -1,8 +1,4 @@
-import io
-
 from PyQt5 import QtCore, Qt, QtWidgets
-
-from libhpl import convert_from_hpl, get_index_color, set_index_color
 
 from .ui.palettedialog_ui import Ui_Dialog
 
@@ -26,8 +22,6 @@ class PaletteDialog(QtWidgets.QDialog):
 
         self.menu_check = menu_check
         self.menu_check.triggered.connect(self.setVisible)
-
-        self.palette_data = io.BytesIO()
 
         # Set up our palette viewer with a scene.
         # A scene can load a pixmap (i.e. an image like a PNG) from file or bytestring and display it.
@@ -56,12 +50,6 @@ class PaletteDialog(QtWidgets.QDialog):
         with block_signals(self.menu_check):
             self.menu_check.setChecked(False)
 
-    def get_palette_img(self):
-        """
-        Get the palette image for conversion to an HPL file.
-        """
-        return self.palette_data
-
     def reset(self):
         """
         Reset the palette view to be blank.
@@ -70,8 +58,6 @@ class PaletteDialog(QtWidgets.QDialog):
         self.palette_scene.clear()
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.png_view.viewport().update()
-        # Reset palette information.
-        self.palette_data = io.BytesIO()
 
     def mouse_double_click_event(self, evt):
         """
@@ -84,12 +70,12 @@ class PaletteDialog(QtWidgets.QDialog):
 
         self.index_selected.emit((palette_x, palette_y))
 
-    def _update_png_view(self):
+    def set_palette(self, palette_data):
         """
-        Refresh the palette view so it is up to date with recent changes.
+        Load a palette from file and display the data in the dialog.
         """
         png_pixmap = Qt.QPixmap()
-        png_pixmap.loadFromData(self.palette_data.getvalue(), "PNG")
+        png_pixmap.loadFromData(palette_data.getvalue(), "PNG")
 
         # Clear our image date and load in the updates image data.
         self.palette_scene.clear()
@@ -97,18 +83,3 @@ class PaletteDialog(QtWidgets.QDialog):
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.png_view.viewport().update()
-
-    def set_palette(self, palette_path):
-        """
-        Load a palette from file and display the data in the dialog.
-        """
-        self.palette_data = io.BytesIO()
-
-        try:
-            convert_from_hpl(palette_path, COLOR_BOX_SIZE, self.palette_data)
-
-        except Exception:
-            self.parent().show_error_dialog("Error Setting Palette", f"Failed to update the palette image!")
-            return
-
-        self._update_png_view()

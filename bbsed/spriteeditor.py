@@ -4,11 +4,11 @@ import os
 from PyQt5 import Qt, QtCore, QtWidgets
 
 from libhip import convert_from_hip
-from libhpl import convert_to_hpl, replace_palette, get_palette_index, get_index_color, set_index_color
+from libhpl import *
 
 from .ui.spriteeditor_ui import Ui_Editor
 
-from .palettedialog import PaletteDialog
+from .palettedialog import COLOR_BOX_SIZE, PaletteDialog
 from .zoomdialog import ZoomDialog
 from .util import *
 
@@ -24,6 +24,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui.setupUi(self)
 
         self.current_sprite = io.BytesIO()
+        self.palette_data = io.BytesIO()
 
         self.mainwindow = mainwindow
         self.paths = paths
@@ -85,6 +86,14 @@ class SpriteEditor(QtWidgets.QWidget):
         # FIXME: how do we determine which file is for what? e.g. izayoi phorizor?
         #        for now just assume that the first palette is the one that matters, as that is true frequently.
         palette_full_path = hpl_files[0]
+        self.palette_data = io.BytesIO()
+
+        try:
+            convert_from_hpl(palette_full_path, COLOR_BOX_SIZE, self.palette_data)
+
+        except Exception:
+            self.show_error_dialog("Error Setting Palette", "Failed to update the palette image!")
+            return
 
         try:
             # We are only updating the palette data we aren't writing out any pixel information.
@@ -104,8 +113,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui.sprite_preview.viewport().update()
 
         # Update the dialog palette data since we have switched palettes.
-        # NOTE: When the dialog emits palette_data_changed... we end up here... we should change that eventually.
-        self.palette_dialog.set_palette(palette_full_path)
+        self.palette_dialog.set_palette(self.palette_data)
         # Update the zoom dialog to the current sprite.
         self.zoom_dialog.set_sprite(self.current_sprite)
         # Do not show the palette or zoom dialogs until after we have set the palette/sprite information on them.
@@ -182,7 +190,7 @@ class SpriteEditor(QtWidgets.QWidget):
         character_name = character_info[1]
 
         try:
-            set_index_color(self.palette_dialog.get_palette_img(), palette_index, color_tuple)
+            set_index_color(self.palette_data, palette_index, color_tuple)
 
         except Exception:
             message = f"Failed to change the color for palette index {palette_index}!"
@@ -194,7 +202,7 @@ class SpriteEditor(QtWidgets.QWidget):
         palette_full_path = hpl_files[0]
 
         try:
-            convert_to_hpl(self.palette_dialog.get_palette_img(), palette_full_path)
+            convert_to_hpl(self.palette_data, palette_full_path)
 
         except Exception:
             message = f"Failed to update palette {palette_id} for {character_name}!"
@@ -212,7 +220,7 @@ class SpriteEditor(QtWidgets.QWidget):
         A bool indicating the dialog accept status and the selected color are returned.
         """
         try:
-            current_color = get_index_color(self.palette_dialog.get_palette_img(), palette_index)
+            current_color = get_index_color(self.palette_data, palette_index)
 
         except Exception:
             message = f"Failed to fetch the color for palette index {palette_index}!"
