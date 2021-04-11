@@ -1,13 +1,10 @@
 import os
-import re
 import shutil
 
 from libpac import extract_pac
 
 from .work_thread import WorkThread, AppException
 from .util import *
-
-HPL_SAVE_REGEX = re.compile(PALETTE_SAVE_MARKER + r"(\w+)" + PALETTE_EXT)
 
 
 class ImportThread(WorkThread):
@@ -29,8 +26,14 @@ class ImportThread(WorkThread):
             for hpl_src_path in hpl_files_list:
                 hpl_file = os.path.basename(hpl_src_path)
 
-                character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
-                hpl_dst_path = os.path.join(character_save_path, hpl_file)
+                if save_name == EDIT_INTERNAL_NAME:
+                    character_edit_path = self.paths.get_edit_palette_path(character, palette_id)
+                    hpl_dst_path = os.path.join(character_edit_path, hpl_file)
+                    hpl_dst_path = hpl_dst_path.replace(PALETTE_EDIT_MARKER, "")
+
+                else:
+                    character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
+                    hpl_dst_path = os.path.join(character_save_path, hpl_file)
 
                 hpl_import_files.append((hpl_src_path, hpl_dst_path))
 
@@ -55,8 +58,14 @@ class ImportThread(WorkThread):
                 for hpl_file in hpl_file_list:
                     hpl_src_path = os.path.join(temp_dir, hpl_file)
 
-                    character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
-                    hpl_dst_path = os.path.join(character_save_path, hpl_file)
+                    if save_name == EDIT_INTERNAL_NAME:
+                        character_edit_path = self.paths.get_edit_palette_path(character, palette_id)
+                        hpl_dst_path = os.path.join(character_edit_path, hpl_file)
+                        hpl_dst_path = hpl_dst_path.replace(PALETTE_EDIT_MARKER, "")
+
+                    else:
+                        character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
+                        hpl_dst_path = os.path.join(character_save_path, hpl_file)
 
                     hpl_import_files.append((hpl_src_path, hpl_dst_path))
 

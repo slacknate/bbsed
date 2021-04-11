@@ -18,7 +18,7 @@ from .ui.mainwindow_ui import Ui_MainWindow
 from .exceptions import AppError, AppException
 from .settingsdialog import SettingsDialog
 from .palettedialog import PaletteDialog
-from .applydialog import ApplyDialog
+from .selectdialog import SelectDialog
 from .zoomdialog import ZoomDialog
 from .errordialog import ErrorDialog
 from .config import Configuration
@@ -33,13 +33,41 @@ from .util import *
 BASE_WINDOW_TITLE = "BBCF Sprite Editor"
 EDIT_MARKER_CHAR = "*"
 
-HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})(" + PALETTE_SAVE_MARKER + r"\w+)?" + PALETTE_EXT)
+HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})(" + PALETTE_EDIT_MARKER +
+                              r"|(" + PALETTE_SAVE_MARKER + r"\w+))?" + PALETTE_EXT)
 HPL_SAVE_REGEX = re.compile(PALETTE_SAVE_MARKER + r"(\w+)" + PALETTE_EXT)
+HPL_EDIT_REGEX = re.compile(PALETTE_EDIT_MARKER + PALETTE_EXT)
 
 NON_ALPHANUM_REGEX = re.compile(r"[^\w]")
 
 HPL_MAX_PALETTES = GAME_MAX_PALETTES - 1
 HPL_MAX_FILES_PER_PALETTE = 7
+
+
+def generate_apply_settings():
+    """
+    Generate the settings definition of ApplyConfig
+    programmatically to save codespace.
+    """
+    settings = {}
+
+    for character in VALID_CHARACTERS:
+        settings[character] = {}
+
+        for palette_number in range(GAME_MAX_PALETTES):
+            palette_id = palette_number_to_id(palette_number)
+
+            settings[character][palette_id] = SLOT_NAME_NONE
+
+    return settings
+
+
+class ApplyConfig(Configuration):
+
+    SETTINGS = generate_apply_settings()
+
+    def __init__(self, paths):
+        Configuration.__init__(self, paths.apply_config_file)
 
 
 class AppConfig(Configuration):
@@ -74,6 +102,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.paths = Paths()
         self.config = AppConfig(self.paths)
+        self.apply_config = ApplyConfig(self.paths)
         self._check_steam_install()
 
         self.current_sprite = io.BytesIO()
@@ -197,26 +226,36 @@ class MainWindow(QtWidgets.QMainWindow):
         palette_id = palette_number_to_id(palette_num)
         palette_name_key = (character, palette_id)
 
+        is_nameless = PALETTE_EDIT_MARKER not in hpl_file and PALETTE_SAVE_MARKER not in hpl_file
+        is_edit = PALETTE_EDIT_MARKER in hpl_file
+        is_save = PALETTE_SAVE_MARKER in hpl_file
+
         # We have found an unnamed palette. Choose a name for it!
-        if PALETTE_SAVE_MARKER not in hpl_file and palette_name_key not in save_name_map:
+        if is_nameless and palette_name_key not in save_name_map:
             palette_name, accepted = self._choose_palette_name(character, palette_id, *save_name_map.values())
 
             if not accepted:
                 message = "Did not specify import save name! Aborting import!"
-                raise AppException("Palette Name Required", message)
+                raise AppError("Palette Name Required", message)
 
             save_name_map[palette_name_key] = palette_name
 
         # If the user previously chosen a name that applies to this file we should use it.
-        elif PALETTE_SAVE_MARKER not in hpl_file and palette_name_key in save_name_map:
+        elif is_nameless and palette_name_key in save_name_map:
             palette_name = save_name_map[palette_name_key]
 
-        # If we have a save marker then we can use that to get the palette name.
+        elif is_save:
+            # If we have a save marker then we can use that to get the palette name.
+            save_match = HPL_SAVE_REGEX.search(hpl_file)
+            palette_name = save_match.group(1)
+
+        elif is_edit:
+            palette_name = EDIT_INTERNAL_NAME
+
         else:
-            # We don't do a None check on the search result because our previous validation
-            # will prevent this regex from not matching.
-            match = HPL_SAVE_REGEX.search(hpl_file)
-            palette_name = match.group(1)
+            # We should never get here, but it makes IDEs and PyLint not complain
+            # about `palette_name` potentially not being defined.
+            raise AppError("Import Error Condition", f"Bad file name {hpl_file}!")
 
         return character, palette_id, palette_name
 
@@ -399,6 +438,11 @@ class MainWindow(QtWidgets.QMainWindow):
                             if save_char == character and save_pal_id == palette_id:
                                 self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
+                # We can discard changes without actually having picked a sprite.
+                selected_sprite = self.ui.sprite_list.currentItem()
+                if selected_sprite is not None:
+                    self._update_sprite_preview()
+
     def _choose_export_pac(self):
         """
         Helper to get the export PAC file path which will be our export destination.
@@ -412,15 +456,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return pac_path
 
-    # TODO: fancy selection like the apply dialog
     def export_palettes(self):
         """
         Callback for the Export All action. Share all your palettes with friends :D
         """
         pac_path = self._choose_export_pac()
+
         if pac_path:
-            thread = ExportThread(pac_path, self.paths)
-            self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
+            dialog = SelectDialog(self.paths, allow_multi_select=True, parent=self)
+            export = dialog.exec_()
+
+            # If we accepted the dialog then we should actually create the export.
+            if export:
+                thread = ExportThread(pac_path, dialog.get_selected_palettes(), self.paths)
+                self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
 
     def toggle_palette(self, check_state):
         """
@@ -450,25 +499,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.zoom_dialog.setVisible(is_visible)
         self.ui.view_zoom.setChecked(is_visible)
 
-    def _run_apply_thread(self, files_to_apply):
-        """
-        Helper to run our apply thread based on a set of files to apply that was generated
-        in the various apply button UI callbacks.
-        """
-        thread = ApplyThread(files_to_apply, self.paths)
-        self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
-
     def apply_palettes(self, _):
         """
         Callback for the Apply All action. Apply all palettes to the BBCF game data.
         """
-        dialog = ApplyDialog(self.paths, parent=self)
-        apply = dialog.exec_()
+        dialog = SelectDialog(self.paths, config=self.apply_config, parent=self)
+        selection_made = dialog.exec_()
 
-        # If we accepted the dialog then execute the application of files to game data.
-        if apply:
-            files_to_apply = dialog.get_files_to_apply()
-            self._run_apply_thread(files_to_apply)
+        if selection_made:
+            message = "Do you wish to apply the selected palettes to the BBCF game files?"
+            confirmed = self.show_confirm_dialog("Apply Palette Confirmation", message)
+
+            if confirmed:
+                thread = ApplyThread(dialog.get_selected_palettes(), self.paths)
+                self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
     def discard_palette(self, _):
         """
