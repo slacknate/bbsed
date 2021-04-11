@@ -166,7 +166,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.character_box.setTitle(_translate("MainWindow", "Character + Palette"))
+        self.character_box.setTitle(_translate("MainWindow", "Character + Palette + Slot"))
         self.sprite_group.setTitle(_translate("MainWindow", "Sprite"))
         self.game_files_toolbar.setWindowTitle(_translate("MainWindow", "toolBar"))
         self.file_menu.setTitle(_translate("MainWindow", "&File"))
