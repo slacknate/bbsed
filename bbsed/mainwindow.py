@@ -499,7 +499,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
             self.ui.discard_palette.setEnabled(False)
 
-            self._update_sprite_preview()
+            # We can discard changes without actually having picked a sprite.
+            selected_sprite = self.ui.sprite_list.currentItem()
+            if selected_sprite is not None:
+                self._update_sprite_preview()
 
     def _restore_character_palettes(self, character):
         """
