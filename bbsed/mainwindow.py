@@ -395,7 +395,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
                     for file_info in pac_to_import.values():
-                        for character, palette_id, save_name in file_info.keys():
+                        for save_char, save_pal_id, save_name in file_info.keys():
                             if save_char == character and save_pal_id == palette_id:
                                 self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
