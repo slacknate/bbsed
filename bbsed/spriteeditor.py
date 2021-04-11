@@ -217,7 +217,7 @@ class SpriteEditor(QtWidgets.QWidget):
         except Exception:
             message = f"Failed to fetch the color for palette index {palette_index}!"
             self.show_error_dialog("Error Reading Palette", message)
-            return
+            return False, ()
 
         initial = Qt.QColor(*current_color)
         dialog = QtWidgets.QColorDialog(initial, parent=self)
