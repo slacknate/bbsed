@@ -91,7 +91,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
         self.ui.palette_select.currentIndexChanged[int].connect(self.select_palette)
         self.ui.slot_select.currentIndexChanged.connect(self.select_saved_palette)
+
+        # Import and Export are always enabled as they are not dependent on palettes being loaded.
+        # Delete and Discard are enabled/disabled separately from the remaining palette operations.
         self.ui.delete_palette.setEnabled(False)
+        self.ui.discard_palette.setEnabled(False)
+        self.set_palette_tools_enable(False)
 
         # We need to sort the character info before adding to the selection combo box.
         # This way the combo box index will match the defined character IDs in the char_info module.
@@ -132,10 +137,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_palette_tools_enable(self, state):
         """
-        Set the enable state of the palettes menu and toolbar together.
+        Set the enable state of various palettes actions together.
         """
-        self.ui.palettes_toolbar.setEnabled(state)
-        self.ui.palettes_menu.setEnabled(state)
+        self.ui.save_palette.setEnabled(state)
+        self.ui.save_palette_as.setEnabled(state)
+        self.ui.copy_palette.setEnabled(state)
+        self.ui.paste_palette.setEnabled(state)
 
     def launch_bbcf(self, _):
         """
@@ -490,6 +497,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Remove the edit marker from the window title.
             self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
+            self.ui.discard_palette.setEnabled(False)
 
             self._update_sprite_preview()
 
@@ -806,6 +814,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Add a marker to the window that indicates the user has active changes.
         self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}{EDIT_MARKER_CHAR}")
+        self.ui.discard_palette.setEnabled(True)
 
         # Get the type of slot upon which we just made changes.
         slot_type = self.ui.slot_select.currentData()
@@ -856,6 +865,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Helper to update the window title based on presence of active changes from the user.
         """
         window_title = BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}"
+        self.ui.discard_palette.setEnabled(False)
 
         # Look for any palette files with active changes.
         for _, edit_hash, orig_hash in self.paths.get_edit_palette_hashes(character, palette_id):
@@ -864,6 +874,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # If the loaded character/palette has active changes our new window title should include the edit marker.
             if is_dirty:
                 window_title += EDIT_MARKER_CHAR
+                self.ui.discard_palette.setEnabled(True)
                 break
 
         self.setWindowTitle(window_title)
@@ -933,6 +944,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
         self.setWindowTitle(BASE_WINDOW_TITLE)
+        self.ui.discard_palette.setEnabled(False)
 
         self._clear_sprite_data()
 
@@ -992,7 +1004,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # If the user clicks any of the buttons with no character or palette selected then bad things happen.
         # Note that we set the state of the menus and toolbars together so we can just check the toolbar state
         # here to probe the enable state of both UI elements.
-        if not self.ui.palettes_toolbar.isEnabled():
+        if not self.ui.save_palette_as.isEnabled():
             self.set_palette_tools_enable(True)
 
         self._update_title_for_palette(character, palette_id, character_name)
