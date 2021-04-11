@@ -1011,8 +1011,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Extract the character data.
         thread = ExtractThread(character, self.paths)
-        self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data...")
-        # TODO: do we need to worry if this thread does not return success?
+        if not self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data..."):
+            # If our extract did not succeed we de-select the character and do not load any further data.
+            with block_signals(self.ui.char_select):
+                self.ui.char_select.setCurrentIndex(-1)
+                return
 
         # Reset our HIP file list and add the new HIP files so we only have the currently selected character files.
         with block_signals(self.ui.sprite_list):
