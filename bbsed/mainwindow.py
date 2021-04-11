@@ -1,4 +1,3 @@
-import io
 import os
 import re
 import sys
@@ -7,19 +6,16 @@ import subprocess
 
 from collections import defaultdict
 
-from PyQt5 import Qt, QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from libpac import enumerate_pac
-from libhip import convert_from_hip
-from libhpl import convert_to_hpl, replace_palette, get_palette_index
 
 from .ui.mainwindow_ui import Ui_MainWindow
 
 from .exceptions import AppError, AppException
 from .settingsdialog import SettingsDialog
-from .palettedialog import PaletteDialog
 from .selectdialog import SelectDialog
-from .zoomdialog import ZoomDialog
+from .spriteeditor import SpriteEditor
 from .errordialog import ErrorDialog
 from .config import Configuration
 from .exporter import ExportThread
@@ -105,21 +101,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.apply_config = ApplyConfig(self.paths)
         self._check_steam_install()
 
-        self.current_sprite = io.BytesIO()
+        self.sprite_editor = SpriteEditor(self, self.paths, self.ui.sprite_group)
+        self.sprite_editor.data_changed.connect(self.update_ui_for_palette)
 
-        self.palette_dialog = PaletteDialog(self)
-        self.palette_dialog.palette_data_changed.connect(self.update_palette)
-        self.zoom_dialog = ZoomDialog(self)
-
-        # Set up our sprite viewer with a scene.
-        # A scene can load a pixmap (i.e. an image like a PNG) from file or bytestring and display it.
-        self.sprite_scene = QtWidgets.QGraphicsScene()
-        self.ui.sprite_preview.setScene(self.sprite_scene)
-
-        # FIXME: there's something weird about drag select being off by one...
-        self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
-        self.ui.palette_select.currentIndexChanged[int].connect(self.select_palette)
-        self.ui.slot_select.currentIndexChanged.connect(self.select_saved_palette)
+        sprite_layout = self.ui.sprite_group.layout()
+        sprite_layout.addWidget(self.sprite_editor)
 
         # Import and Export are always enabled as they are not dependent on palettes being loaded.
         # Delete and Discard are enabled/disabled separately from the remaining palette operations.
@@ -137,20 +123,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.char_select.setCurrentIndex(-1)
         self.ui.char_select.currentIndexChanged.connect(self.select_character)
-
-        # Set out the sprite preview mouse events so we can update various app visuals.
-        self.ui.sprite_preview.setMouseTracking(True)
-        self.ui.sprite_preview.mouseDoubleClickEvent = self.set_palette_color
-        self.ui.sprite_preview.mouseMoveEvent = self.move_zoom_cursor
-        self.ui.sprite_preview.enterEvent = self.set_cross_cursor
+        self.ui.palette_select.currentIndexChanged.connect(self.select_palette)
+        self.ui.slot_select.currentIndexChanged.connect(self.select_palette_slot)
 
         # File Menu
         self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
         self.ui.settings.triggered.connect(self.edit_settings)
         self.ui.exit.triggered.connect(self.exit_app)
-        # View Menu
-        self.ui.view_palette.triggered.connect(self.toggle_palette)
-        self.ui.view_zoom.triggered.connect(self.toggle_zoom)
         # Game Files Toolbar and Menu
         self.ui.restore_all.triggered.connect(self.restore_all)
         self.ui.restore_character.triggered.connect(self.restore_character)
@@ -208,8 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Unsure if calling the superclass closeEvent is required but we do so in case it is.
         """
         QtWidgets.QMainWindow.closeEvent(self, evt)
-        self.palette_dialog.hide()
-        self.zoom_dialog.hide()
+        self.sprite_editor.close_dialogs()
 
     def _detect_nameless_hpl(self, hpl_file, save_name_map):
         """
@@ -438,10 +416,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             if save_char == character and save_pal_id == palette_id:
                                 self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
-                # We can discard changes without actually having picked a sprite.
-                selected_sprite = self.ui.sprite_list.currentItem()
-                if selected_sprite is not None:
-                    self._update_sprite_preview()
+                self.sprite_editor.update_sprite_preview()
 
     def _choose_export_pac(self):
         """
@@ -470,34 +445,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if export:
                 thread = ExportThread(pac_path, dialog.get_selected_palettes(), self.paths)
                 self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
-
-    def toggle_palette(self, check_state):
-        """
-        Callback for our palette toggle action. Set the visibility state of the palette dialog.
-        Mostly useful for recovering the dialog if it was closed, but maybe some folks wanna hide it anyway.
-        """
-        self.palette_dialog.setVisible(check_state)
-
-    def set_palette_visibility(self, is_visible):
-        """
-        Show or hide the palette dialog and update the view palette action check state to match.
-        """
-        self.palette_dialog.setVisible(is_visible)
-        self.ui.view_palette.setChecked(is_visible)
-
-    def toggle_zoom(self, check_state):
-        """
-        Callback for our zoom toggle action. Set the visibility state of the zoom dialog.
-        Mostly useful for recovering the dialog if it was closed, but maybe some folks wanna hide it anyway.
-        """
-        self.zoom_dialog.setVisible(check_state)
-
-    def set_zoom_visibility(self, is_visible):
-        """
-        Show or hide the zoom dialog and update the view zoom action check state to match.
-        """
-        self.zoom_dialog.setVisible(is_visible)
-        self.ui.view_zoom.setChecked(is_visible)
 
     def apply_palettes(self, _):
         """
@@ -543,10 +490,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
             self.ui.discard_palette.setEnabled(False)
 
-            # We can discard changes without actually having picked a sprite.
-            selected_sprite = self.ui.sprite_list.currentItem()
-            if selected_sprite is not None:
-                self._update_sprite_preview()
+            self.sprite_editor.update_sprite_preview()
 
     def _restore_character_palettes(self, character):
         """
@@ -739,174 +683,6 @@ class MainWindow(QtWidgets.QMainWindow):
             # Re-select the edit slot after we delete a palette.
             self.ui.slot_select.setCurrentIndex(0)
 
-    def _clear_sprite_data(self):
-        """
-        Reset all graphics views to be blank.
-        """
-        # Clear our image data.
-        self.sprite_scene.clear()
-        # Ensure the graphics view is refreshed so our changes are visible to the user.
-        self.ui.sprite_preview.viewport().update()
-        # Clear palette data.
-        self.palette_dialog.reset()
-        # Clear zoom view.
-        self.zoom_dialog.reset()
-
-    def _update_sprite_preview(self, palette_index=None):
-        """
-        Update the sprite preview with the given palette index.
-        If no index is provided we assume that the current index is to be used.
-        This method is only invoked when we pick a new sprite or select a new palette.
-        Our cached sprite uses a palette from the sprite data definition, NOT from the
-        in-game palette data. This means that we should always be re-writing the palette.
-        """
-        if palette_index is None:
-            palette_index = self.ui.palette_select.currentIndex()
-
-        palette_id = self.ui.palette_select.itemText(palette_index)
-        slot_type = self.ui.slot_select.currentData()
-        character = self.ui.char_select.currentData()
-
-        # If we have a saved palette selected we should display that palette.
-        if slot_type == PALETTE_SAVE:
-            save_name = self.ui.slot_select.currentText()
-            hpl_files = self.paths.get_saved_palette(character, palette_id, save_name)
-
-        # Otherwise display the edit slot data.
-        else:
-            hpl_files = self.paths.get_edit_palette(character, palette_id)
-
-        # FIXME: how do we determine which file is for what? e.g. izayoi phorizor?
-        #        for now just assume that the first palette is the one that matters, as that is true frequently.
-        palette_full_path = hpl_files[0]
-
-        try:
-            # We are only updating the palette data we aren't writing out any pixel information.
-            replace_palette(self.current_sprite, palette_full_path)
-
-        except Exception:
-            self.show_error_dialog("Error Updating Palette", f"Failed to replace the palette of the current sprite!")
-
-        png_pixmap = Qt.QPixmap()
-        png_pixmap.loadFromData(self.current_sprite.getvalue(), "PNG")
-
-        # Clear our image date and load in the updates image data.
-        self.sprite_scene.clear()
-        self.sprite_scene.addPixmap(png_pixmap)
-
-        # Ensure the graphics view is refreshed so our changes are visible to the user.
-        self.ui.sprite_preview.viewport().update()
-
-        # Update the dialog palette data since we have switched palettes.
-        # NOTE: When the dialog emits palette_data_changed... we end up here... we should change that eventually.
-        self.palette_dialog.set_palette(palette_full_path)
-        # Update the zoom dialog to the current sprite.
-        self.zoom_dialog.set_sprite(self.current_sprite)
-        # Do not show the palette or zoom dialogs until after we have set the palette/sprite information on them.
-        # If we show them prior to this then the dialog graphics view does not correctly update
-        # until we change the current palette.
-
-        # Show our palette dialog if we need to.
-        if self.palette_dialog.isHidden():
-            self.set_palette_visibility(True)
-
-        # Show our zoom dialog if we need to.
-        if self.zoom_dialog.isHidden():
-            self.set_zoom_visibility(True)
-
-    def move_zoom_cursor(self, evt):
-        x = evt.x()
-        y = evt.y()
-
-        mapped_point = self.ui.sprite_preview.mapToScene(Qt.QPoint(x, y))
-        self.zoom_dialog.move_cursor(mapped_point)
-
-    def set_palette_color(self, evt):
-        x = evt.x()
-        y = evt.y()
-
-        mapped_point = self.ui.sprite_preview.mapToScene(Qt.QPoint(x, y))
-
-        try:
-            palette_index = get_palette_index(self.current_sprite, (mapped_point.x(), mapped_point.y()))
-
-        except Exception:
-            self.show_error_dialog("Error Getting Palette Index", f"Failed to get palette index of selected color!")
-            return
-
-        self.palette_dialog.set_palette_index(palette_index)
-
-    def set_cross_cursor(self, _):
-        self.ui.sprite_preview.viewport().setCursor(QtCore.Qt.CursorShape.CrossCursor)
-
-    def update_palette(self):
-        """
-        The color in a palette has been changed by the user. Save the changes to disk.
-        """
-        palette_id = self.ui.palette_select.currentText()
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
-        hpl_files = self.paths.get_edit_palette(character, palette_id)
-
-        # FIXME: see other FIXME about HPL files
-        palette_full_path = hpl_files[0]
-
-        try:
-            convert_to_hpl(self.palette_dialog.get_palette_img(), palette_full_path)
-
-        except Exception:
-            message = f"Failed to update palette {palette_id} for {character_name}!"
-            self.show_error_dialog("Error Updating Palette", message)
-            return
-
-        # Add a marker to the window that indicates the user has active changes.
-        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}{EDIT_MARKER_CHAR}")
-        self.ui.discard_palette.setEnabled(True)
-
-        # Get the type of slot upon which we just made changes.
-        slot_type = self.ui.slot_select.currentData()
-
-        # FIXME: right meow this information will not be persistent if we switch character or palette, or close
-        #        the app. We will be able to determine the edit slot was changed but that is it. we need to store
-        #        meta data about the slot type/save name with this change.
-        # If we are working on a save slot then we need to switch to the edit slot to see our active changes.
-        # Setting the slot select index will trigger a preview update.
-        if slot_type == PALETTE_SAVE:
-            self.ui.slot_select.setCurrentIndex(0)
-
-        # Otherwise we have to trigger the preview update manually.
-        else:
-            self._update_sprite_preview()
-
-    def select_sprite(self):
-        """
-        A new sprite has been selected.
-        Update our image preview with the new sprite.
-        """
-        selected_sprite = self.ui.sprite_list.currentIndex()
-        character = self.ui.char_select.currentData()
-
-        sprite_cache = self.paths.get_sprite_cache(character)
-
-        list_index = selected_sprite.row()
-        hip_full_path = sprite_cache[list_index]
-        hip_file = os.path.basename(hip_full_path)
-
-        try:
-            self.current_sprite = io.BytesIO()
-            convert_from_hip(hip_full_path, self.current_sprite)
-
-        except Exception:
-            self.show_error_dialog("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
-            return
-
-        try:
-            self._update_sprite_preview()
-
-        except Exception:
-            self.show_error_dialog("", "")
-            return
-
     def _update_title_for_palette(self, character, palette_id, character_name):
         """
         Helper to update the window title based on presence of active changes from the user.
@@ -926,53 +702,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setWindowTitle(window_title)
 
-    def select_palette(self, index):
-        """
-        A new palette has been selected.
-        Replace the palette of the currently selected sprite and update the image preview.
-        """
-        selected_sprite = self.ui.sprite_list.currentItem()
-        character = self.ui.char_select.currentData()
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
-
-        self._update_title_for_palette(character, palette_id, character_name)
-
-        # When we select a palette ID we need to look for existing saved palettes associated to it.
-        # Based on the presence of these files we also need to update the state of the UI.
-        character_saves = self.paths.get_character_saves(character, palette_id)
-
-        with block_signals(self.ui.slot_select):
-            # Disable delete while we do not have a selected saved palette.
-            self.ui.delete_palette.setEnabled(False)
-            # Clearing the save select and re-adding items will auto-select the first item
-            # which will always be a non-saved palette.
-            self.ui.slot_select.clear()
-            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
-
-            # Set the save select enable state based on the presence of files on disk.
-            self.ui.slot_select.setEnabled(bool(character_saves))
-            for save_name in character_saves:
-                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
-
-        # Only update the preview if we have a selected sprite and we have also have a selected palette.
-        if selected_sprite is not None and index >= 0:
-            self._update_sprite_preview(index)
-
-    def select_saved_palette(self):
-        """
-        We have selected a palette which has been saved by the user.
-        """
-        # Disable the delete button when we have the Edit slot selected.
-        can_delete = self.ui.slot_select.currentData() == PALETTE_SAVE
-        self.ui.delete_palette.setEnabled(can_delete)
-
-        # Only update the preview if we have a selected sprite.
-        # We cannot get here without first selecting a palette.
-        selected_sprite = self.ui.sprite_list.currentItem()
-        if selected_sprite is not None:
-            self._update_sprite_preview()
-
     def _reset_ui(self):
         """
         Reset the state of the UI. This includes clearing all graphics views, emptying the selectable
@@ -980,9 +709,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         with block_signals(self.ui.palette_select):
             self.ui.palette_select.setCurrentIndex(-1)
-
-        with block_signals(self.ui.sprite_list):
-            self.ui.sprite_list.clear()
 
         with block_signals(self.ui.slot_select):
             self.ui.delete_palette.setEnabled(False)
@@ -993,7 +719,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(BASE_WINDOW_TITLE)
         self.ui.discard_palette.setEnabled(False)
 
-        self._clear_sprite_data()
+        self.sprite_editor.reset()
+
+    def current_selection_info(self):
+        """
+        Return all selection info about the current selected character, palette, and slot.
+        """
+        character = self.ui.char_select.currentData()
+        character_name = self.ui.char_select.currentText()
+
+        palette_id = self.ui.palette_select.currentText()
+
+        slot_type = self.ui.slot_select.currentData()
+        slot_name = self.ui.slot_select.currentText()
+
+        return (character, character_name), palette_id, (slot_type, slot_name)
 
     def select_character(self):
         """
@@ -1016,12 +756,6 @@ class MainWindow(QtWidgets.QMainWindow):
             with block_signals(self.ui.char_select):
                 self.ui.char_select.setCurrentIndex(-1)
                 return
-
-        # Reset our HIP file list and add the new HIP files so we only have the currently selected character files.
-        with block_signals(self.ui.sprite_list):
-            sprite_cache = self.paths.get_sprite_cache(character)
-            ui_sprite_cache = [os.path.basename(sprite_full_path) for sprite_full_path in sprite_cache]
-            self.ui.sprite_list.addItems(ui_sprite_cache)
 
         # Block signals while we add items so the signals are not emitted.
         # We do not want to try to select a palette before a sprite is selected, and
@@ -1058,6 +792,67 @@ class MainWindow(QtWidgets.QMainWindow):
             self.set_palette_tools_enable(True)
 
         self._update_title_for_palette(character, palette_id, character_name)
+
+        self.sprite_editor.update_sprite_list(character)
+
+    def update_ui_for_palette(self):
+        character_name = self.ui.char_select.currentText()
+        palette_id = self.ui.palette_select.currentText()
+
+        # Add a marker to the window that indicates the user has active changes.
+        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}{EDIT_MARKER_CHAR}")
+        self.ui.discard_palette.setEnabled(True)
+
+        # Get the type of slot upon which we just made changes.
+        slot_type = self.ui.slot_select.currentData()
+
+        # FIXME: right meow this information will not be persistent if we switch character or palette, or close
+        #        the app. We will be able to determine the edit slot was changed but that is it. we need to store
+        #        meta data about the slot type/save name with this change.
+        # If we are working on a save slot then we need to switch to the edit slot to see our active changes.
+        # Setting the slot select index will trigger a preview update.
+        if slot_type == PALETTE_SAVE:
+            with block_signals(self.ui.slot_select):
+                self.ui.slot_select.setCurrentIndex(0)
+
+    def select_palette(self):
+        """
+        A new palette has been selected.
+        Replace the palette of the currently selected sprite and update the image preview.
+        """
+        character = self.ui.char_select.currentData()
+        character_name = self.ui.char_select.currentText()
+        palette_id = self.ui.palette_select.currentText()
+
+        # When we select a palette ID we need to look for existing saved palettes associated to it.
+        # Based on the presence of these files we also need to update the state of the UI.
+        character_saves = self.paths.get_character_saves(character, palette_id)
+
+        with block_signals(self.ui.slot_select):
+            # Disable delete while we do not have a selected saved palette.
+            self.ui.delete_palette.setEnabled(False)
+            # Clearing the save select and re-adding items will auto-select the first item
+            # which will always be a non-saved palette.
+            self.ui.slot_select.clear()
+            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
+
+            # Set the save select enable state based on the presence of files on disk.
+            self.ui.slot_select.setEnabled(bool(character_saves))
+            for save_name in character_saves:
+                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
+
+        self._update_title_for_palette(character, palette_id, character_name)
+
+        self.sprite_editor.update_sprite_preview()
+
+    def select_palette_slot(self):
+        """
+        We have selected a palette which has been saved by the user.
+        Disable the delete button when we have the Edit slot selected.
+        """
+        can_delete = self.ui.slot_select.currentData() == PALETTE_SAVE
+        self.ui.delete_palette.setEnabled(can_delete)
+        self.sprite_editor.update_sprite_preview()
 
     def show_confirm_dialog(self, title, message):
         """

@@ -4,13 +4,15 @@ from PyQt5 import QtCore, Qt, QtWidgets
 
 from .ui.zoomdialog_ui import Ui_Dialog
 
+from .util import block_signals
+
 ZOOM_VIEW_SIZE = 247
 ZOOM_VIEW_CENTER = 124
 ZOOM_VIEW_SCALE = 5.0
 
 
 class ZoomDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, menu_check, parent=None):
         flags = QtCore.Qt.WindowType.WindowTitleHint | QtCore.Qt.WindowType.CustomizeWindowHint
         QtWidgets.QDialog.__init__(self, parent, flags=flags)
 
@@ -18,6 +20,9 @@ class ZoomDialog(QtWidgets.QDialog):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Sprite Zoom")
+
+        self.menu_check = menu_check
+        self.menu_check.triggered.connect(self.setVisible)
 
         self.current_sprite = io.BytesIO()
         self.current_position = Qt.QPoint(0, 0)
@@ -30,6 +35,26 @@ class ZoomDialog(QtWidgets.QDialog):
 
         # Scale the view so we zoom in.
         self.ui.png_view.scale(ZOOM_VIEW_SCALE, ZOOM_VIEW_SCALE)
+
+    def showEvent(self, evt):
+        """
+        Automatically update the View Menu check state on dialog open.
+        """
+        QtWidgets.QDialog.showEvent(self, evt)
+
+        # If we do not block signals we will get stuck in an infinite loop.
+        with block_signals(self.menu_check):
+            self.menu_check.setChecked(True)
+
+    def closeEvent(self, evt):
+        """
+        Automatically update the View Menu check state on dialog close.
+        """
+        QtWidgets.QDialog.closeEvent(self, evt)
+
+        # If we do not block signals we will get stuck in an infinite loop.
+        with block_signals(self.menu_check):
+            self.menu_check.setChecked(False)
 
     def reset(self):
         """
