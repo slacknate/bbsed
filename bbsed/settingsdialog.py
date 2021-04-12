@@ -5,13 +5,11 @@ from .ui.settingsdialog_ui import Ui_Dialog
 
 class SettingsDialog(QtWidgets.QDialog):
     def __init__(self, app_config, parent=None):
-        flags = QtCore.Qt.WindowType.WindowTitleHint | QtCore.Qt.WindowType.CustomizeWindowHint
-        QtWidgets.QDialog.__init__(self, parent, flags=flags)
+        QtWidgets.QDialog.__init__(self, parent, flags=QtCore.Qt.WindowType.WindowTitleHint)
 
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-        self.setWindowIcon(Qt.QIcon(":/images/images/question.ico"))
         self.setWindowTitle("BBCF Sprite Editor Settings")
 
         self.ui.select.clicked.connect(self.select_steam_install)
