@@ -91,7 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._set_window_title()
 
         self.paths = Paths()
-        self.config = AppConfig(self.paths)
+        self.app_config = AppConfig(self.paths)
         self.apply_config = ApplyConfig(self.paths)
         self._check_steam_install()
 
@@ -156,7 +156,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for the settings action. Display a dialog showing our app settings.
         """
-        dialog = SettingsDialog(self.config, parent=self)
+        dialog = SettingsDialog(self.app_config, parent=self)
         dialog.exec_()
 
         # This will enable UI elements if we set a Steam install in the dialog.
@@ -166,7 +166,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Helper to check if we have a Steam install configured and should enable relevant UI elements.
         """
-        if self.config["bbsed"]["steam_install"]:
+        if self.app_config["bbsed"]["steam_install"]:
             self.ui.character_box.setEnabled(True)
 
     def exit_app(self, _):
