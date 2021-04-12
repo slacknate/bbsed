@@ -17,8 +17,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.app_config = app_config
 
         # Set our previously used Steam install path if it exists.
-        if self.app_config["bbsed"]["steam_install"]:
-            self.ui.steam_install.setText(self.app_config["bbsed"]["steam_install"])
+        existing_install = self.app_config["bbsed"]["steam_install"]
+        if existing_install:
+            self.ui.steam_install.setText(existing_install)
 
     def select_steam_install(self):
         """
