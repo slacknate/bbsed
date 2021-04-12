@@ -95,6 +95,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.apply_config = ApplyConfig(self.paths)
         self._check_steam_install()
 
+        self.clipboard = None
+
         self.sprite_editor = SpriteEditor(self, self.paths, self.ui.sprite_group)
         self.sprite_editor.data_changed.connect(self.update_ui_for_palette)
 
@@ -102,9 +104,10 @@ class MainWindow(QtWidgets.QMainWindow):
         sprite_layout.addWidget(self.sprite_editor)
 
         # Import and Export are always enabled as they are not dependent on palettes being loaded.
-        # Delete and Discard are enabled/disabled separately from the remaining palette operations.
+        # Delete, Discard, and Paste are enabled/disabled separately from the remaining palette operations.
         self.ui.delete_palette.setEnabled(False)
         self.ui.discard_palette.setEnabled(False)
+        self.ui.paste_palette.setEnabled(False)
         self.set_palette_tools_enable(False)
 
         # We need to sort the character info before adding to the selection combo box.
@@ -134,7 +137,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.save_palette.triggered.connect(self.save_palette)
         self.ui.save_palette_as.triggered.connect(self.save_palette_as)
         self.ui.delete_palette.triggered.connect(self.delete_palette)
-        # TODO: copy/paste here
+        self.ui.copy_palette.triggered.connect(self.copy_palette)
+        self.ui.paste_palette.triggered.connect(self.paste_palette)
         self.ui.discard_palette.triggered.connect(self.discard_palette)
 
     def set_palette_tools_enable(self, state):
@@ -144,7 +148,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.save_palette.setEnabled(state)
         self.ui.save_palette_as.setEnabled(state)
         self.ui.copy_palette.setEnabled(state)
-        self.ui.paste_palette.setEnabled(state)
 
     def launch_bbcf(self, _):
         """
@@ -711,6 +714,61 @@ class MainWindow(QtWidgets.QMainWindow):
             # Re-select the edit slot after we delete a palette.
             self.ui.slot_select.setCurrentIndex(0)
 
+    def copy_palette(self, _):
+        """
+        Copy the current selected palette to our palette clipboard.
+        The clipboard is just a list of palette files we want to copy.
+        """
+        character = self.ui.char_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+        slot_type = self.ui.slot_select.currentData()
+
+        if slot_type == PALETTE_EDIT:
+            self.clipboard = self.paths.get_edit_palette(character, palette_id)
+
+        else:
+            save_name = self.ui.slot_select.currentText()
+            self.clipboard = self.paths.get_saved_palette(character, palette_id, save_name)
+
+        self.ui.paste_palette.setEnabled(True)
+
+    def paste_palette(self, _):
+        """
+        Paste the palette clipboard to the current selected palette.
+        If we accept the confirmation we copy the clipboard files to the edit
+        slot of the
+        """
+        message = ("Do you wish to paste the copied palette to the current selected palette?\n"
+                   "This will overwrite any active changes.")
+        confirmed = self.show_confirm_dialog("Paste Palette Confirmation", message)
+
+        if confirmed:
+            character = self.ui.char_select.currentData()
+            palette_id = self.ui.palette_select.currentText()
+            slot_type = self.ui.slot_select.currentData()
+
+            dst_hpl_files = self.paths.get_edit_palette(character, palette_id)
+
+            for hpl_src_path, hpl_dst_path in zip(self.clipboard, dst_hpl_files):
+                os.remove(hpl_dst_path)
+                shutil.copyfile(hpl_src_path, hpl_dst_path)
+
+            self.ui.paste_palette.setEnabled(False)
+            self.clipboard = None
+
+            # We are applying changes to a palette. Make sure the UI is updated accordingly.
+            self.update_ui_for_palette()
+
+            # If we don't have the edit slot selected when we paste then we need to switch to it.
+            # This will trigger a sprite preview update.
+            if slot_type != PALETTE_EDIT:
+                index = self.ui.slot_select.findData(PALETTE_EDIT)
+                self.ui.slot_select.setCurrentIndex(index)
+
+            # Otherwise we need to update the sprite preview manually.
+            else:
+                self.sprite_editor.update_sprite_preview()
+
     def _update_edit_state(self, character, palette_id):
         """
         Helper to update the window title based on presence of active changes from the user.
@@ -854,6 +912,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_ui_for_palette(self):
         """
         Callback for when the sprite editor emits `data_changed`.
+        Also invoked when we paste a palette from the palette clipboard.
         We have UI elements that should be updated when palette data is modified.
         """
         character_name = self.ui.char_select.currentText()
