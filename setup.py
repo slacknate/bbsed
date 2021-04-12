@@ -1,10 +1,20 @@
+import os
+
 from setuptools import setup, find_packages
+
+VERSION = None
+
+with open(os.path.join("bbsed", "version.py"), "r") as version_fp:
+    exec(version_fp.read())
+
+if VERSION is None:
+    raise ValueError("Unable to read bbsed version!")
 
 
 setup(
 
     name="bbsed",
-    version="0.0.1",
+    version=VERSION,
     url="https://github.com/slacknate/bbsed",
     description="A tool for editing BBCF sprites.",
     packages=find_packages(include=["bbsed", "bbsed.*"]),
