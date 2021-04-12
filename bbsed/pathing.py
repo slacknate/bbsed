@@ -49,8 +49,8 @@ class Paths:
 
     def set_app_config(self, config):
         """
-        Set reference to our Configuration object.
-        For use in the Configuration constructor.
+        Set reference to our AppConfig object.
+        For use in the AppConfig constructor.
         """
         self.app_config = config
 
