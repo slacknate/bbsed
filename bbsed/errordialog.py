@@ -21,11 +21,6 @@ class ErrorDialog(QtWidgets.QDialog):
 
         self.setWindowTitle(title)
 
-        # TODO: get icons into the project
-        self.ui.icon.hide()
-        # pixmap = QtGui.QPixmap("<icon file>")
-        # self.ui.icon.setPixmap(pixmap)
-
         self.ui.message.setText(message)
         self.ui.traceback.setText(format_exc(exc_info))
         self.ui.traceback.hide()
