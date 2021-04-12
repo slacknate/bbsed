@@ -14,7 +14,7 @@ Package to contain UI files created by Qt Designer and the Python generated from
 # cancel.ico - https://www.iconfinder.com/icons/1493279/delete_cancel_remove_icon
 # import.ico - https://www.iconfinder.com/icons/1493293/folder_open_file_icon
 # export.ico - https://www.iconfinder.com/icons/1493281/close_folder_icon
-# delete.ico - https://icon-icons.com/icon/garbage-can-office-recycle-bin-rubbish-bin-trash-bin-can/107760
+# delete.ico - https://icon-icons.com/icon/user-trash-delete-remove/92829
 # error.ico = https://icon-icons.com/icon/close-remove-delete-warning-alert-error/93497
 # apply.ico - https://icon-icons.com/icon/apply-accept-ok-done/93488
 # info.ico - https://icon-icons.com/icon/info-circle/178958
