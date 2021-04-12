@@ -6,7 +6,7 @@ import subprocess
 
 from collections import defaultdict
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import Qt, QtCore, QtWidgets
 
 from libpac import enumerate_pac
 
@@ -79,7 +79,6 @@ class AppConfig(Configuration):
         paths.set_app_config(self)
 
 
-# TODO: icons
 # TODO: implement a help menu with About and Tutorial entries.
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
@@ -88,6 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.setWindowIcon(Qt.QIcon(":/images/images/app.png"))
         self._set_window_title()
 
         self.paths = Paths()
@@ -966,9 +966,10 @@ class MainWindow(QtWidgets.QMainWindow):
         We set the default button to No so it is more difficult to accidentally accept the dialog.
         Return a bool indicating if the dialog was accepted or rejected.
         """
-        icon = QtWidgets.QMessageBox.Icon.Question
+        contents_icon = QtWidgets.QMessageBox.Icon.NoIcon
 
-        message_box = QtWidgets.QMessageBox(icon, title, message, parent=self)
+        message_box = QtWidgets.QMessageBox(contents_icon, title, message, parent=self)
+        message_box.setWindowIcon(Qt.QIcon(":/images/images/question.ico"))
         message_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         message_box.setDefaultButton(QtWidgets.QMessageBox.No)
 
@@ -976,11 +977,19 @@ class MainWindow(QtWidgets.QMainWindow):
         # Note that if the user exits the dialog with the escape key that we will still return `False`.
         return message_box.exec_() == QtWidgets.QMessageBox.Yes
 
-    def show_message_dialog(self, title, message, icon=QtWidgets.QMessageBox.Icon.NoIcon):
+    def show_message_dialog(self, title, message, icon=None):
         """
         Show a message to the user.
         """
-        message_box = QtWidgets.QMessageBox(icon, title, message, parent=self)
+        contents_icon = QtWidgets.QMessageBox.Icon.NoIcon
+
+        if icon is None:
+            icon = Qt.QIcon(":/images/images/question.ico")
+        else:
+            icon = Qt.QIcon(f":/images/images/{icon}.ico")
+
+        message_box = QtWidgets.QMessageBox(contents_icon, title, message, parent=self)
+        message_box.setWindowIcon(icon)
         message_box.exec_()
 
     def show_error_dialog(self, title, message, exc_info=None):

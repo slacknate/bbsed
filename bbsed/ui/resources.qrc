@@ -1,0 +1,20 @@
+<RCC>
+  <qresource prefix="images">
+    <file>images/exit.ico</file>
+    <file>images/app.png</file>
+    <file>images/play.ico</file>
+    <file>images/info.ico</file>
+    <file>images/apply.ico</file>
+    <file>images/delete.ico</file>
+    <file>images/error.ico</file>
+    <file>images/cancel.ico</file>
+    <file>images/copy.ico</file>
+    <file>images/export.ico</file>
+    <file>images/import.ico</file>
+    <file>images/question.ico</file>
+    <file>images/paste.ico</file>
+    <file>images/save.ico</file>
+    <file>images/settings.ico</file>
+    <file>images/undo.ico</file>
+  </qresource>
+</RCC>

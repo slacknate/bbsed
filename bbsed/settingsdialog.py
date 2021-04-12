@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import Qt, QtCore, QtWidgets
 
 from .ui.settingsdialog_ui import Ui_Dialog
 
@@ -11,7 +11,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
+        self.setWindowIcon(Qt.QIcon(":/images/images/question.ico"))
         self.setWindowTitle("BBCF Sprite Editor Settings")
+
         self.ui.select.clicked.connect(self.select_steam_install)
 
         self.app_config = app_config
