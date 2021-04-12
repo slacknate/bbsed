@@ -236,7 +236,8 @@ class SelectDialog(QtWidgets.QDialog):
         else:
             hpl_files = self.paths.get_saved_palette(character, palette_id, select_name)
 
-        # FIXME: the typical HPL assumption :(
+        # The first sprite is always associated to the first palette file as far as I can tell.
+        # We can make this assumption until it is proven wrong.
         palette_full_path = hpl_files[0]
 
         try:
