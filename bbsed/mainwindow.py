@@ -78,14 +78,6 @@ class AppConfig(Configuration):
         # We do this here to avoid a "chicken-and-egg" problem.
         paths.set_app_config(self)
 
-    @property
-    def steam_install(self):
-        """
-        Property to get the setting value from the config
-        that will also make IDE introspection work correctly.
-        """
-        return getattr(self, "bbsed_steam_install")
-
 
 # TODO: icons
 # TODO: implement a help menu with About and Tutorial entries.
@@ -174,7 +166,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Helper to check if we have a Steam install configured and should enable relevant UI elements.
         """
-        if self.config.steam_install:
+        if self.config["bbsed"]["steam_install"]:
             self.ui.character_box.setEnabled(True)
 
     def exit_app(self, _):
@@ -440,7 +432,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pac_path = self._choose_export_pac()
 
         if pac_path:
-            dialog = SelectDialog(self.paths, allow_multi_select=True, parent=self)
+            dialog = SelectDialog(self.paths, multi_select=True, parent=self)
             export = dialog.exec_()
 
             # If we accepted the dialog then we should actually create the export.

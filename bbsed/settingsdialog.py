@@ -4,7 +4,7 @@ from .ui.settingsdialog_ui import Ui_Dialog
 
 
 class SettingsDialog(QtWidgets.QDialog):
-    def __init__(self, config, parent=None):
+    def __init__(self, app_config, parent=None):
         flags = QtCore.Qt.WindowType.WindowTitleHint | QtCore.Qt.WindowType.CustomizeWindowHint
         QtWidgets.QDialog.__init__(self, parent, flags=flags)
 
@@ -14,11 +14,11 @@ class SettingsDialog(QtWidgets.QDialog):
         self.setWindowTitle("BBCF Sprite Editor Settings")
         self.ui.select.clicked.connect(self.select_steam_install)
 
-        self.config = config
+        self.app_config = app_config
 
         # Set our previously used Steam install path if it exists.
-        if self.config.steam_install:
-            self.ui.steam_install.setText(self.config.steam_install)
+        if self.app_config["bbsed"]["steam_install"]:
+            self.ui.steam_install.setText(self.app_config["bbsed"]["steam_install"])
 
     def select_steam_install(self):
         """
@@ -42,6 +42,7 @@ class SettingsDialog(QtWidgets.QDialog):
         steam_install = self.ui.steam_install.text()
 
         if steam_install:
-            self.config.update(steam_install=steam_install)
+            self.app_config["bbsed"]["steam_install"] = steam_install
+            self.app_config.save()
 
         QtWidgets.QDialog.accept(self)

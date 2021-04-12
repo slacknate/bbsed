@@ -73,14 +73,14 @@ class Paths:
         """
         Helper property to get our steam.exe full path based on our configured Steam install location.
         """
-        return os.path.join(self.app_config.steam_install, "steam.exe")
+        return os.path.join(self.app_config["bbsed"]["steam_install"], "steam.exe")
 
     @property
     def bbcf_data_dir(self):
         """
         Helper property to get our BBCF install location based on our configured Steam install location.
         """
-        return os.path.join(self.app_config.steam_install, *BBCF_PATH_COMPONENTS)
+        return os.path.join(self.app_config["bbsed"]["steam_install"], *BBCF_PATH_COMPONENTS)
 
     def _get_sprite_cache_path(self, character):
         """
