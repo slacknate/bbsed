@@ -2,7 +2,7 @@
 Package to contain UI files created by Qt Designer and the Python generated from those files.
 """
 
-# All icon files included are licensed with a basic "Free for commercial use" license.
+# All icon files included are licensed with a basic "Free for commercial use" license (as of 4/12/2021).
 # All of the images, with called out licenses, can be found online as follows:
 
 # settings.ico - https://www.iconfinder.com/icons/1493289/settings_cog_gear_options_preferences_setting_system_icon
