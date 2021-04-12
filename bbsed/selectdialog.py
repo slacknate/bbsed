@@ -110,7 +110,7 @@ class SelectDialog(QtWidgets.QDialog):
         for palette_number in range(GAME_MAX_PALETTES):
             palette_id = palette_number_to_id(palette_number)
 
-            # The attribute names of these combo boxes and buttons are explicitly defined in Qt Designer.
+            # The attribute names of these widgets are explicitly defined in Qt Designer.
             # These attributes will in fact exist and we get at them this way to avoid writing a giant block of
             # code that would manually call out these widgets `GAME_MAX_PALETTES` times.
             palette_group = getattr(self.ui, PALETTE_GROUP_PREFIX.format(palette_id))
