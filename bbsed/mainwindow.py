@@ -26,8 +26,10 @@ from .pathing import Paths
 from .char_info import *
 from .util import *
 
-BASE_WINDOW_TITLE = "BBCF Sprite Editor"
-EDIT_MARKER_CHAR = "*"
+WINDOW_TITLE_BASE = "BBCF Sprite Editor"
+WINDOW_TITLE_EXTRA = " - {} - {}"
+WINDOW_TITLE_SLOT = " - {}"
+WINDOW_TITLE_EDIT_MARK = "*"
 
 HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})(" + PALETTE_EDIT_MARKER +
                               r"|(" + PALETTE_SAVE_MARKER + r"\w+))?" + PALETTE_EXT)
@@ -94,7 +96,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.setWindowTitle(BASE_WINDOW_TITLE)
+        self._set_window_title()
 
         self.paths = Paths()
         self.config = AppConfig(self.paths)
@@ -486,11 +488,22 @@ class MainWindow(QtWidgets.QMainWindow):
                     backup_full_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
                     shutil.copyfile(backup_full_path, hpl_full_path)
 
-            # Remove the edit marker from the window title.
-            self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}")
+            # Check for the presence of edit slot meta data and remove it if necessary.
+            slot_name = self._get_edit_meta(character, palette_id)
+            self._remove_edit_meta(character, palette_id)
+
+            self._set_window_title(character_name, palette_id, slot_name=slot_name)
             self.ui.discard_palette.setEnabled(False)
 
-            self.sprite_editor.update_sprite_preview()
+            # If we did indeed have an associated slot name then we should re-select that
+            # slot. This will cause a sprite preview update.
+            if slot_name is not None:
+                index = self.ui.slot_select.findText(slot_name)
+                self.ui.slot_select.setCurrentIndex(index)
+
+            # Otherwise we need to trigger the sprite preview update manually.
+            else:
+                self.sprite_editor.update_sprite_preview()
 
     def _restore_character_palettes(self, character):
         """
@@ -538,6 +551,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Save the current palette with the given name.
         We will be able to recall and export this palette after it is saved.
         """
+        character_name = self.ui.char_select.currentText()
         character = self.ui.char_select.currentData()
         palette_id = self.ui.palette_select.currentText()
 
@@ -566,11 +580,26 @@ class MainWindow(QtWidgets.QMainWindow):
                 backup_full_path = hpl_src_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
                 shutil.copyfile(backup_full_path, hpl_src_path)
 
+        # We may be saving changes made to a palette that already has a save name.
+        save_index = self.ui.slot_select.findText(palette_name)
+
         # Add this palette to the selectable saved palettes and select it.
         with block_signals(self.ui.slot_select):
-            self.ui.slot_select.addItem(palette_name, PALETTE_SAVE)
-            new_index = self.ui.slot_select.findText(palette_name)
-            self.ui.slot_select.setCurrentIndex(new_index)
+            # Only add a new item if this save name is new.
+            # This will happen if the palette has not been saved before
+            # or if the user has selected the "Save As" option.
+            if save_index < 0:
+                self.ui.slot_select.addItem(palette_name, PALETTE_SAVE)
+                save_index = self.ui.slot_select.findText(palette_name)
+
+            self.ui.slot_select.setCurrentIndex(save_index)
+
+        # We should remove any associated edit slot meta data when we save these changes.
+        # The meta data is for describing active edits only.
+        self._remove_edit_meta(character, palette_id)
+
+        self._set_window_title(character_name, palette_id, slot_name=palette_name)
+        self.ui.discard_palette.setEnabled(False)
 
         # If this is the first palette saved for this character and palette ID then we will need to enable
         # the save select combobox.
@@ -631,8 +660,15 @@ class MainWindow(QtWidgets.QMainWindow):
         palette_id = self.ui.palette_select.currentText()
         slot_type = self.ui.slot_select.currentData()
 
+        # Look for the presence of edit slot meta data.
+        # If it exists then that is what provides our palette save name.
+        edit_meta = self._get_edit_meta(character, palette_id)
+        if edit_meta is not None:
+            self._remove_edit_meta(character, palette_id)
+            palette_name = edit_meta
+
         # If we have a saved palette selected we keep the name previously chosen.
-        if slot_type == PALETTE_SAVE:
+        elif slot_type == PALETTE_SAVE:
             palette_name = self.ui.slot_select.currentText()
 
         # If we have the edit slot selected then we prompt the user to choose a name.
@@ -683,12 +719,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # Re-select the edit slot after we delete a palette.
             self.ui.slot_select.setCurrentIndex(0)
 
-    def _update_title_for_palette(self, character, palette_id, character_name):
+    def _update_edit_state(self, character, palette_id):
         """
         Helper to update the window title based on presence of active changes from the user.
         """
-        window_title = BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}"
         self.ui.discard_palette.setEnabled(False)
+        is_dirty = False
 
         # Look for any palette files with active changes.
         for _, edit_hash, orig_hash in self.paths.get_edit_palette_hashes(character, palette_id):
@@ -696,11 +732,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # If the loaded character/palette has active changes our new window title should include the edit marker.
             if is_dirty:
-                window_title += EDIT_MARKER_CHAR
                 self.ui.discard_palette.setEnabled(True)
                 break
 
-        self.setWindowTitle(window_title)
+        return is_dirty
 
     def _reset_ui(self):
         """
@@ -716,7 +751,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.slot_select.clear()
             self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
-        self.setWindowTitle(BASE_WINDOW_TITLE)
+        self._set_window_title()
         self.ui.discard_palette.setEnabled(False)
 
         self.sprite_editor.reset()
@@ -791,29 +826,68 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.ui.save_palette_as.isEnabled():
             self.set_palette_tools_enable(True)
 
-        self._update_title_for_palette(character, palette_id, character_name)
+        # Check for active changes and meta data associated to them for the palette we
+        # we choose (i.e. 01) when we select a new character.
+        is_dirty = self._update_edit_state(character, palette_id)
+        slot_name = self._get_edit_meta(character, palette_id)
 
+        self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
         self.sprite_editor.update_sprite_list(character)
 
-    def update_ui_for_palette(self):
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
+    def _set_window_title(self, *pcs, slot_name=None, show_edit_mark=False):
+        """
+        Remove the edit marker from the window title.
+        We have either discarded our active changes or saved them.
+        """
+        window_title = WINDOW_TITLE_BASE
+        extras_len = len(pcs)
 
-        # Add a marker to the window that indicates the user has active changes.
-        self.setWindowTitle(BASE_WINDOW_TITLE + f" - {character_name} - {palette_id}{EDIT_MARKER_CHAR}")
-        self.ui.discard_palette.setEnabled(True)
+        if extras_len not in (0, 2):
+            raise ValueError("Window title extras must only be character name and palette ID!")
+
+        if extras_len == 0 and show_edit_mark:
+            raise ValueError("Cannot show edit mark when no character and palette is selected!")
+
+        if extras_len:
+            window_title += WINDOW_TITLE_EXTRA.format(*pcs)
+
+        if slot_name is not None:
+            window_title += WINDOW_TITLE_SLOT.format(slot_name)
+
+        if show_edit_mark:
+            window_title += WINDOW_TITLE_EDIT_MARK
+
+        self.setWindowTitle(window_title)
+
+    def update_ui_for_palette(self):
+        """
+        Callback for when the sprite editor emits `data_changed`.
+        We have UI elements that should be updated when palette data is modified.
+        """
+        character_name = self.ui.char_select.currentText()
+        character = self.ui.char_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
 
         # Get the type of slot upon which we just made changes.
         slot_type = self.ui.slot_select.currentData()
+        slot_name = None
 
-        # FIXME: right meow this information will not be persistent if we switch character or palette, or close
-        #        the app. We will be able to determine the edit slot was changed but that is it. we need to store
-        #        meta data about the slot type/save name with this change.
         # If we are working on a save slot then we need to switch to the edit slot to see our active changes.
         # Setting the slot select index will trigger a preview update.
         if slot_type == PALETTE_SAVE:
-            with block_signals(self.ui.slot_select):
-                self.ui.slot_select.setCurrentIndex(0)
+            # If we have made changes to a saved palette then we need to create an edit slot meta data file.
+            slot_name = self.ui.slot_select.currentText()
+            edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
+
+            # Write the slot name into the file.
+            with open(edit_meta_path, "w") as edit_fp:
+                edit_fp.write(slot_name)
+
+            self.ui.slot_select.setCurrentIndex(0)
+
+        # Add a marker to the window that indicates the user has active changes.
+        self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=True)
+        self.ui.discard_palette.setEnabled(True)
 
     def select_palette(self):
         """
@@ -841,8 +915,10 @@ class MainWindow(QtWidgets.QMainWindow):
             for save_name in character_saves:
                 self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
-        self._update_title_for_palette(character, palette_id, character_name)
+        is_dirty = self._update_edit_state(character, palette_id)
+        slot_name = self._get_edit_meta(character, palette_id)
 
+        self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
         self.sprite_editor.update_sprite_preview()
 
     def select_palette_slot(self):
@@ -850,9 +926,47 @@ class MainWindow(QtWidgets.QMainWindow):
         We have selected a palette which has been saved by the user.
         Disable the delete button when we have the Edit slot selected.
         """
-        can_delete = self.ui.slot_select.currentData() == PALETTE_SAVE
+        slot_type = self.ui.slot_select.currentData()
+        character_name = self.ui.char_select.currentText()
+        character = self.ui.char_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+
+        can_delete = (slot_type == PALETTE_SAVE)
         self.ui.delete_palette.setEnabled(can_delete)
+
+        if slot_type == PALETTE_EDIT:
+            slot_name = self._get_edit_meta(character, palette_id)
+            is_dirty = False
+
+        else:
+            slot_name = self.ui.slot_select.currentText()
+            is_dirty = False
+
+        self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
         self.sprite_editor.update_sprite_preview()
+
+    def _get_edit_meta(self, character, palette_id):
+        """
+        Helper to get the edit slot meta value if it exists.
+        We return `None` in the case when the file does not exist.
+        """
+        slot_name = None
+        edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
+
+        if os.path.exists(edit_meta_path):
+            with open(edit_meta_path, "r") as edit_fp:
+                slot_name = edit_fp.read()
+
+        return slot_name
+
+    def _remove_edit_meta(self, character, palette_id):
+        """
+        Helper to remove the edit slot meta data if it exists.
+        Used when palette changes are saved or discarded.
+        """
+        edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
+        if os.path.exists(edit_meta_path):
+            os.remove(edit_meta_path)
 
     def show_confirm_dialog(self, title, message):
         """

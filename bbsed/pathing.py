@@ -176,6 +176,14 @@ class Paths:
 
         return hpl_files_list
 
+    def get_edit_slot_meta(self, character, palette_id):
+        """
+        Get the meta data file used to describe the slot name for a given palette edit.
+        Used if and only if edits are being made to an existing saved palette.
+        """
+        character_edit_path = self._get_edit_path(character, palette_id)
+        return os.path.join(character_edit_path, "slot.txt")
+
     def get_edit_palette(self, character, palette_id):
         """
         Get a list of HPL palette files in the edit slot for the given character and palette ID.
