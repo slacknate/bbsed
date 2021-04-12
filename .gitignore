@@ -4,6 +4,9 @@
 # Editable pip install meta data directory
 *.egg-info/*
 
+# Compiled python files
+*.pyc
+
 # Ignore shell scripts so we can make some convenience commands
 *.cmd
 *.sh
