@@ -28,7 +28,7 @@ class ZoomDialog(QtWidgets.QDialog):
         self.current_sprite = io.BytesIO()
 
         self.current_position = Qt.QPoint(0, 0)
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, 0, 0)
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, False, 0, 0)
 
         self.zoom_scene = QtWidgets.QGraphicsScene()
         self.ui.png_view.setScene(self.zoom_scene)
@@ -87,12 +87,16 @@ class ZoomDialog(QtWidgets.QDialog):
 
         # We need a new crosshair every time we clear the scene.
         # We have updated the sprite data anyway so it makes sense to recreate it.
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, png_pixmap.width(), png_pixmap.height())
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, True, png_pixmap.width(), png_pixmap.height())
 
         # Clear our image date and load in the updates image data.
         self.zoom_scene.clear()
-        self.zoom_scene.addPixmap(png_pixmap)
+        pixmap_item = self.zoom_scene.addPixmap(png_pixmap)
         self.zoom_scene.addItem(self.crosshair)
+
+        # Set the parent item of the crosshair to the added png pixmap so the crosshair can
+        # determine what color it should be drawn using the pixmap as a reference.
+        self.crosshair.setParentItem(pixmap_item)
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.png_view.viewport().update()

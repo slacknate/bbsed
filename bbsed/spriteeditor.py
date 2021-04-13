@@ -29,7 +29,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.palette_data = io.BytesIO()
         self.current_sprite = io.BytesIO()
 
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, 0, 0)
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, False, 0, 0)
 
         self.mainwindow = mainwindow
         self.paths = paths
@@ -117,12 +117,16 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # We need a new crosshair every time we clear the scene.
         # We have updated the sprite data anyway so it makes sense to recreate it.
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, png_pixmap.width(), png_pixmap.height())
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, True, png_pixmap.width(), png_pixmap.height())
 
         # Clear our image date and load in the updates image data.
         self.sprite_scene.clear()
-        self.sprite_scene.addPixmap(png_pixmap)
+        pixmap_item = self.sprite_scene.addPixmap(png_pixmap)
         self.sprite_scene.addItem(self.crosshair)
+
+        # Set the parent item of the crosshair to the added png pixmap so the crosshair can
+        # determine what color it should be drawn using the pixmap as a reference.
+        self.crosshair.setParentItem(pixmap_item)
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
