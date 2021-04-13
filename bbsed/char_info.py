@@ -78,4 +78,4 @@ CHARACTER_INFO = {
     NU: ("Nu-13", "ny")  # Nyu
 }
 
-VALID_CHARACTERS = tuple([abbreviation for _, abbreviation in CHARACTER_INFO.values()])
+VALID_CHARACTERS = tuple([_character for _, _character in CHARACTER_INFO.values()])
