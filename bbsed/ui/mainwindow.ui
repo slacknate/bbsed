@@ -167,7 +167,7 @@
     <addaction name="restore_all"/>
     <addaction name="restore_character"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="help_menu">
     <property name="title">
      <string>Help</string>
     </property>
@@ -179,7 +179,7 @@
    <addaction name="game_files_menu"/>
    <addaction name="palettes_menu"/>
    <addaction name="view_menu"/>
-   <addaction name="menuHelp"/>
+   <addaction name="help_menu"/>
   </widget>
   <widget class="QToolBar" name="palettes_toolbar">
    <property name="enabled">

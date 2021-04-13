@@ -16,6 +16,7 @@ from .exceptions import AppError, AppException
 from .settingsdialog import SettingsDialog
 from .selectdialog import SelectDialog
 from .spriteeditor import SpriteEditor
+from .aboutdialog import AboutDialog
 from .errordialog import ErrorDialog
 from .config import Configuration
 from .exporter import ExportThread
@@ -79,7 +80,7 @@ class AppConfig(Configuration):
         paths.set_app_config(self)
 
 
-# TODO: implement a help menu with About and Tutorial entries.
+# TODO: implement in-app Tutorial.
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
@@ -140,6 +141,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.copy_palette.triggered.connect(self.copy_palette)
         self.ui.paste_palette.triggered.connect(self.paste_palette)
         self.ui.discard_palette.triggered.connect(self.discard_palette)
+        # Help Menu
+        self.ui.tutorial.triggered.connect(self.show_tutorial)
+        self.ui.about.triggered.connect(self.show_about_dialog)
 
     def set_palette_tools_enable(self, state):
         """
@@ -1018,6 +1022,19 @@ class MainWindow(QtWidgets.QMainWindow):
         edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
         if os.path.exists(edit_meta_path):
             os.remove(edit_meta_path)
+
+    def show_tutorial(self):
+        """
+        ???.
+        """
+        self.show_message_dialog("Feature Not Implemented", "The in-app tutorial is not yet implemented! Coming soon!")
+
+    def show_about_dialog(self):
+        """
+        ???.
+        """
+        dialog = AboutDialog(parent=self)
+        dialog.exec_()
 
     def show_confirm_dialog(self, title, message):
         """
