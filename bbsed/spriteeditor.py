@@ -39,7 +39,9 @@ class SpriteEditor(QtWidgets.QWidget):
         self.palette_dialog = PaletteDialog(self.mainwindow.ui.view_palette, parent=mainwindow)
         self.palette_dialog.index_selected.connect(self.choose_color_from_index)
 
-        # FIXME: there's something weird about drag select being off by one...
+        # FIXME: the sprite list misses the first selection changed if the user drags the mouse without
+        #        releasing it. can we just disallow this? and what do we replace it right?
+        self.ui.sprite_list.setSelectionMode(QtWidgets.QListWidget.SelectionMode.SingleSelection)
         self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
 
         # Set up the sprite preview mouse events so we can update various app visuals.
