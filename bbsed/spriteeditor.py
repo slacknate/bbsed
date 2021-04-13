@@ -10,7 +10,10 @@ from .ui.spriteeditor_ui import Ui_Editor
 
 from .palettedialog import COLOR_BOX_SIZE, PaletteDialog
 from .zoomdialog import ZoomDialog
+from .crosshair import Crosshair
 from .util import *
+
+CROSS_HAIR_SIZE = 20
 
 
 class SpriteEditor(QtWidgets.QWidget):
@@ -23,8 +26,10 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui = Ui_Editor()
         self.ui.setupUi(self)
 
-        self.current_sprite = io.BytesIO()
         self.palette_data = io.BytesIO()
+        self.current_sprite = io.BytesIO()
+
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, 0, 0)
 
         self.mainwindow = mainwindow
         self.paths = paths
@@ -40,8 +45,11 @@ class SpriteEditor(QtWidgets.QWidget):
         # Set up the sprite preview mouse events so we can update various app visuals.
         self.ui.sprite_preview.setMouseTracking(True)
         self.ui.sprite_preview.mouseDoubleClickEvent = self.choose_color_from_coord
-        self.ui.sprite_preview.mouseMoveEvent = self.move_zoom_cursor
-        self.ui.sprite_preview.enterEvent = self.set_cross_cursor
+        self.ui.sprite_preview.mouseMoveEvent = self.mouse_move_event
+        # Do not show a cursor as we are going to be manually drawing a cursor. Why?
+        # I am not happy with the CrossCursor that is built into Qt, and we have to implement
+        # a way to draw a crosshair for the Zoom Dialog anyway.
+        self.ui.sprite_preview.viewport().setCursor(QtCore.Qt.CursorShape.BlankCursor)
 
         # Set up our sprite viewer with a scene.
         # A scene can load a pixmap (i.e. an image like a PNG) from file or bytestring and display it.
@@ -53,10 +61,12 @@ class SpriteEditor(QtWidgets.QWidget):
         Reset all graphics views to be blank.
         """
         # Clear our image data.
+        self.current_sprite = io.BytesIO()
         self.sprite_scene.clear()
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
         # Clear palette data.
+        self.palette_data = io.BytesIO()
         self.palette_dialog.reset()
         # Clear zoom view.
         self.zoom_dialog.reset()
@@ -105,9 +115,14 @@ class SpriteEditor(QtWidgets.QWidget):
         png_pixmap = Qt.QPixmap()
         png_pixmap.loadFromData(self.current_sprite.getvalue(), "PNG")
 
+        # We need a new crosshair every time we clear the scene.
+        # We have updated the sprite data anyway so it makes sense to recreate it.
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, png_pixmap.width(), png_pixmap.height())
+
         # Clear our image date and load in the updates image data.
         self.sprite_scene.clear()
         self.sprite_scene.addPixmap(png_pixmap)
+        self.sprite_scene.addItem(self.crosshair)
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
@@ -171,13 +186,16 @@ class SpriteEditor(QtWidgets.QWidget):
 
         self._update_sprite_preview()
 
-    def move_zoom_cursor(self, evt):
+    def mouse_move_event(self, evt):
         """
         Move the zoom dialog centerpoint to follow the mouse cursor.
         """
-        clicked_point = Qt.QPoint(evt.x(), evt.y())
-        mapped_point = self.ui.sprite_preview.mapToScene(clicked_point)
+        motion_point = Qt.QPoint(evt.x(), evt.y())
+        mapped_point = self.ui.sprite_preview.mapToScene(motion_point)
         self.zoom_dialog.move_cursor(mapped_point)
+        self.crosshair.setPos(mapped_point)
+        # Ensure the graphics view is refreshed so our crosshair colors update.
+        self.ui.sprite_preview.viewport().update()
 
     def _set_color(self, palette_index, color_tuple):
         """
@@ -270,12 +288,6 @@ class SpriteEditor(QtWidgets.QWidget):
             return
 
         self.choose_color_from_index(palette_index)
-
-    def set_cross_cursor(self, _):
-        """
-        When we mouse over the sprite set the cursor to a cross.
-        """
-        self.ui.sprite_preview.viewport().setCursor(QtCore.Qt.CursorShape.CrossCursor)
 
     def reset(self):
         """

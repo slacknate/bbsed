@@ -1,14 +1,15 @@
 import io
 
+from PIL import Image
 from PyQt5 import QtCore, Qt, QtWidgets
 
 from .ui.zoomdialog_ui import Ui_Dialog
 
+from .crosshair import Crosshair
 from .util import block_signals
 
-ZOOM_VIEW_SIZE = 247
-ZOOM_VIEW_CENTER = 124
-ZOOM_VIEW_SCALE = 5.0
+CROSS_HAIR_SIZE = 10
+ZOOM_VIEW_SCALE = 2
 
 
 class ZoomDialog(QtWidgets.QDialog):
@@ -25,7 +26,9 @@ class ZoomDialog(QtWidgets.QDialog):
         self.menu_check.triggered.connect(self.setVisible)
 
         self.current_sprite = io.BytesIO()
+
         self.current_position = Qt.QPoint(0, 0)
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, 0, 0)
 
         self.zoom_scene = QtWidgets.QGraphicsScene()
         self.ui.png_view.setScene(self.zoom_scene)
@@ -61,27 +64,35 @@ class ZoomDialog(QtWidgets.QDialog):
         Reset the zoom view to be blank.
         """
         # Clear our image data.
+        self.current_sprite = io.BytesIO()
         self.zoom_scene.clear()
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.png_view.viewport().update()
         # Reset sprite and zoom information.
-        self.current_sprite = io.BytesIO()
         self.current_position = Qt.QPoint(0, 0)
 
-    def set_sprite(self, current_sprite):
+    def set_sprite(self, new_sprite):
         """
         Set the sprite that we are zooming in on.
         """
-        self.current_sprite = current_sprite
+        self.current_sprite = io.BytesIO()
+
+        # Scale the sprite by our defined zoom factor and set the result as the dialog sprite data.
+        with Image.open(new_sprite) as img:
+            new_img = img.resize((img.width * ZOOM_VIEW_SCALE, img.height * ZOOM_VIEW_SCALE))
+            new_img.save(self.current_sprite, format="PNG")
 
         png_pixmap = Qt.QPixmap()
         png_pixmap.loadFromData(self.current_sprite.getvalue(), "PNG")
 
+        # We need a new crosshair every time we clear the scene.
+        # We have updated the sprite data anyway so it makes sense to recreate it.
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, self.current_sprite, png_pixmap.width(), png_pixmap.height())
+
         # Clear our image date and load in the updates image data.
         self.zoom_scene.clear()
         self.zoom_scene.addPixmap(png_pixmap)
-
-        # TODO: draw a crosshair at the center of the zoom view
+        self.zoom_scene.addItem(self.crosshair)
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.png_view.viewport().update()
@@ -96,5 +107,11 @@ class ZoomDialog(QtWidgets.QDialog):
         Maintain a reference to the current center position so if
         we reload the sprite data we can re-center on this position again in `set_sprite`.
         """
-        self.ui.png_view.centerOn(point.x(), point.y())
+        scaled_point = point * ZOOM_VIEW_SCALE
+
+        self.ui.png_view.centerOn(scaled_point)
+        self.crosshair.setPos(scaled_point)
+
+        # Ensure the graphics view is refreshed so our crosshair colors update.
+        self.ui.png_view.viewport().update()
         self.current_position = point
