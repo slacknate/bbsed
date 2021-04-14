@@ -205,7 +205,7 @@ class SpriteEditor(QtWidgets.QWidget):
         We need to wait for the mainwindow to perform sprite extraction (if necessary)
         and after that completes the mainwindow will invoke `SpritEditor.update_sprite_list()`.
         """
-        self.reset()
+        self._reset()
 
         character_name = self.ui.char_select.currentText()
         character = self.ui.char_select.currentData()
@@ -503,14 +503,12 @@ class SpriteEditor(QtWidgets.QWidget):
 
         self.choose_color_from_index(palette_index)
 
-    def reset(self):
+    def _reset(self):
         """
-        Reset the editor state.
-        We need to clear the sprite list and image data.
+        An internal only partial-reset.
+        Resets everything except character selection so we can
+        use this method in `select_character`.
         """
-        with block_signals(self.ui.char_select):
-            self.ui.char_select.setCurrentIndex(-1)
-
         with block_signals(self.ui.palette_select):
             self.ui.palette_select.setCurrentIndex(-1)
 
@@ -523,6 +521,16 @@ class SpriteEditor(QtWidgets.QWidget):
             self.ui.sprite_list.clear()
 
         self._clear_sprite_data()
+
+    def reset(self):
+        """
+        Reset the editor state. We reset character, palette, and slot select, as well as
+        the sprite file list and sprite image data.
+        """
+        with block_signals(self.ui.char_select):
+            self.ui.char_select.setCurrentIndex(-1)
+
+        self._reset()
 
     def set_selection_enable(self, state):
         """
