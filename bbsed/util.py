@@ -5,6 +5,7 @@ __all__ = [
     "SPRITE_FILE_FMT",
     "PALETTE_FILE_FMT",
     "BACKUP_PALETTE_FILE_FMT",
+    "PALETTE_ID_FMT",
     "GAME_PALETTE_SUFFIX",
     "BACKUP_GAME_PALETTE_EXT",
     "GAME_PALETTE_EXT",
@@ -28,7 +29,7 @@ __all__ = [
     # Functions
     "block_signals",
     "temp_directory",
-    "palette_id_to_number",
+    "iter_palettes",
     "palette_number_to_id",
     "get_hash_path",
     "hash_file",
@@ -44,6 +45,8 @@ BBCF_STEAM_APP_ID = "586140"
 SPRITE_FILE_FMT = "char_{}_img.pac"
 PALETTE_FILE_FMT = "char_{}_pal.pac"
 BACKUP_PALETTE_FILE_FMT = "char_{}_pal.orig.pac"
+
+PALETTE_ID_FMT = "{:02}"
 
 GAME_PALETTE_SUFFIX = "_pal.pac"
 
@@ -102,14 +105,16 @@ def temp_directory():
         shutil.rmtree(temp_dir)
 
 
-def palette_id_to_number(palette_id):
+def iter_palettes():
     """
-    Convert a palette number to a palette ID. We ensure it is always 2 digits.
-    A palette number is the prefix number that appears in HPL file names.
-    A palette ID is the number we see in game and also in the tool UI.
+    Iterate our total possile palettes.
+    We yield both the palette ID and palette number so
+    we have access to both values wherever we need to iterate.
     """
-    palette_num_on_disk = int(palette_id) - 1
-    return f"{palette_num_on_disk:02}"
+    for palette_num in range(GAME_MAX_PALETTES):
+        palette_id = palette_num + 1
+
+        yield PALETTE_ID_FMT.format(palette_id), PALETTE_ID_FMT.format(palette_num)
 
 
 def palette_number_to_id(palette_number):
@@ -119,7 +124,7 @@ def palette_number_to_id(palette_number):
     A palette ID is the number we see in game and also in the tool UI.
     """
     palette_num_in_game = int(palette_number) + 1
-    return f"{palette_num_in_game:02}"
+    return PALETTE_ID_FMT.format(palette_num_in_game)
 
 
 def hash_file(full_path):

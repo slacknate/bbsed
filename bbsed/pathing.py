@@ -228,9 +228,7 @@ class Paths:
             characters = os.listdir(self._get_edit_path())
 
         for character in characters:
-            for palette_num in range(GAME_MAX_PALETTES):
-                palette_id = palette_number_to_id(palette_num)
-
+            for palette_id, palette_num in iter_palettes():
                 hpl_files_list = self.get_edit_palette(character, palette_id)
 
                 if hpl_files_list:
@@ -272,8 +270,6 @@ class Paths:
             characters = os.listdir(self._get_save_path())
 
         for character in characters:
-            for palette_num in range(GAME_MAX_PALETTES):
-                palette_id = palette_number_to_id(palette_num)
-
+            for palette_id, palette_num in iter_palettes():
                 for save_name in self.get_character_saves(character, palette_id):
                     yield character, palette_id, save_name

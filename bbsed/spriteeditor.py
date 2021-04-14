@@ -217,9 +217,8 @@ class SpriteEditor(QtWidgets.QWidget):
         # We do not want to try to select a palette before a sprite is selected, and
         # at the very least we do not want to spam the signals in a loop regardless.
         with block_signals(self.ui.palette_select):
-            for palette_num in range(GAME_MAX_PALETTES):
-                palette_id = palette_number_to_id(palette_num)
-                self.ui.palette_select.addItem(palette_id)
+            for palette_id, palette_num in iter_palettes():
+                self.ui.palette_select.addItem(palette_id, palette_num)
 
             # Automatically select the first palette.
             # We intentionally select this in the block_signals block so we do not try to set

@@ -53,9 +53,7 @@ def generate_apply_settings():
     for character in VALID_CHARACTERS:
         settings[character] = {}
 
-        for palette_number in range(GAME_MAX_PALETTES):
-            palette_id = palette_number_to_id(palette_number)
-
+        for palette_id, palette_num in iter_palettes():
             settings[character][palette_id] = SLOT_NAME_NONE
 
     return settings

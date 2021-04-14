@@ -44,9 +44,7 @@ class ApplyThread(WorkThread):
             shutil.copyfile(hpl_full_path, os.path.join(temp_dir, temp_hpl_file))
 
         # Copy game-version-palettes to the temp directory as necessary.
-        for palette_num in range(GAME_MAX_PALETTES):
-            palette_id = palette_number_to_id(palette_num)
-
+        for palette_id, palette_num in iter_palettes():
             # Only include game-version palettes if the user did not make a selection for this palette ID.
             if palette_id not in palette_info:
                 for hpl_full_path in self.paths.get_game_palette(character, palette_id):
