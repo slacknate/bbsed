@@ -898,13 +898,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_tutorial(self):
         """
-        ???.
+        Bring up the in-app tutorial dialog so users can learn how to use the tool.
         """
         self.show_message_dialog("Feature Not Implemented", "The in-app tutorial is not yet implemented! Coming soon!")
 
     def show_about_dialog(self):
         """
-        ???.
+        Some some basic information about BBCF Sprite Editor.
         """
         dialog = AboutDialog(parent=self)
         dialog.exec_()
