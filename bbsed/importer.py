@@ -26,6 +26,7 @@ class ImportThread(WorkThread):
             for hpl_src_path in hpl_files_list:
                 hpl_file = os.path.basename(hpl_src_path)
 
+                # FIXME: we need to replace PALETTE_SAVE_MARKER as well
                 if save_name == EDIT_INTERNAL_NAME:
                     character_edit_path = self.paths.get_edit_palette_path(character, palette_id)
                     hpl_dst_path = os.path.join(character_edit_path, hpl_file)
