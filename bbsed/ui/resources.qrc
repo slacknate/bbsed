@@ -2,8 +2,8 @@
   <qresource prefix="images">
     <file>images/delete.ico</file>
     <file>images/exit.ico</file>
-    <file>images/app.png</file>
     <file>images/play.ico</file>
+    <file>images/app.png</file>
     <file>images/info.ico</file>
     <file>images/apply.ico</file>
     <file>images/error.ico</file>
