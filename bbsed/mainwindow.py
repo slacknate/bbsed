@@ -94,14 +94,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.paths = Paths()
         self.app_config = AppConfig(self.paths)
         self.apply_config = ApplyConfig(self.paths)
-        self._check_steam_install()
 
         self.clipboard = None
 
-        self.sprite_editor = SpriteEditor(self, self.paths, self.ui.sprite_group)
-        self.sprite_editor.data_changed.connect(self.update_ui_for_palette)
+        self.sprite_editor = SpriteEditor(self, self.paths, self.ui.central_widget)
+        self.sprite_editor.image_data_changed.connect(self.update_ui_for_palette)
+        self.sprite_editor.character_changed.connect(self.character_changed)
+        self.sprite_editor.palette_changed.connect(self.palette_changed)
+        self.sprite_editor.palette_slot_changed.connect(self.palette_slot_changed)
 
-        sprite_layout = self.ui.sprite_group.layout()
+        sprite_layout = self.ui.central_widget.layout()
         sprite_layout.addWidget(self.sprite_editor)
 
         # Import and Export are always enabled as they are not dependent on palettes being loaded.
@@ -110,19 +112,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.discard_palette.setEnabled(False)
         self.ui.paste_palette.setEnabled(False)
         self.set_palette_tools_enable(False)
-
-        # We need to sort the character info before adding to the selection combo box.
-        # This way the combo box index will match the defined character IDs in the char_info module.
-        sorted_chars = list(CHARACTER_INFO.items())
-        sorted_chars.sort(key=lambda item: item[0])
-
-        for _, (character_name, character) in sorted_chars:
-            self.ui.char_select.addItem(character_name, character)
-
-        self.ui.char_select.setCurrentIndex(-1)
-        self.ui.char_select.currentIndexChanged.connect(self.select_character)
-        self.ui.palette_select.currentIndexChanged.connect(self.select_palette)
-        self.ui.slot_select.currentIndexChanged.connect(self.select_palette_slot)
 
         # File Menu
         self.ui.launch_bbcf.triggered.connect(self.launch_bbcf)
@@ -144,6 +133,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Help Menu
         self.ui.tutorial.triggered.connect(self.show_tutorial)
         self.ui.about.triggered.connect(self.show_about_dialog)
+
+        # Check if we should enable some editor UI elements at startup.
+        self._check_steam_install()
 
     def set_palette_tools_enable(self, state):
         """
@@ -169,13 +161,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # This will enable UI elements if we set a Steam install in the dialog.
         self._check_steam_install()
 
-    def _check_steam_install(self):
-        """
-        Helper to check if we have a Steam install configured and should enable relevant UI elements.
-        """
-        if self.app_config["bbsed"]["steam_install"]:
-            self.ui.character_box.setEnabled(True)
-
     def exit_app(self, _):
         """
         Callback for the exit action. Close the window, which exits the app.
@@ -189,6 +174,13 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         QtWidgets.QMainWindow.closeEvent(self, evt)
         self.sprite_editor.close_dialogs()
+
+    def _check_steam_install(self):
+        """
+        Helper to check if we have a Steam install configured and should enable relevant UI elements.
+        """
+        if self.app_config["bbsed"]["steam_install"]:
+            self.sprite_editor.set_selection_enable(True)
 
     def _detect_nameless_hpl(self, hpl_file, save_name_map):
         """
@@ -402,20 +394,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # If the import succeeded we should check if we need to update the UI:
             if success:
-                character = self.ui.char_select.currentData()
-                palette_id = self.ui.palette_select.currentText()
+                _, character = self.sprite_editor.get_character()
+                palette_id, _ = self.sprite_editor.get_palette()
 
                 # Update the save slots to include the newly imported files, but only if we have imported
                 # palettes for the current selected character and palette ID.
-                with block_signals(self.ui.slot_select):
-                    for save_char, save_pal_id, save_name in hpl_to_import.keys():
-                        if save_char == character and save_pal_id == palette_id:
-                            self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
-
-                    for file_info in pac_to_import.values():
-                        for save_char, save_pal_id, save_name in file_info.keys():
-                            if save_char == character and save_pal_id == palette_id:
-                                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
+                self.sprite_editor.import_palette_data(character, palette_id, hpl_to_import, pac_to_import)
 
                 self.sprite_editor.update_sprite_preview()
 
@@ -466,9 +450,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Discard the any edited palette files.
         """
-        character = self.ui.char_select.currentData()
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
+        character_name, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
 
         message = f"Do you wish to discard edits for {character_name} palette {palette_id}?"
         discard = self.show_confirm_dialog("Discard Edited Palette", message)
@@ -497,8 +480,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # If we did indeed have an associated slot name then we should re-select that
             # slot. This will cause a sprite preview update.
             if slot_name is not None:
-                index = self.ui.slot_select.findText(slot_name)
-                self.ui.slot_select.setCurrentIndex(index)
+                self.sprite_editor.set_slot(slot_name=slot_name)
 
             # Otherwise we need to trigger the sprite preview update manually.
             else:
@@ -536,36 +518,32 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Restore the selected character palettes from the backed up game data in the BBCF install directory.
         """
-        character_name = self.ui.char_select.currentText()
+        character_name, character = self.sprite_editor.get_character()
 
         message = f"Do you wish to restore game files for {character_name} to the original versions?"
         restore = self.show_confirm_dialog("Restore Game Files", message)
 
         if restore:
-            character = self.ui.char_select.currentData()
             self._restore_character_palettes(character)
 
-    def _save_palette(self, palette_name):
+    def _save_palette(self, save_name):
         """
         Save the current palette with the given name.
         We will be able to recall and export this palette after it is saved.
         """
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
+        character_name, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
+        slot_name, slot_type = self.sprite_editor.get_slot()
 
-        save_dst_path = self.paths.get_character_save_path(character, palette_id, palette_name)
+        save_dst_path = self.paths.get_character_save_path(character, palette_id, save_name)
         if not os.path.exists(save_dst_path):
             os.makedirs(save_dst_path)
 
-        slot_type = self.ui.slot_select.currentData()
-
+        # The source of our save files is different depending on the slot slot type.
         if slot_type == PALETTE_EDIT:
             files_to_save = self.paths.get_edit_palette(character, palette_id)
-
         else:
-            save_name = self.ui.slot_select.currentText()
-            files_to_save = self.paths.get_saved_palette(character, palette_id, save_name)
+            files_to_save = self.paths.get_saved_palette(character, palette_id, slot_name)
 
         for hpl_src_path in files_to_save:
             hpl_file = os.path.basename(hpl_src_path)
@@ -579,31 +557,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 backup_full_path = hpl_src_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
                 shutil.copyfile(backup_full_path, hpl_src_path)
 
-        # We may be saving changes made to a palette that already has a save name.
-        save_index = self.ui.slot_select.findText(palette_name)
-
-        # Add this palette to the selectable saved palettes and select it.
-        with block_signals(self.ui.slot_select):
-            # Only add a new item if this save name is new.
-            # This will happen if the palette has not been saved before
-            # or if the user has selected the "Save As" option.
-            if save_index < 0:
-                self.ui.slot_select.addItem(palette_name, PALETTE_SAVE)
-                save_index = self.ui.slot_select.findText(palette_name)
-
-            self.ui.slot_select.setCurrentIndex(save_index)
-
         # We should remove any associated edit slot meta data when we save these changes.
         # The meta data is for describing active edits only.
         self._remove_edit_meta(character, palette_id)
 
-        self._set_window_title(character_name, palette_id, slot_name=palette_name)
-        self.ui.discard_palette.setEnabled(False)
+        self._set_window_title(character_name, palette_id, slot_name=save_name)
 
-        # If this is the first palette saved for this character and palette ID then we will need to enable
-        # the save select combobox.
-        if not self.ui.slot_select.isEnabled():
-            self.ui.slot_select.setEnabled(True)
+        # We will be switching to the newly saved palette.
+        # When a save slot is selected we disable discard and enable delete.
+        self.ui.discard_palette.setEnabled(False)
+        self.ui.delete_palette.setEnabled(True)
+
+        self.sprite_editor.add_save_slot(save_name)
 
     def _choose_palette_name(self, character, palette_id, *previous_choices):
         """
@@ -618,9 +583,7 @@ class MainWindow(QtWidgets.QMainWindow):
         may need to choose a name multiple time during a single operation (like import).
         """
         existing_saves = self.paths.get_character_saves(character, palette_id)
-
-        index = self.ui.char_select.findData(character)
-        character_name = self.ui.char_select.itemText(index)
+        character_name, _ = self.sprite_editor.find_character(character=character)
 
         while True:
             flags = QtCore.Qt.WindowType.WindowTitleHint
@@ -655,37 +618,37 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Save the current palette to disk.
         """
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
-        slot_type = self.ui.slot_select.currentData()
+        slot_name, slot_type = self.sprite_editor.get_slot()
+        _, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
 
         # Look for the presence of edit slot meta data.
         # If it exists then that is what provides our palette save name.
         edit_meta = self._get_edit_meta(character, palette_id)
         if edit_meta is not None:
             self._remove_edit_meta(character, palette_id)
-            palette_name = edit_meta
+            save_name = edit_meta
 
         # If we have a saved palette selected we keep the name previously chosen.
         elif slot_type == PALETTE_SAVE:
-            palette_name = self.ui.slot_select.currentText()
+            save_name = slot_name
 
         # If we have the edit slot selected then we prompt the user to choose a name.
         else:
-            palette_name, accepted = self._choose_palette_name(character, palette_id)
+            save_name, accepted = self._choose_palette_name(character, palette_id)
 
             # If we did not accept the dialog then we do not want to save the palette.
             if not accepted:
                 return
 
-        self._save_palette(palette_name)
+        self._save_palette(save_name)
 
     def save_palette_as(self, _):
         """
         Save the current palette to disk. We will always prompt the user for a name.
         """
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
+        _, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
 
         palette_name, accepted = self._choose_palette_name(character, palette_id)
 
@@ -699,40 +662,37 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Delete the current selected saved palette.
         """
-        palette_id = self.ui.palette_select.currentText()
-
-        save_index = self.ui.slot_select.currentIndex()
-        save_name = self.ui.slot_select.currentText()
+        palette_id, _ = self.sprite_editor.get_palette()
+        _, character = self.sprite_editor.get_character()
+        save_name, _ = self.sprite_editor.get_slot()
 
         message = f"Do you want to delete saved palette {save_name}?"
         delete = self.show_confirm_dialog("Delete Palette", message)
 
         if delete:
-            with block_signals(self.ui.slot_select):
-                self.ui.slot_select.removeItem(save_index)
-
-            character = self.ui.char_select.currentData()
             save_dst_path = self.paths.get_character_save_path(character, palette_id, save_name)
             shutil.rmtree(save_dst_path)
 
-            # Re-select the edit slot after we delete a palette.
-            self.ui.slot_select.setCurrentIndex(0)
+            self.sprite_editor.delete_slot(save_name)
+
+            # We just deleted the current palette and will be switching back to the edit slot.
+            # We need to disable the delete action.
+            self.ui.delete_palette.setEnabled(False)
 
     def copy_palette(self, _):
         """
         Copy the current selected palette to our palette clipboard.
         The clipboard is just a list of palette files we want to copy.
         """
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
-        slot_type = self.ui.slot_select.currentData()
+        _, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
+        slot_name, slot_type = self.sprite_editor.get_slot()
 
         if slot_type == PALETTE_EDIT:
             self.clipboard = self.paths.get_edit_palette(character, palette_id)
 
         else:
-            save_name = self.ui.slot_select.currentText()
-            self.clipboard = self.paths.get_saved_palette(character, palette_id, save_name)
+            self.clipboard = self.paths.get_saved_palette(character, palette_id, slot_name)
 
         self.ui.paste_palette.setEnabled(True)
 
@@ -747,9 +707,9 @@ class MainWindow(QtWidgets.QMainWindow):
         confirmed = self.show_confirm_dialog("Paste Palette Confirmation", message)
 
         if confirmed:
-            character = self.ui.char_select.currentData()
-            palette_id = self.ui.palette_select.currentText()
-            slot_type = self.ui.slot_select.currentData()
+            _, character = self.sprite_editor.get_character()
+            palette_id, _ = self.sprite_editor.get_palette()
+            _, slot_type = self.sprite_editor.get_slot()
 
             dst_hpl_files = self.paths.get_edit_palette(character, palette_id)
 
@@ -766,8 +726,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # If we don't have the edit slot selected when we paste then we need to switch to it.
             # This will trigger a sprite preview update.
             if slot_type != PALETTE_EDIT:
-                index = self.ui.slot_select.findData(PALETTE_EDIT)
-                self.ui.slot_select.setCurrentIndex(index)
+                self.sprite_editor.set_slot(slot_type=PALETTE_EDIT)
 
             # Otherwise we need to update the sprite preview manually.
             else:
@@ -790,103 +749,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 break
 
         return is_dirty
-
-    def _reset_ui(self):
-        """
-        Reset the state of the UI. This includes clearing all graphics views, emptying the selectable
-        sprite file list, and resetting combo box selections. We also clear meta data associated to these things.
-        """
-        with block_signals(self.ui.palette_select):
-            self.ui.palette_select.setCurrentIndex(-1)
-
-        with block_signals(self.ui.slot_select):
-            self.ui.delete_palette.setEnabled(False)
-            self.ui.slot_select.setEnabled(False)
-            self.ui.slot_select.clear()
-            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
-
-        self._set_window_title()
-        self.ui.discard_palette.setEnabled(False)
-
-        self.sprite_editor.reset()
-
-    def current_selection_info(self):
-        """
-        Return all selection info about the current selected character, palette, and slot.
-        """
-        character = self.ui.char_select.currentData()
-        character_name = self.ui.char_select.currentText()
-
-        palette_id = self.ui.palette_select.currentText()
-
-        slot_type = self.ui.slot_select.currentData()
-        slot_name = self.ui.slot_select.currentText()
-
-        return (character, character_name), palette_id, (slot_type, slot_name)
-
-    def select_character(self):
-        """
-        A new character was picked from the character combobox.
-        """
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
-
-        # Don't allow the user to interact with these parts of the UI while we are updating them.
-        self.ui.sprite_group.setEnabled(False)
-
-        # Reset all the things. This method actually has the deselect_character argument specifically
-        # so we can use it here without immediately deselecting the character we just picked.
-        self._reset_ui()
-
-        # Extract the character data.
-        thread = ExtractThread(character, self.paths)
-        if not self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data..."):
-            # If our extract did not succeed we de-select the character and do not load any further data.
-            with block_signals(self.ui.char_select):
-                self.ui.char_select.setCurrentIndex(-1)
-                return
-
-        # Block signals while we add items so the signals are not emitted.
-        # We do not want to try to select a palette before a sprite is selected, and
-        # at the very least we do not want to spam the signals in a loop regardless.
-        with block_signals(self.ui.palette_select):
-            for palette_num in range(GAME_MAX_PALETTES):
-                palette_id = palette_number_to_id(palette_num)
-                self.ui.palette_select.addItem(palette_id)
-
-            # Automatically select the first palette.
-            # We intentionally select this in the block_signals block so we do not try to set
-            # palette data before a sprite is selected.
-            self.ui.palette_select.setCurrentIndex(0)
-
-        # Get the palette ID from the widget for the sake of consistency.
-        palette_id = self.ui.palette_select.currentText()
-
-        # Update the UI to show any save slots for the first palette.
-        with block_signals(self.ui.slot_select):
-            character_saves = self.paths.get_character_saves(character, palette_id)
-            # Set the save select enable state based on the presence of files on disk.
-            self.ui.slot_select.setEnabled(bool(character_saves))
-            for save_name in character_saves:
-                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
-
-        # Re-enable user interaction for everything else.
-        self.ui.sprite_group.setEnabled(True)
-        # If our menus and toolbars are disabled (like it is at app launch) we should now enable it.
-        # At launch it is disabled due to the fact that we will not have a selected character or palette.
-        # If the user clicks any of the buttons with no character or palette selected then bad things happen.
-        # Note that we set the state of the menus and toolbars together so we can just check the toolbar state
-        # here to probe the enable state of both UI elements.
-        if not self.ui.save_palette_as.isEnabled():
-            self.set_palette_tools_enable(True)
-
-        # Check for active changes and meta data associated to them for the palette we
-        # we choose (i.e. 01) when we select a new character.
-        is_dirty = self._update_edit_state(character, palette_id)
-        slot_name = self._get_edit_meta(character, palette_id)
-
-        self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
-        self.sprite_editor.update_sprite_list(character)
 
     def _set_window_title(self, *pcs, slot_name=None, show_edit_mark=False):
         """
@@ -919,86 +781,97 @@ class MainWindow(QtWidgets.QMainWindow):
         Also invoked when we paste a palette from the palette clipboard.
         We have UI elements that should be updated when palette data is modified.
         """
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
+        character_name, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
 
         # Get the type of slot upon which we just made changes.
-        slot_type = self.ui.slot_select.currentData()
-        slot_name = None
+        slot_name, slot_type = self.sprite_editor.get_slot()
 
         # If we are working on a save slot then we need to switch to the edit slot to see our active changes.
         # Setting the slot select index will trigger a preview update.
         if slot_type == PALETTE_SAVE:
-            # If we have made changes to a saved palette then we need to create an edit slot meta data file.
-            slot_name = self.ui.slot_select.currentText()
             edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
 
             # Write the slot name into the file.
             with open(edit_meta_path, "w") as edit_fp:
                 edit_fp.write(slot_name)
 
-            self.ui.slot_select.setCurrentIndex(0)
+            self.sprite_editor.set_slot(slot_type=PALETTE_EDIT)
+
+        # If we have the edit slot selected then there is no name to include in the window title.
+        else:
+            slot_name = None
 
         # Add a marker to the window that indicates the user has active changes.
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=True)
         self.ui.discard_palette.setEnabled(True)
 
-    def select_palette(self):
+    def character_changed(self, character_name, _):
         """
-        A new palette has been selected.
-        Replace the palette of the currently selected sprite and update the image preview.
+        Callback for the sprite editor telling the mainwindow that we changed characters.
         """
-        character = self.ui.char_select.currentData()
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
+        _, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
 
-        # When we select a palette ID we need to look for existing saved palettes associated to it.
-        # Based on the presence of these files we also need to update the state of the UI.
-        character_saves = self.paths.get_character_saves(character, palette_id)
+        self.ui.delete_palette.setEnabled(False)
+        self.ui.discard_palette.setEnabled(False)
+        self._set_window_title()
 
-        with block_signals(self.ui.slot_select):
-            # Disable delete while we do not have a selected saved palette.
-            self.ui.delete_palette.setEnabled(False)
-            # Clearing the save select and re-adding items will auto-select the first item
-            # which will always be a non-saved palette.
-            self.ui.slot_select.clear()
-            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
+        # Extract the character data.
+        thread = ExtractThread(character, self.paths)
+        if not self.run_work_thread(thread, "Sprite Extractor", "Extracting Sprite Data..."):
+            # If our extract did not succeed we de-select the character and do not load any further data.
+            self.sprite_editor.reset()
+            return
 
-            # Set the save select enable state based on the presence of files on disk.
-            self.ui.slot_select.setEnabled(bool(character_saves))
-            for save_name in character_saves:
-                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
+        # If our menus and toolbars are disabled (like it is at app launch) we should now enable it.
+        # At launch it is disabled due to the fact that we will not have a selected character or palette.
+        # If the user clicks any of the buttons with no character or palette selected then bad things happen.
+        # Note that we set the state of the menus and toolbars together so we can just check the toolbar state
+        # here to probe the enable state of both UI elements.
+        if not self.ui.save_palette_as.isEnabled():
+            self.set_palette_tools_enable(True)
+
+        # Check for active changes and meta data associated to them for the palette we
+        # we choose (i.e. 01) when we select a new character.
+        is_dirty = self._update_edit_state(character, palette_id)
+        slot_name = self._get_edit_meta(character, palette_id)
+
+        self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
+
+        self.sprite_editor.update_sprite_list(character)
+
+    def palette_changed(self, palette_id, _):
+        """
+        Callback for the sprite editor telling the mainwindow that we changed palettes.
+        """
+        character_name, character = self.sprite_editor.get_character()
 
         is_dirty = self._update_edit_state(character, palette_id)
         slot_name = self._get_edit_meta(character, palette_id)
 
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
-        self.sprite_editor.update_sprite_preview()
 
-    def select_palette_slot(self):
+        # Disable delete while we do not have a selected saved palette.
+        # When we switch palettes we always default to the edit slot.
+        self.ui.delete_palette.setEnabled(False)
+
+    def palette_slot_changed(self, slot_name, slot_type):
         """
-        We have selected a palette which has been saved by the user.
-        Disable the delete button when we have the Edit slot selected.
+        Callback for the sprite editor telling the mainwindow that we changed palette slots.
         """
-        slot_type = self.ui.slot_select.currentData()
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
+        character_name, character = self.sprite_editor.get_character()
+        palette_id, _ = self.sprite_editor.get_palette()
+        is_dirty = False
 
         can_delete = (slot_type == PALETTE_SAVE)
         self.ui.delete_palette.setEnabled(can_delete)
 
         if slot_type == PALETTE_EDIT:
             slot_name = self._get_edit_meta(character, palette_id)
-            is_dirty = False
-
-        else:
-            slot_name = self.ui.slot_select.currentText()
-            is_dirty = False
+            is_dirty = self._update_edit_state(character, palette_id)
 
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
-        self.sprite_editor.update_sprite_preview()
 
     def _get_edit_meta(self, character, palette_id):
         """
