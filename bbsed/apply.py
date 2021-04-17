@@ -35,7 +35,7 @@ class ApplyThread(WorkThread):
         """
         self.message.emit("Gathering HPL palette files...")
 
-        pac_file_name = PALETTE_FILE_FMT.format(character)
+        pac_file_name = GAME_PALETTE_FILE_FMT.format(character)
         pac_full_path = os.path.join(self.paths.bbcf_data_dir, pac_file_name)
 
         # Copy the user selected palettes to the temp directory.

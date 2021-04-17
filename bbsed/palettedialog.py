@@ -70,12 +70,12 @@ class PaletteDialog(QtWidgets.QDialog):
 
         self.index_selected.emit((palette_x, palette_y))
 
-    def set_palette(self, palette_data):
+    def set_palette(self, palette_image):
         """
         Load a palette from file and display the data in the dialog.
         """
         png_pixmap = Qt.QPixmap()
-        png_pixmap.loadFromData(palette_data.getvalue(), "PNG")
+        png_pixmap.loadFromData(palette_image, "PNG")
 
         # Clear our image date and load in the updates image data.
         self.palette_scene.clear()

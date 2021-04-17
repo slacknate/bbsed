@@ -5,8 +5,8 @@ from collections import defaultdict
 
 from PyQt5 import Qt, QtCore, QtWidgets
 
-from libhip import convert_from_hip
-from libhpl import replace_palette
+from libhip import hip_to_png
+from libhpl import PNGPaletteImage
 
 from .ui.selectdialog_ui import Ui_Dialog
 
@@ -55,6 +55,7 @@ class SelectDialog(QtWidgets.QDialog):
         self.ui.sprite_preview.setScene(self.sprite_scene)
 
         self.current_sprite = io.BytesIO()
+        self.sprite = PNGPaletteImage()
 
         # We need to sort the character info before adding to the selection combo box.
         # This way the combo box index will match the defined character IDs in the char_info module.
@@ -221,12 +222,19 @@ class SelectDialog(QtWidgets.QDialog):
         hip_full_path = sprite_cache[0]
 
         try:
-            self.current_sprite = io.BytesIO()
-            convert_from_hip(hip_full_path, self.current_sprite)
+            sprite_data = io.BytesIO()
+            hip_to_png(hip_full_path, sprite_data)
 
         except Exception:
             hip_file = os.path.basename(hip_full_path)
-            self.parent().show_error_dialog("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
+            self.parent().show_error_dialog("Error Converting Sprite", f"Failed to convert {hip_file} to PNG image!")
+            return
+
+        try:
+            self.sprite.load_png(sprite_data)
+
+        except Exception:
+            self.parent().show_error_dialog("Error Loading Sprite", f"Failed to load converted PNG sprite!")
             return
 
         if select_name == SLOT_NAME_EDIT:
@@ -237,16 +245,18 @@ class SelectDialog(QtWidgets.QDialog):
         # The first sprite is always associated to the first palette file as far as I can tell.
         # We can make this assumption until it is proven wrong.
         palette_full_path = hpl_files[0]
+        updated_sprite = io.BytesIO()
 
         try:
-            # We are only updating the palette data we aren't writing out any pixel information.
-            replace_palette(self.current_sprite, palette_full_path)
+            self.sprite.load_hpl(palette_full_path)
+            self.sprite.save_png(updated_sprite)
 
         except Exception:
             self.show_error_dialog("Error Updating Palette", f"Failed to replace the palette of the current sprite!")
+            return
 
         png_pixmap = Qt.QPixmap()
-        png_pixmap.loadFromData(self.current_sprite.getvalue(), "PNG")
+        png_pixmap.loadFromData(updated_sprite.getvalue(), "PNG")
 
         # Clear our image date and load in the updates image data.
         self.sprite_scene.clear()

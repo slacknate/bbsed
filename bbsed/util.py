@@ -2,16 +2,15 @@ __all__ = [
 
     # Constants
     "BBCF_STEAM_APP_ID",
-    "SPRITE_FILE_FMT",
-    "PALETTE_FILE_FMT",
-    "BACKUP_PALETTE_FILE_FMT",
+    "GAME_SPRITE_FILE_FMT",
+    "GAME_PALETTE_FILE_FMT",
+    "GAME_EFFECT_FILE_FMT",
     "PALETTE_ID_FMT",
-    "GAME_PALETTE_SUFFIX",
+    "EFFECT_IMG_PREFIX",
     "BACKUP_GAME_PALETTE_EXT",
     "GAME_PALETTE_EXT",
     "BACKUP_PALETTE_EXT",
     "PALETTE_EXT",
-    "SPRITE_EXT",
     "PNG_EXT",
     "HASH_EXT",
     "PALETTE_EDIT_MARKER",
@@ -42,21 +41,21 @@ import contextlib
 
 BBCF_STEAM_APP_ID = "586140"
 
-SPRITE_FILE_FMT = "char_{}_img.pac"
-PALETTE_FILE_FMT = "char_{}_pal.pac"
-BACKUP_PALETTE_FILE_FMT = "char_{}_pal.orig.pac"
+GAME_SPRITE_FILE_FMT = "char_{}_img.pac"
+GAME_PALETTE_FILE_FMT = "char_{}_pal.pac"
+GAME_EFFECT_FILE_FMT = "char_{}_vri.pac"
 
 PALETTE_ID_FMT = "{:02}"
-
-GAME_PALETTE_SUFFIX = "_pal.pac"
+EFFECT_IMG_PREFIX = "vr{}ef"
 
 BACKUP_GAME_PALETTE_EXT = ".orig.pac"
 GAME_PALETTE_EXT = ".pac"
 
 BACKUP_PALETTE_EXT = ".orig.hpl"
 PALETTE_EXT = ".hpl"
-SPRITE_EXT = ".hip"
+
 PNG_EXT = ".png"
+
 HASH_EXT = ".sha256"
 
 PALETTE_EDIT_MARKER = ".edit"

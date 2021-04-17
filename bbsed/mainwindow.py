@@ -398,8 +398,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Update the save slots to include the newly imported files, but only if we have imported
                 # palettes for the current selected character and palette ID.
                 self.sprite_editor.import_palette_data(character, palette_id, hpl_to_import, pac_to_import)
-
-                self.sprite_editor.update_sprite_preview()
+                self.sprite_editor.refresh()
 
     def _choose_export_pac(self):
         """
@@ -482,21 +481,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Otherwise we need to trigger the sprite preview update manually.
             else:
-                self.sprite_editor.update_sprite_preview()
+                self.sprite_editor.refresh()
 
     def _restore_character_palettes(self, character):
         """
         Helper to delete the existing PAC palette file and replace it with the backed version from the game data.
         """
-        backup_palette_name = BACKUP_PALETTE_FILE_FMT.format(character)
+        pac_palette_name = GAME_PALETTE_FILE_FMT.format(character)
+        pac_palette_path = os.path.join(self.paths.bbcf_data_dir, pac_palette_name)
+
+        backup_palette_name = pac_palette_name.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
         backup_palette_path = os.path.join(self.paths.bbcf_data_dir, backup_palette_name)
 
-        # If a backup does not exist then we should not attempt restore as legitimately can't do it.
+        # If a backup does not exist then we should not attempt restore as we legitimately can't do it.
         if not os.path.exists(backup_palette_path):
             return
-
-        pac_palette_name = PALETTE_FILE_FMT.format(character)
-        pac_palette_path = os.path.join(self.paths.bbcf_data_dir, pac_palette_name)
 
         os.remove(pac_palette_path)
         shutil.copyfile(backup_palette_path, pac_palette_path)
@@ -728,7 +727,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Otherwise we need to update the sprite preview manually.
             else:
-                self.sprite_editor.update_sprite_preview()
+                self.sprite_editor.refresh()
 
     def _update_edit_state(self, character, palette_id):
         """
@@ -836,8 +835,7 @@ class MainWindow(QtWidgets.QMainWindow):
         slot_name = self._get_edit_meta(character, palette_id)
 
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
-
-        self.sprite_editor.update_sprite_list(character)
+        self.sprite_editor.refresh()
 
     def palette_changed(self, palette_id, _):
         """

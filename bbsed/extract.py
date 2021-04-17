@@ -65,16 +65,18 @@ class ExtractThread(WorkThread):
         for _, __, hpl_files_list in self.paths.walk_edit(self.character):
             existing_hpl_files.extend([os.path.basename(hpl_full_path) for hpl_full_path in hpl_files_list])
 
+        palette_file_name = GAME_PALETTE_FILE_FMT.format(self.character)
+        palette_file_path = os.path.join(self.paths.bbcf_data_dir, palette_file_name)
+
         # Get the file name for the palette PAC file associated to the given character.
         # We look for the backup file first as we want to extract data from the original source
         # and not from files the tool itself has modified.
-        palette_file_name = BACKUP_PALETTE_FILE_FMT.format(self.character)
-        palette_file_path = os.path.join(self.paths.bbcf_data_dir, palette_file_name)
+        backup_file_name = palette_file_name.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
+        backup_file_path = os.path.join(self.paths.bbcf_data_dir, backup_file_name)
 
         # If the backup file does not exist we assume the game files are unmodified by the tool.
-        if not os.path.exists(palette_file_path):
-            palette_file_name = PALETTE_FILE_FMT.format(self.character)
-            palette_file_path = os.path.join(self.paths.bbcf_data_dir, palette_file_name)
+        if os.path.exists(backup_file_path):
+            palette_file_path = backup_file_path
 
         self.message.emit("Looking for missing HPL files...")
         missing_hpl_files = get_missing_files(palette_file_path, existing_hpl_files)
@@ -125,22 +127,20 @@ class ExtractThread(WorkThread):
                     with open(get_hash_path(hpl_dst_path), "w") as hash_fp:
                         hash_fp.write(hash_file(hpl_src_path))
 
-    def _extract_sprites(self):
+    def _extract_images(self, cache_path, file_fmt):
         """
-        Helper to extract HIP image files and dump them to the cache path for the selected character.
+        Helper method to extract HIP files from a PAC file.
         """
-        sprite_cache_path = self.paths.get_sprite_cache_path(self.character)
- 
         # If our cache directory doesn't exist we should create it.
-        if not os.path.exists(sprite_cache_path):
-            os.makedirs(sprite_cache_path)
+        if not os.path.exists(cache_path):
+            os.makedirs(cache_path)
 
-        # Get the file name for the sprite PAC file associated to the the character `self.character`.
-        sprite_file_name = SPRITE_FILE_FMT.format(self.character)
-        sprite_file_path = os.path.join(self.paths.bbcf_data_dir, sprite_file_name)
+        # Get the file name for the PAC file associated to the the character `self.character`.
+        hip_file_name = file_fmt.format(self.character)
+        hip_file_path = os.path.join(self.paths.bbcf_data_dir, hip_file_name)
 
         self.message.emit("Looking for missing HIP files...")
-        missing_hip_files = get_missing_files(sprite_file_path, os.listdir(sprite_cache_path))
+        missing_hip_files = get_missing_files(hip_file_path, os.listdir(cache_path))
 
         # Only perform a PAC extraction if we are missing any files called out in the PAC.
         if missing_hip_files:
@@ -148,12 +148,27 @@ class ExtractThread(WorkThread):
 
             try:
                 self.message.emit("Extracting image files...")
-                extract_pac(sprite_file_path, sprite_cache_path, extract_filter=hip_file_filter)
+                extract_pac(hip_file_path, cache_path, extract_filter=hip_file_filter)
 
             except Exception:
-                message = f"Failed to extract HIP files from {sprite_file_name}!"
+                message = f"Failed to extract HIP files from {hip_file_name}!"
                 raise AppException("Error Extracting PAC File", message)
+
+    def _extract_sprites(self):
+        """
+        Helper to extract sprite HIP image files and dump them to the cache path for the selected character.
+        """
+        sprite_cache_path = self.paths.get_sprite_cache_path(self.character)
+        self._extract_images(sprite_cache_path, GAME_SPRITE_FILE_FMT)
+
+    def _extract_effects(self):
+        """
+        Helper to extract effect HIP image files and dump them to the cache path for the selected character.
+        """
+        effect_cache_path = self.paths.get_effect_cache_path(self.character)
+        self._extract_images(effect_cache_path, GAME_EFFECT_FILE_FMT)
 
     def work(self):
         self._extract_palettes()
         self._extract_sprites()
+        self._extract_effects()

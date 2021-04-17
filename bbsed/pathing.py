@@ -82,6 +82,24 @@ class Paths:
         """
         return os.path.join(self.app_config["bbsed"]["steam_install"], *BBCF_PATH_COMPONENTS)
 
+    @staticmethod
+    def _get_image_cache(character, cache_path):
+        """
+        Return a list of all HIP images for this character which are cached at `cache_path`.
+        """
+        image_cache = []
+
+        for hip_image in listdir_safe(cache_path):
+            # We check for the character abbreviation in the file name as some characters seem to have
+            # sprite data in their PAC files that belongs to other characters? I don't understand why.
+            # For now, we are not editing this information so we can just... not deal with it :D
+            # Hopefully this change does not exclude any actually important sprites.
+            if character in hip_image:
+                hip_full_path = os.path.join(cache_path, hip_image)
+                image_cache.append(hip_full_path)
+
+        return image_cache
+
     def _get_sprite_cache_path(self, character):
         """
         Ensure all cached sprites the app manages are located in the same top-level directory.
@@ -90,7 +108,7 @@ class Paths:
 
     def get_sprite_cache_path(self, character):
         """
-        Get the patch where we should cache sprites for the given character.
+        Get the path where we should cache sprites for the given character.
         """
         return self._get_sprite_cache_path(character)
 
@@ -99,18 +117,26 @@ class Paths:
         Return a list of all cached sprites for this character.
         """
         sprite_cache_path = self._get_sprite_cache_path(character)
-        sprite_cache = []
+        return self._get_image_cache(character, sprite_cache_path)
 
-        for hip_image in listdir_safe(sprite_cache_path):
-            # We check for the character abbreviation in the file name as some characters seem to have
-            # sprite data in their PAC files that belongs to other characters? I don't understand why.
-            # For now, we are not editing this information so we can just... not deal with it :D
-            # Hopefully this change does not exclude any actually important sprites.
-            if character in hip_image:
-                hip_full_path = os.path.join(sprite_cache_path, hip_image)
-                sprite_cache.append(hip_full_path)
+    def _get_effect_cache_path(self, character):
+        """
+        Ensure all cached effects the app manages are located in the same top-level directory.
+        """
+        return os.path.join(self.data_dir, "effects", character)
 
-        return sprite_cache
+    def get_effect_cache_path(self, character):
+        """
+        Get the path where we should cache sprites for the given character.
+        """
+        return self._get_effect_cache_path(character)
+
+    def get_effect_cache(self, character):
+        """
+        Return a list of all cached effects for this character.
+        """
+        effect_cache_path = self._get_effect_cache_path(character)
+        return self._get_image_cache(character, effect_cache_path)
 
     @staticmethod
     def _get_path_pcs(*pcs):
