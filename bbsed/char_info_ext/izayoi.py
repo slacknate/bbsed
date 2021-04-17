@@ -1,49 +1,6 @@
-__all__ = [
+from .constants import *
 
-    # All the character data ever.
-    "CHARACTER_EXT_INFO",
-
-    # Constants used to make our extended data in the sprite editor.
-    "DEFAULT_PALETTE_FMT",
-    "SPRITE_FILES",
-    "EFFECT_FILES",
-    "CHARACTER_STATES",
-    "IGNORE_FILES",
-    "GROUP_FILES",
-    "HIP_FILE_LIST",
-    "PALETTE_FILE",
-    "STATE_DEFINITION",
-    "STATE_INITIAL",
-    "STATE_CHANGE",
-    "SWAP_COLORS",
-    "SWAP_PALETTES",
-    "SWAP_INDICES",
-]
-
-from .char_info import *
-
-DEFAULT_PALETTE_FMT = "{}{{}}_00.hpl"
-
-SPRITE_FILES = 1
-EFFECT_FILES = 2
-CHARACTER_STATES = 3
-
-IGNORE_FILES = 0
-GROUP_FILES = 1
-
-HIP_FILE_LIST = 0
-PALETTE_FILE = 1
-STATE_DEFINITION = 2
-STATE_INITIAL = 3
-STATE_CHANGE = 4
-
-SWAP_COLORS = 0
-SWAP_PALETTES = 1
-SWAP_INDICES = 2
-
-# TODO: izanami also has palette swaps because of her time stops. we should implement her next
-
-_IZAYOI_EXT = {
+IZAYOI_EXT = {
 
     SPRITE_FILES: {
 
@@ -315,44 +272,4 @@ _IZAYOI_EXT = {
             ),
         },
     },
-}
-
-CHARACTER_EXT_INFO = {
-
-    AMANE: {},
-    ARAKUNE: {},
-    AZRAEL: {},
-    BANG: {},
-    BULLET: {},
-    CARL: {},
-    CELICA: {},
-    ES: {},
-    HAKUMEN: {},
-    HAZAMA: {},
-    HIBIKI: {},
-    IRON_TAGER: {},
-    IZANAMI: {},
-    IZAYOI: _IZAYOI_EXT,
-    JIN: {},
-    JUBEI: {},
-    KAGURA: {},
-    KOKONOE: {},
-    LITCHI: {},
-    MAKOTO: {},
-    MAI: {},
-    NAOTO: {},
-    NINE: {},
-    NOEL: {},
-    PLATINUM: {},
-    RACHEL: {},
-    RAGNA: {},
-    RELIUS: {},
-    SUSANOO: {},
-    TAOKAKA: {},
-    TSUBAKI: {},
-    TERUMI: {},
-    VALKENHAYNE: {},
-    LAMBDA: {},
-    MU: {},
-    NU: {}
 }
