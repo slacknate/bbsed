@@ -438,9 +438,8 @@ class SpriteEditor(QtWidgets.QWidget):
         char_states = ext_info[CHARACTER_STATES]
         swap_palettes = char_states[STATE_CHANGE].get(SWAP_PALETTES, ())
 
-        for top_level_item in self._iterate_sprite_groups():
-            for sprite_item in self._iterate_sprite_files(top_level_item):
-                should_refresh |= get_palette_swap(swap_palettes, sprite_item)
+        for sprite_item in self._iterate_sprite_files():
+            should_refresh |= get_palette_swap(swap_palettes, sprite_item)
 
         if should_refresh:
             self.refresh()
@@ -639,44 +638,38 @@ class SpriteEditor(QtWidgets.QWidget):
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
             self._refresh()
 
-    def _iterate_sprite_groups(self):
+    def _iterate_sprite_files(self, parent_item=None):
         """
-        Iterate the top level items in our sprite list.
+        Iterate the files in our sprite list.
         """
-        top_level_index = 0
-        while True:
-            top_level_item = self.ui.sprite_list.topLevelItem(top_level_index)
-
-            if top_level_item is None:
-                break
-
-            yield top_level_item
-            top_level_index += 1
-
-    @staticmethod
-    def _iterate_sprite_files(top_level_item):
-        """
-        Iterate the child items of the given top level item.
-        """
-        sprite_index = 0
+        item_index = 0
 
         while True:
-            sprite_item = top_level_item.child(sprite_index)
+            if parent_item is not None:
+                item = parent_item.child(item_index)
+            else:
+                item = self.ui.sprite_list.topLevelItem(item_index)
 
-            if sprite_item is None:
+            if item is None:
                 break
 
-            yield sprite_item
-            sprite_index += 1
+            if isinstance(item, SpriteGroupItem):
+                yield from self._iterate_sprite_files(item)
+            else:
+                yield item
+
+            item_index += 1
 
     def _update_sprite_list(self, palette_num):
         """
         Iterate our sprite list and set the palette number on our file items.
         This way the HPL file basename can be formatted to the correct palette.
         """
-        for top_level_item in self._iterate_sprite_groups():
-            for sprite_item in self._iterate_sprite_files(top_level_item):
+        try:
+            for sprite_item in self._iterate_sprite_files():
                 sprite_item.palette_num = palette_num
+        except:
+            self.show_error_dialog("", "")
 
     @staticmethod
     def _add_hip_items(parent_item, hip_file_list, hpl_fmt):
@@ -689,7 +682,7 @@ class SpriteEditor(QtWidgets.QWidget):
             hip_file = os.path.basename(hip_full_path)
             parent_item.addChild(SpriteFileItem(hip_full_path, hip_file, hpl_fmt))
 
-    def _add_hip_files(self, cache_dir, files_map):
+    def _add_hip_files(self, cache_dir, files_map, parent_item=None):
         """
         We group together sprites by the palette files associated to them.
         """
@@ -702,15 +695,23 @@ class SpriteEditor(QtWidgets.QWidget):
             processed_files.add(os.path.join(cache_dir, hip_file))
 
         for name, data in group_files.items():
-            parent_item = SpriteGroupItem(name)
-            self.ui.sprite_list.addTopLevelItem(parent_item)
+            group_item = SpriteGroupItem(name)
 
-            hpl_fmt = data[PALETTE_FILE]
-            hip_file_list = [os.path.join(cache_dir, hip_file) for hip_file in data[HIP_FILE_LIST]]
-            hip_file_list.sort()
+            if parent_item is not None:
+                parent_item.addChild(group_item)
+            else:
+                self.ui.sprite_list.addTopLevelItem(group_item)
 
-            self._add_hip_items(parent_item, hip_file_list, hpl_fmt)
-            processed_files.update(hip_file_list)
+            if GROUP_FILES in data:
+                processed_files.update(self._add_hip_files(cache_dir, data, group_item))
+
+            else:
+                hpl_fmt = data[PALETTE_FILE]
+                hip_file_list = [os.path.join(cache_dir, hip_file) for hip_file in data[HIP_FILE_LIST]]
+                hip_file_list.sort()
+
+                self._add_hip_items(group_item, hip_file_list, hpl_fmt)
+                processed_files.update(hip_file_list)
 
         return processed_files
 

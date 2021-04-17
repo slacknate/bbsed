@@ -23,6 +23,7 @@ __all__ = [
 from ..char_info import *
 
 from .constants import *
+from .izanami import IZANAMI_EXT
 from .izayoi import IZAYOI_EXT
 
 CHARACTER_EXT_INFO = {
@@ -39,7 +40,7 @@ CHARACTER_EXT_INFO = {
     HAZAMA: {},
     HIBIKI: {},
     IRON_TAGER: {},
-    IZANAMI: {},
+    IZANAMI: IZANAMI_EXT,
     IZAYOI: IZAYOI_EXT,
     JIN: {},
     JUBEI: {},
