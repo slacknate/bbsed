@@ -721,6 +721,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui.sprite_list.addTopLevelItem(sprite_parent)
 
         sprite_files = set(self.paths.get_sprite_cache(character))
+        sprite_files |= set(self.paths.get_effect_cache(character))
 
         with block_signals(self.ui.sprite_list):
             # Look for any sprite-specific palettes.
