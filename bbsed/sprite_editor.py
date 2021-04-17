@@ -632,7 +632,7 @@ class SpriteEditor(QtWidgets.QWidget):
         # Do not try to populate the sprite list if no character is selected or if
         # it has already has been populated. The sprite list is cleared on reset so
         # we will only populate this list once per character selection.
-        if character_id in VALID_CHARACTERS and self._sprite_list_empty():
+        if character_id in CHARACTER_INFO and self._sprite_list_empty():
             self._populate_sprite_list(character_id)
 
         self._update_sprite_list(palette_num)
