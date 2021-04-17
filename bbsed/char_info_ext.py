@@ -193,7 +193,6 @@ _IZAYOI_EXT = {
                     "vrizef_405_05.hip",
                     "vrizef_406_00.hip",
                     "vrizef_406_01.hip",
-                    "vrizef412_00.hip",
                     "vrizef_413_00.hip",
                     "vrizef_413_01.hip",
                     "vrizef_413_02.hip",
@@ -264,6 +263,8 @@ _IZAYOI_EXT = {
             "Unknown": {
 
                 HIP_FILE_LIST: (
+
+                    "vrizef412_00.hip",
 
                     "vrizef440_50.hip",
                     "vrizef440_51.hip",
