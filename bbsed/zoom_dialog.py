@@ -3,7 +3,7 @@ import io
 from PIL import Image
 from PyQt5 import QtCore, Qt, QtWidgets
 
-from .ui.zoomdialog_ui import Ui_Dialog
+from .ui.zoom_dialog_ui import Ui_Dialog
 
 from .crosshair import Crosshair
 from .util import block_signals

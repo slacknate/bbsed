@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtWidgets
 
-from .ui.aboutdialog_ui import Ui_Dialog
+from .ui.about_dialog_ui import Ui_Dialog
 
 from .version import VERSION, REVISION
 

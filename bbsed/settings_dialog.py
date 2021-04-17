@@ -1,6 +1,6 @@
 from PyQt5 import Qt, QtCore, QtWidgets
 
-from .ui.settingsdialog_ui import Ui_Dialog
+from .ui.settings_dialog_ui import Ui_Dialog
 
 
 class SettingsDialog(QtWidgets.QDialog):

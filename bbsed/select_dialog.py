@@ -8,7 +8,7 @@ from PyQt5 import Qt, QtCore, QtWidgets
 from libhip import hip_to_png
 from libhpl import PNGPaletteImage
 
-from .ui.selectdialog_ui import Ui_Dialog
+from .ui.select_dialog_ui import Ui_Dialog
 
 from .exceptions import AppError
 from .char_info import CHARACTER_INFO

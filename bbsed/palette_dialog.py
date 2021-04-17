@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, Qt, QtWidgets
 
-from .ui.palettedialog_ui import Ui_Dialog
+from .ui.palette_dialog_ui import Ui_Dialog
 
 from .util import block_signals
 

@@ -6,10 +6,10 @@ from PyQt5 import Qt, QtCore, QtWidgets
 from libhip import hip_to_png
 from libhpl import PNGPalette, PNGPaletteImage
 
-from .ui.spriteeditor_ui import Ui_Editor
+from .ui.sprite_editor_ui import Ui_Editor
 
-from .palettedialog import COLOR_BOX_SIZE, PaletteDialog
-from .zoomdialog import ZoomDialog
+from .palette_dialog import COLOR_BOX_SIZE, PaletteDialog
+from .zoom_dialog import ZoomDialog
 from .crosshair import Crosshair
 from .char_info_ext import *
 from .char_info import *

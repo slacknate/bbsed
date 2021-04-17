@@ -2,7 +2,7 @@ import traceback
 
 from PyQt5 import Qt, QtCore, QtWidgets
 
-from .ui.errordialog_ui import Ui_Dialog
+from .ui.error_dialog_ui import Ui_Dialog
 
 
 def format_exc(exc_info):

@@ -10,14 +10,14 @@ from PyQt5 import Qt, QtCore, QtWidgets
 
 from libpac import enumerate_pac
 
-from .ui.mainwindow_ui import Ui_MainWindow
+from .ui.main_window_ui import Ui_MainWindow
 
 from .exceptions import AppError, AppException
-from .settingsdialog import SettingsDialog
-from .selectdialog import SelectDialog
-from .spriteeditor import SpriteEditor
-from .aboutdialog import AboutDialog
-from .errordialog import ErrorDialog
+from .settings_dialog import SettingsDialog
+from .select_dialog import SelectDialog
+from .sprite_editor import SpriteEditor
+from .about_dialog import AboutDialog
+from .error_dialog import ErrorDialog
 from .config import Configuration
 from .exporter import ExportThread
 from .importer import ImportThread
