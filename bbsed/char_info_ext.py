@@ -3,11 +3,13 @@ __all__ = [
     # All the character data ever.
     "CHARACTER_EXT_INFO",
 
-    # Constants used to make out extended data in the sprite editor.
-    "DEFAULT_PALETTE_FILE",
-    "SPRITE_PALETTE_MAP",
-    "EFFECT_PALETTE_MAP",
+    # Constants used to make our extended data in the sprite editor.
+    "DEFAULT_PALETTE_FMT",
+    "SPRITE_FILES",
+    "EFFECT_FILES",
     "CHARACTER_STATES",
+    "IGNORE_FILES",
+    "GROUP_FILES",
     "HIP_FILE_LIST",
     "PALETTE_FILE",
     "STATE_DEFINITION",
@@ -20,10 +22,14 @@ __all__ = [
 
 from .char_info import *
 
-DEFAULT_PALETTE_FILE = 0
-SPRITE_PALETTE_MAP = 1
-EFFECT_PALETTE_MAP = 2
+DEFAULT_PALETTE_FMT = "{}{{}}_00.hpl"
+
+SPRITE_FILES = 1
+EFFECT_FILES = 2
 CHARACTER_STATES = 3
+
+IGNORE_FILES = 0
+GROUP_FILES = 1
 
 HIP_FILE_LIST = 0
 PALETTE_FILE = 1
@@ -39,236 +45,245 @@ SWAP_INDICES = 2
 
 _IZAYOI_EXT = {
 
-    DEFAULT_PALETTE_FILE: "iz{}_00.hpl",
+    SPRITE_FILES: {
 
-    SPRITE_PALETTE_MAP: {
+        GROUP_FILES: {
 
-        "Transform Intro": {
+            "Transform Intro": {
 
-            HIP_FILE_LIST: (
+                HIP_FILE_LIST: (
 
-                "iz600_00.hip",
-                "iz600_01.hip",
-                "iz600_02.hip",
-                "iz600_02ex00.hip",
-                "iz600_03.hip",
-                "iz600_03ex00.hip",
-                "iz600_04.hip",
-                "iz600_04ex00.hip",
-                "iz600_04ex01.hip",
-                "iz600_05.hip",
-                "iz600_05ex00.hip",
-                "iz600_05ex01.hip",
-                "iz600_06.hip",
-                "iz600_06ex00.hip",
-                "iz600_06ex01.hip",
-                "iz600_07.hip",
-                "iz600_07ex00.hip",
-                "iz600_07ex01.hip",
-                "iz600_07ex02.hip",
-                "iz600_07ex03.hip",
-                "iz600_07ex04.hip"
-            ),
+                    "iz600_00.hip",
+                    "iz600_01.hip",
+                    "iz600_02.hip",
+                    "iz600_02ex00.hip",
+                    "iz600_03.hip",
+                    "iz600_03ex00.hip",
+                    "iz600_04.hip",
+                    "iz600_04ex00.hip",
+                    "iz600_04ex01.hip",
+                    "iz600_05.hip",
+                    "iz600_05ex00.hip",
+                    "iz600_05ex01.hip",
+                    "iz600_06.hip",
+                    "iz600_06ex00.hip",
+                    "iz600_06ex01.hip",
+                    "iz600_07.hip",
+                    "iz600_07ex00.hip",
+                    "iz600_07ex01.hip",
+                    "iz600_07ex02.hip",
+                    "iz600_07ex03.hip",
+                    "iz600_07ex04.hip"
+                ),
 
-            PALETTE_FILE: "iz{}_03.hpl"
-        },
+                PALETTE_FILE: "iz{}_03.hpl"
+            },
 
-        "Relius Astral": {
+            "Relius Astral": {
 
-            HIP_FILE_LIST: (
+                HIP_FILE_LIST: (
 
-                "iz900_00.hip",
-            ),
+                    "iz900_00.hip",
+                ),
 
-            PALETTE_FILE: "iz{}_00.hpl"
-        },
+                PALETTE_FILE: "iz{}_00.hpl"
+            },
 
-        "Amane Astral": {
+            "Amane Astral": {
 
-            HIP_FILE_LIST: (
+                HIP_FILE_LIST: (
 
-                "iz901_00.hip",
-            ),
+                    "iz901_00.hip",
+                ),
 
-            PALETTE_FILE: "iz{}_00.hpl"
+                PALETTE_FILE: "iz{}_00.hpl"
+            },
         },
     },
 
-    EFFECT_PALETTE_MAP: {
+    EFFECT_FILES: {
 
-        "Normal Actions": {
+        IGNORE_FILES: (
 
-            HIP_FILE_LIST: (
+            "vrdist_iz00.hip",
+        ),
 
-                "vrizef202_00.hip",
-                "vrizef202_01.hip",
-                "vrizef203_00.hip",
-                "vrizef204_00.hip",
-                "vrizef210_f04.hip",
-                "vrizef211_f09.hip",
-                "vrizef212_f06.hip",
-                "vrizef212_f07.hip",
-                "vrizef232_00.hip",
-                "vrizef232_01.hip",
-                "vrizef232_02.hip",
-                "vrizef233_00.hip",
-                "vrizef233_01.hip",
-                "vrizef233_02.hip",
-                "vrizef234_00.hip",
-                "vrizef235_00.hip",
-                "vrizef235_01.hip",
-                "vrizef252_00.hip",
-                "vrizef252_01.hip",
-                "vrizef254_00.hip",
-            ),
+        GROUP_FILES: {
 
-            # Do we need to care about Gain Art?
-            PALETTE_FILE: "iz{}_01.hpl"
+            "Normal Actions": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef202_00.hip",
+                    "vrizef202_01.hip",
+                    "vrizef203_00.hip",
+                    "vrizef204_00.hip",
+                    "vrizef210_f04.hip",
+                    "vrizef211_f09.hip",
+                    "vrizef212_f06.hip",
+                    "vrizef212_f07.hip",
+                    "vrizef232_00.hip",
+                    "vrizef232_01.hip",
+                    "vrizef232_02.hip",
+                    "vrizef233_00.hip",
+                    "vrizef233_01.hip",
+                    "vrizef233_02.hip",
+                    "vrizef234_00.hip",
+                    "vrizef235_00.hip",
+                    "vrizef235_01.hip",
+                    "vrizef252_00.hip",
+                    "vrizef252_01.hip",
+                    "vrizef254_00.hip",
+                ),
+
+                # Do we need to care about Gain Art?
+                PALETTE_FILE: "iz{}_01.hpl"
+            },
+
+            "Side Blade Effects": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef213_00.hip",
+                    "vrizef213_01.hip",
+                    "vrizef213_02.hip",
+                    "vrizef213_03.hip",
+                    "vrizef253_00.hip",
+                    "vrizef253_01.hip",
+                    "vrizef253_02.hip",
+                    "vrizef253_03.hip",
+                    "vrizef253_04.hip",
+                    "vrizef440_40.hip",
+                    "vrizef440_41.hip",
+                    "vrizef440_42.hip",
+                    "vrizef440_43.hip",
+                    "vrizef440_44.hip",
+                    "vrizef440_45.hip",
+                ),
+
+                PALETTE_FILE: "iz{}_02.hpl"
+            },
+
+            "Special Actions": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef_402_00.hip",
+                    "vrizef_402_01.hip",
+                    "vrizef_402_02.hip",
+                    "vrizef_402_03.hip",
+                    "vrizef_402_04.hip",
+                    "vrizef_402_05.hip",
+                    "vrizef_402_10.hip",
+                    "vrizef_402_11.hip",
+                    "vrizef_402_12.hip",
+                    "vrizef_402_13.hip",
+                    "vrizef_402_14.hip",
+                    "vrizef_402_15.hip",
+                    "vrizef_404_00.hip",
+                    "vrizef_404_01.hip",
+                    "vrizef_404_02.hip",
+                    "vrizef_404_03.hip",
+                    "vrizef_404_04.hip",
+                    "vrizef_404_05.hip",
+                    "vrizef_405_01.hip",
+                    "vrizef_405_02.hip",
+                    "vrizef_405_03.hip",
+                    "vrizef_405_04.hip",
+                    "vrizef_405_05.hip",
+                    "vrizef_406_00.hip",
+                    "vrizef_406_01.hip",
+                    "vrizef412_00.hip",
+                    "vrizef_413_00.hip",
+                    "vrizef_413_01.hip",
+                    "vrizef_413_02.hip",
+                    "vrizef_413_03.hip",
+                    "vrizef_413_04.hip",
+                    "vrizef_413_11.hip",
+                    "vrizef_413_12.hip",
+                    "vrizef_413_13.hip",
+                    "vrizef_413_14.hip",
+                    "vrizef_413_15.hip",
+                    "vrizef_413_21.hip",
+                    "vrizef_413_22.hip",
+                    "vrizef_413_23.hip",
+                    "vrizef_413_24.hip",
+                    "vrizef440_30.hip",
+                    "vrizef440_31.hip",
+                    "vrizef400swd00.hip",
+                    "vrizef400swd01.hip",
+                ),
+
+                # We set the initial palette for Gain Art being inactive.
+                PALETTE_FILE: "iz{}_04.hpl"
+            },
+
+            "Banshee Lancer": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef440_00.hip",
+                    "vrizef440_01.hip",
+                    "vrizef440_02.hip",
+                    "vrizef440_03.hip",
+                    "vrizef440_10.hip",
+                    "vrizef440_11.hip",
+                    "vrizef440_12.hip",
+                    "vrizef440_13.hip",
+                    "vrizef440_20.hip",
+                    "vrizef440_21.hip",
+                    "vrizef440_22.hip",
+                    "vrizef440_23.hip",
+                ),
+
+                PALETTE_FILE: "iz{}_02.hpl"
+            },
+
+            "Justice Phorizor": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef430swd00.hip",
+                    "vrizef430swd_env.hip"
+                ),
+
+                PALETTE_FILE: "iz{}_06.hpl"
+            },
+
+            "Slaver Trans-Am (Summons)": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef431_00.hip",
+                ),
+
+                PALETTE_FILE: "iz{}_00.hpl"
+            },
+
+            # FIXME: what are these? also the called out palette is wrong as these can't all use the same palette.
+            "Unknown": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef440_50.hip",
+                    "vrizef440_51.hip",
+                    "vrizef440_52.hip",
+
+                    "vrizef601_09.hip",
+                    "vrizef601_10.hip",
+                    "vrizef601_11.hip",
+                    "vrizef601_18.hip",
+                    "vrizef601_19.hip",
+
+                    "vrizef_408_00.hip",
+                    "vrizef_408_01.hip",
+                    "vrizef_408_02.hip",
+                ),
+
+                PALETTE_FILE: "iz{}_01.hpl"
+            },
         },
 
-        "Side Blade Effects": {
-
-            HIP_FILE_LIST: (
-
-                "vrizef213_00.hip",
-                "vrizef213_01.hip",
-                "vrizef213_02.hip",
-                "vrizef213_03.hip",
-                "vrizef253_00.hip",
-                "vrizef253_01.hip",
-                "vrizef253_02.hip",
-                "vrizef253_03.hip",
-                "vrizef253_04.hip",
-                "vrizef440_40.hip",
-                "vrizef440_41.hip",
-                "vrizef440_42.hip",
-                "vrizef440_43.hip",
-                "vrizef440_44.hip",
-                "vrizef440_45.hip",
-            ),
-
-            PALETTE_FILE: "iz{}_02.hpl"
-        },
-
-        "Special Actions": {
-
-            HIP_FILE_LIST: (
-
-                "vrizef_402_00.hip",
-                "vrizef_402_01.hip",
-                "vrizef_402_02.hip",
-                "vrizef_402_03.hip",
-                "vrizef_402_04.hip",
-                "vrizef_402_05.hip",
-                "vrizef_402_10.hip",
-                "vrizef_402_11.hip",
-                "vrizef_402_12.hip",
-                "vrizef_402_13.hip",
-                "vrizef_402_14.hip",
-                "vrizef_402_15.hip",
-                "vrizef_404_00.hip",
-                "vrizef_404_01.hip",
-                "vrizef_404_02.hip",
-                "vrizef_404_03.hip",
-                "vrizef_404_04.hip",
-                "vrizef_404_05.hip",
-                "vrizef_405_01.hip",
-                "vrizef_405_02.hip",
-                "vrizef_405_03.hip",
-                "vrizef_405_04.hip",
-                "vrizef_405_05.hip",
-                "vrizef_406_00.hip",
-                "vrizef_406_01.hip",
-                "vrizef412_00.hip",
-                "vrizef_413_00.hip",
-                "vrizef_413_01.hip",
-                "vrizef_413_02.hip",
-                "vrizef_413_03.hip",
-                "vrizef_413_04.hip",
-                "vrizef_413_11.hip",
-                "vrizef_413_12.hip",
-                "vrizef_413_13.hip",
-                "vrizef_413_14.hip",
-                "vrizef_413_15.hip",
-                "vrizef_413_21.hip",
-                "vrizef_413_22.hip",
-                "vrizef_413_23.hip",
-                "vrizef_413_24.hip",
-                "vrizef440_30.hip",
-                "vrizef440_31.hip",
-                "vrizef400swd00.hip",
-                "vrizef400swd01.hip",
-            ),
-
-            # We set the initial palette for Gain Art being inactive.
-            PALETTE_FILE: "iz{}_04.hpl"
-        },
-
-        "Banshee Lancer": {
-
-            HIP_FILE_LIST: (
-
-                "vrizef440_00.hip",
-                "vrizef440_01.hip",
-                "vrizef440_02.hip",
-                "vrizef440_03.hip",
-                "vrizef440_10.hip",
-                "vrizef440_11.hip",
-                "vrizef440_12.hip",
-                "vrizef440_13.hip",
-                "vrizef440_20.hip",
-                "vrizef440_21.hip",
-                "vrizef440_22.hip",
-                "vrizef440_23.hip",
-            ),
-
-            PALETTE_FILE: "iz{}_02.hpl"
-        },
-
-        "Justice Phorizor": {
-
-            HIP_FILE_LIST: (
-
-                "vrizef430swd00.hip",
-                "vrizef430swd_env.hip"
-            ),
-
-            PALETTE_FILE: "iz{}_06.hpl"
-        },
-
-        "Slaver Trans-Am (Summons)": {
-
-            HIP_FILE_LIST: (
-
-                "vrizef431_00.hip",
-            ),
-
-            PALETTE_FILE: "iz{}_00.hpl"
-        },
-
-        # FIXME: WHAT ARE THESE??
-        "Unknown": {
-
-            HIP_FILE_LIST: (
-
-                "vrizef440_50.hip",
-                "vrizef440_51.hip",
-                "vrizef440_52.hip",
-
-                "vrizef601_09.hip",
-                "vrizef601_10.hip",
-                "vrizef601_11.hip",
-                "vrizef601_18.hip",
-                "vrizef601_19.hip",
-
-                "vrizef_408_00.hip",
-                "vrizef_408_01.hip",
-                "vrizef_408_02.hip",
-            ),
-
-            # FIXME: this group is a smattering of files so this palette has to be wrong
-            PALETTE_FILE: "iz{}_01.hpl"
-        }
     },
 
     CHARACTER_STATES: {
