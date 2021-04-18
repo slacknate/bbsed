@@ -23,12 +23,13 @@ __all__ = [
 from ..char_info import *
 
 from .constants import *
+from .amane import AMANE_EXT
 from .izanami import IZANAMI_EXT
 from .izayoi import IZAYOI_EXT
 
 CHARACTER_EXT_INFO = {
 
-    AMANE: {},
+    AMANE: AMANE_EXT,
     ARAKUNE: {},
     AZRAEL: {},
     BANG: {},
