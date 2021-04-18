@@ -282,6 +282,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.palette_dialog = PaletteDialog(self.mainwindow.ui.view_palette, parent=mainwindow)
         self.palette_dialog.index_selected.connect(self.choose_color_from_index)
 
+        # FIXME: Drag select off-by-one issue still present.
         self.ui.sprite_list.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
         self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
 
