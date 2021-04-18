@@ -147,7 +147,12 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Launch BBCF via Steam.
         """
-        subprocess.call([self.paths.steam_exe, "-applaunch", BBCF_STEAM_APP_ID])
+        if not steam_running():
+            message = "Steam must be running in order to launch BBCF!"
+            self.show_message_dialog("Steam Not Running", message)
+
+        else:
+            subprocess.call([self.paths.steam_exe, "-applaunch", BBCF_STEAM_APP_ID])
 
     def edit_settings(self, _):
         """

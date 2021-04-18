@@ -73,7 +73,7 @@ class Paths:
         """
         Helper property to get our steam.exe full path based on our configured Steam install location.
         """
-        return os.path.join(self.app_config["bbsed"]["steam_install"], "steam.exe")
+        return os.path.join(self.app_config["bbsed"]["steam_install"], STEAM_PROCESS_NAME)
 
     @property
     def bbcf_data_dir(self):

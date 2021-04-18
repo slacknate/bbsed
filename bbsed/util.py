@@ -2,6 +2,7 @@ __all__ = [
 
     # Constants
     "BBCF_STEAM_APP_ID",
+    "STEAM_PROCESS_NAME",
     "GAME_SPRITE_FILE_FMT",
     "GAME_PALETTE_FILE_FMT",
     "GAME_EFFECT_FILE_FMT",
@@ -32,6 +33,7 @@ __all__ = [
     "palette_number_to_id",
     "get_hash_path",
     "hash_file",
+    "steam_running",
 ]
 
 import shutil
@@ -39,7 +41,10 @@ import hashlib
 import tempfile
 import contextlib
 
+import psutil
+
 BBCF_STEAM_APP_ID = "586140"
+STEAM_PROCESS_NAME = "steam.exe"
 
 GAME_SPRITE_FILE_FMT = "char_{}_img.pac"
 GAME_PALETTE_FILE_FMT = "char_{}_pal.pac"
@@ -145,3 +150,22 @@ def get_hash_path(full_path):
     This way we also maintain compatibility with our pathing module.
     """
     return full_path + HASH_EXT
+
+
+def steam_running():
+    """
+    Helper to check if Steam is running.
+    Launching Steam as a subprocess seems to cause problems in the app so
+    we require starting it separately and then allow for just launching BBCF within the app.
+    """
+    for proc in psutil.process_iter():
+        try:
+            if proc.name() == STEAM_PROCESS_NAME:
+                return True
+
+        # If we cannot get the process name just ignore it.
+        # This does not occur for Steam as far as I can tell.
+        except psutil.AccessDenied:
+            pass
+
+    return False
