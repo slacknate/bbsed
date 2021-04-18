@@ -285,6 +285,10 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui.sprite_list.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
         self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
 
+        # Ensure that we center the view on our sprite scene.
+        self.ui.sprite_preview.setResizeAnchor(QtWidgets.QGraphicsView.ViewportAnchor.AnchorViewCenter)
+        self.ui.sprite_preview.setTransformationAnchor(QtWidgets.QGraphicsView.ViewportAnchor.AnchorViewCenter)
+
         # Set up the sprite preview mouse events so we can update various app visuals.
         self.ui.sprite_preview.setMouseTracking(True)
         self.ui.sprite_preview.mouseDoubleClickEvent = self.choose_color_from_coord
