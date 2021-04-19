@@ -16,6 +16,7 @@ def main():
     app = get_app()
 
     window = MainWindow()
+    window.init_excepthook()
     window.show()
 
     app.exec_()
