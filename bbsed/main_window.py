@@ -42,6 +42,8 @@ NON_ALPHANUM_REGEX = re.compile(r"[^\w]")
 HPL_MAX_PALETTES = GAME_MAX_PALETTES - 1
 HPL_MAX_FILES_PER_PALETTE = 7
 
+MAX_UNHANDLED_DIALOGS = 1
+
 
 def generate_apply_settings():
     """
@@ -80,6 +82,9 @@ class AppConfig(Configuration):
 
 # TODO: implement in-app Tutorial.
 class MainWindow(QtWidgets.QMainWindow):
+
+    unhandled_exc = QtCore.pyqtSignal(tuple)
+
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
 
@@ -94,6 +99,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.apply_config = ApplyConfig(self.paths)
 
         self.clipboard = None
+
+        # Only allow one unhandled error dialog at a time.
+        self.unhandled_sem = QtCore.QSemaphore(n=MAX_UNHANDLED_DIALOGS)
 
         self.sprite_editor = SpriteEditor(self, self.paths, self.ui.central_widget)
         self.sprite_editor.image_data_changed.connect(self.update_ui_for_palette)
@@ -134,6 +142,34 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Check if we should enable some editor UI elements at startup.
         self._check_steam_install()
+
+    def _unhandled_exc(self, exc_info):
+        """
+        Display an unhandled error.
+        Note that we use a semaphore to limit the number of dialogs displayed at a time.
+        Error could come from any thread so we should make sure not to meme the user with a billion dialogs.
+        """
+        if self.unhandled_sem.tryAcquire(n=MAX_UNHANDLED_DIALOGS):
+            self.show_error_dialog("Unhandled Error", "Unhandled error occured:", exc_info)
+            self.unhandled_sem.release(n=MAX_UNHANDLED_DIALOGS)
+
+    def _excepthook(self, etype, evalue, trace):
+        """
+        Ensure our error is handled in the Qt event loop/main thread.
+        """
+        self.unhandled_exc.emit((etype, evalue, trace))
+
+    def init_excepthook(self):
+        """
+        Set up an except hook so we can handle any exceptions that are not explicitly caught.
+        If an exception, for example, bubbles up out of a PyQt callback it will crash the app as
+        the C++ backend of PyQt has no idea to handle a Python exception (and it probably can't have any idea).
+        Thus we ensure uncaught exceptions go somewhere that is still in Python land.
+        """
+        # Connecting this with a BlockingQueuedConnection seems to cause the app to hang on error.
+        # Not sure why when the errors could come from any thread but perhaps an excepthook is a special case.
+        self.unhandled_exc.connect(self._unhandled_exc)
+        sys.excepthook = self._excepthook
 
     def set_palette_tools_enable(self, state):
         """
