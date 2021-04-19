@@ -573,14 +573,16 @@ class SpriteEditor(QtWidgets.QWidget):
             if self.state.should_swap(sprite_item):
                 self.state.swap_colors(sprite_item)
 
-        # ??.
+        # Get the raw PNG data of our palette visualization so we can pass it to the palette dialog.
         palette_image = io.BytesIO()
         self.palette.save_png(palette_image)
         palette_image = palette_image.getvalue()
 
+        # Get the raw PNG of our sprite so we can load it into the sprite preview as a pixmap.
         sprite_image = io.BytesIO()
         self.sprite.save_png(sprite_image)
         sprite_image = sprite_image.getvalue()
+        # Make a copy for the zoom dialog so it can "read" the image and scale it.
         zoom_image = io.BytesIO(sprite_image)
 
         png_pixmap = Qt.QPixmap()
