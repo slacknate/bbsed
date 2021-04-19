@@ -186,6 +186,13 @@ class Paths:
         """
         return self._get_edit_path(character, palette_id)
 
+    def get_edit_lock_path(self, character, palette_id):
+        """
+        Get the path of a palette lock file.
+        """
+        edit_path = self._get_edit_path(character, palette_id)
+        return os.path.join(edit_path, LOCK_FILE_EXT)
+
     def get_game_palette(self, character, palette_id):
         """
         Get a list of HPL game-version palette files for the given character and palette ID.

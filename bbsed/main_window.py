@@ -212,7 +212,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Unsure if calling the superclass closeEvent is required but we do so in case it is.
         """
         QtWidgets.QMainWindow.closeEvent(self, evt)
-        self.sprite_editor.close_dialogs()
+        self.sprite_editor.close()
 
     def _check_steam_install(self):
         """

@@ -62,6 +62,7 @@ class CharacterState:
     def __init__(self, sprite, sprite_editor):
         self.sprite_editor = sprite_editor
         self.character_dialog = None
+        self.palette_id = "INVALID"
         self.sprite = sprite
         self.swap_info = {}
         self.initial = None
@@ -117,6 +118,18 @@ class CharacterState:
         dialog.show()
 
         self.character_dialog = dialog
+
+    def set_palette_id(self, palette_id):
+        """
+        Update the character state to the current palette ID.
+        """
+        self.palette_id = palette_id
+
+    def get_palette_id(self):
+        """
+        Fetch the current palette ID.
+        """
+        return self.palette_id
 
     def load_character(self, character_id):
         """
@@ -492,14 +505,61 @@ class SpriteEditor(QtWidgets.QWidget):
 
         self.character_changed.emit(character_name, character)
 
+    def _lock_palette(self, character, character_name, palette_id):
+        """
+        Lock the given palette for editing. This prevents BBCF Sprite Editor
+        instances from stepping on each others toes and otherwise corrupting or change palette data
+        in undesirable ways.
+        """
+        prev_palette_id = self.state.get_palette_id()
+        old_lock_file = self.paths.get_edit_lock_path(character, prev_palette_id)
+
+        edit_palette = True
+        lock_file = self.paths.get_edit_lock_path(character, palette_id)
+
+        if owns_lock(old_lock_file):
+            delete_lock(old_lock_file)
+
+        if check_lock(lock_file):
+            message = (f"{character_name} palette {palette_id} is locked by another BBCF Sprite Editor process. "
+                       f"Do you want to edit the palette anyway? It is recommended "
+                       f"to do this only if you know what you are doing.")
+            edit_palette = self.show_confirm_dialog("Paletted Locked", message)
+
+            if not edit_palette:
+                # If the user has chosen not to edit the palette we select the previous palette.
+                # This may in fact de-select a palette all together.
+                with block_signals(self.ui.palette_select):
+                    palette_index = self.ui.palette_select.findText(prev_palette_id)
+                    self.ui.palette_select.setCurrentIndex(palette_index)
+
+                # We also need to update our slot selection. If we are selected a valid previous
+                # palette then we select the edit slow. Otherwise we also de-select all slots.
+                with block_signals(self.ui.slot_select):
+                    slot_index = 0 if palette_index >= 0 else -1
+                    self.ui.slot_select.setCurrentIndex(slot_index)
+
+        # We are for sure selecting this palette. Create the lock and update our state!
+        if edit_palette:
+            create_lock(lock_file)
+            self.state.set_palette_id(palette_id)
+
+        return edit_palette
+
     def select_palette(self):
         """
         A new palette has been selected.
         Replace the palette of the currently selected sprite and update the image preview.
         """
         character = self.ui.char_select.currentData()
+        character_name = self.ui.char_select.currentText()
         palette_id = self.ui.palette_select.currentText()
         palette_num = self.ui.palette_select.currentData()
+
+        # We have selected a new palette and should now lock it for editing.
+        # If it is locked by another process and the user wishes to respect that we should not continue.
+        if not self._lock_palette(character, character_name, palette_id):
+            return
 
         # When we select a palette ID we need to look for existing saved palettes associated to it.
         # Based on the presence of these files we also need to update the state of the UI.
@@ -634,6 +694,9 @@ class SpriteEditor(QtWidgets.QWidget):
         We also update the sprite preview but only if a sprite is selected.
         """
         character_id = self.ui.char_select.currentIndex()
+        character_name = self.ui.char_select.currentText()
+        character = self.ui.char_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
         palette_num = self.ui.palette_select.currentData()
 
         # Do not try to populate the sprite list if no character is selected or if
@@ -641,6 +704,12 @@ class SpriteEditor(QtWidgets.QWidget):
         # we will only populate this list once per character selection.
         if character_id in CHARACTER_INFO and self._sprite_list_empty():
             self._populate_sprite_list(character_id)
+
+            # If we have to populate the sprite list then we have just selected a character.
+            # At this point we should attempt to lock the palette that character select has given us.
+            # If it is locked by another process and the user wishes to respect that we should not continue.
+            if not self._lock_palette(character, character_name, palette_id):
+                return
 
         self._update_sprite_list(palette_num)
 
@@ -933,13 +1002,30 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         self.ui.character_group.setEnabled(state)
 
-    def close_dialogs(self):
+    def close(self):
         """
-        Close both dialogs associated to the editor.
+        Close all dialogs associated to the editor.
+        We also clean up any palette lock files owned by this process.
         """
         self.palette_dialog.hide()
         self.zoom_dialog.hide()
         self.state.hide()
+
+        character = self.ui.char_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+
+        # If we have an active lock file remove it.
+        if character is not None and palette_id is not None:
+            lock_file = self.paths.get_edit_lock_path(character, palette_id)
+
+            if owns_lock(lock_file):
+                os.remove(lock_file)
+
+    def show_confirm_dialog(self, *args, **kwargs):
+        """
+        Wrapper for `MainWindow.show_confirm_dialog()` solely to save line length.
+        """
+        return self.mainwindow.show_confirm_dialog(*args, **kwargs)
 
     def show_error_dialog(self, *args, **kwargs):
         """

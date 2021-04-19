@@ -3,6 +3,7 @@ __all__ = [
     # Constants
     "BBCF_STEAM_APP_ID",
     "STEAM_PROCESS_NAME",
+    "LOCK_FILE_EXT",
     "GAME_SPRITE_FILE_FMT",
     "GAME_PALETTE_FILE_FMT",
     "GAME_EFFECT_FILE_FMT",
@@ -34,8 +35,13 @@ __all__ = [
     "get_hash_path",
     "hash_file",
     "steam_running",
+    "create_lock",
+    "delete_lock",
+    "owns_lock",
+    "check_lock",
 ]
 
+import os
 import shutil
 import hashlib
 import tempfile
@@ -45,6 +51,10 @@ import psutil
 
 BBCF_STEAM_APP_ID = "586140"
 STEAM_PROCESS_NAME = "steam.exe"
+APP_PROCESS_NAME = "bbsed.exe"
+SOURCE_PROCESS_NAME = "python.exe"
+
+LOCK_FILE_EXT = ".lock"
 
 GAME_SPRITE_FILE_FMT = "char_{}_img.pac"
 GAME_PALETTE_FILE_FMT = "char_{}_pal.pac"
@@ -169,3 +179,76 @@ def steam_running():
             pass
 
     return False
+
+
+def create_lock(lock_file):
+    """
+    Create a lock file at the given location.
+    We simply write the pid of this process to the lock file
+    so other BBCF Sprite Editor instances can determine the owner of the lock.
+    """
+    with open(lock_file, "w") as lock_fp:
+        lock_fp.write(str(os.getpid()))
+
+
+def delete_lock(lock_file):
+    """
+    Delete a lock file at the given location.
+    """
+    os.remove(lock_file)
+
+
+def owns_lock(lock_file):
+    """
+    Determine if the given lock is owned by this BBCF Sprite Editor process.
+    If the file does not exist or does not contain an integer value we assume
+    that this process does not own the lock.
+    If the PID described by the lock file matches the current PID then we own it.
+    """
+    owns = False
+
+    if not os.path.exists(lock_file):
+        return owns
+
+    with open(lock_file, "r") as lock_fp:
+        try:
+            pid = int(lock_fp.read())
+
+        except ValueError:
+            return owns
+
+    return pid == os.getpid()
+
+
+def check_lock(lock_file):
+    """
+    Determine if the given lock file is valid.
+    We consider it valid if it was created by a BBCF Sprite Editor process that still exists.
+    """
+    valid = False
+
+    if not os.path.exists(lock_file):
+        return valid
+
+    with open(lock_file, "r") as lock_fp:
+        try:
+            pid = int(lock_fp.read())
+
+        except ValueError:
+            return valid
+
+    # If the lock file is PID is an existing process and that process
+    # is our app name then it is a valid lock file and should be left alone.
+    if psutil.pid_exists(pid):
+        proc = psutil.Process(pid)
+
+        try:
+            if proc.name() in (APP_PROCESS_NAME, SOURCE_PROCESS_NAME):
+                valid = True
+
+        # If we cannot get the process name just ignore it.
+        # This will not occur for bbsed.exe or python.exe.
+        except psutil.AccessDenied:
+            pass
+
+    return valid
