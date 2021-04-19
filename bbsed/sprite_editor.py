@@ -673,11 +673,8 @@ class SpriteEditor(QtWidgets.QWidget):
         Iterate our sprite list and set the palette number on our file items.
         This way the HPL file basename can be formatted to the correct palette.
         """
-        try:
-            for sprite_item in self._iterate_sprite_files():
-                sprite_item.palette_num = palette_num
-        except:
-            self.show_error_dialog("", "")
+        for sprite_item in self._iterate_sprite_files():
+            sprite_item.palette_num = palette_num
 
     @staticmethod
     def _add_hip_items(parent_item, hip_file_list, hpl_fmt):
