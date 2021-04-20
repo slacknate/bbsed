@@ -28,9 +28,9 @@ EFFECT_PREFIX_LEN = 8
 
 def get_other(two_tuple, item):
     """
-    Simple boolean logic trick. The swap tuple has two items and thus a format can only
-    possibly have an index of 0 or 1. If we logically invert the index of the format we
-    found and convert the result back to int we get the index of the format we are swapping to.
+    Simple boolean logic trick. A two-tuple has two items and thus an item contained can only
+    possibly have an index of 0 or 1. If we logically invert the index of the item we are given
+    convert the result back to int we get the index of the other item in the tuple.
     """
     index = two_tuple.index(item)
     other_index = int(not index)
