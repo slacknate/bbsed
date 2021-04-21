@@ -547,7 +547,7 @@ IZANAMI_EXT = {
                 PALETTE_FILE: "mi{}_00.hpl"
             },
 
-            "Eternal Darkness (Zoom In)": {
+            "Eternal Darkness (Closeup)": {
 
                 HIP_FILE_LIST: (
 
