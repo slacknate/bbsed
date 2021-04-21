@@ -6,7 +6,7 @@ BANG_EXT = {
 
         GROUP_FILES: {
 
-            "Seals (On Hit)": {
+            "Seals (Astral)": {
 
                 HIP_FILE_LIST: (
 
