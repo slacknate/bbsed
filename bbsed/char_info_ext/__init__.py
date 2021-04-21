@@ -25,6 +25,7 @@ from ..char_info import *
 from .constants import *
 from .amane import AMANE_EXT
 from .arakune import ARAKUNE_EXT
+from .azrael import AZRAEL_EXT
 from .izanami import IZANAMI_EXT
 from .izayoi import IZAYOI_EXT
 
@@ -32,7 +33,7 @@ CHARACTER_EXT_INFO = {
 
     AMANE: AMANE_EXT,
     ARAKUNE: ARAKUNE_EXT,
-    AZRAEL: {},
+    AZRAEL: AZRAEL_EXT,
     BANG: {},
     BULLET: {},
     CARL: {},
