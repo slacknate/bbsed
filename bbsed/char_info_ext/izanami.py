@@ -797,7 +797,6 @@ IZANAMI_EXT = {
                 PALETTE_FILE: "mi{}_03.hpl",
             },
 
-            # FIXME: what are these? these images don't even load so the palette may be incorrect.
             "Unknown": {
 
                 HIP_FILE_LIST: (

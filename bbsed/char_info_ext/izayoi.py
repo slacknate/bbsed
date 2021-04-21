@@ -216,7 +216,6 @@ IZAYOI_EXT = {
                 PALETTE_FILE: "iz{}_00.hpl"
             },
 
-            # FIXME: what are these? also the called out palette is wrong as these can't all use the same palette.
             "Unknown": {
 
                 HIP_FILE_LIST: (
