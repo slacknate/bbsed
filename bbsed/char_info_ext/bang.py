@@ -1,6 +1,8 @@
-from .constants import *
+from .util import *
 
 BANG_EXT = {
+
+    FILTER_FILES: make_filter("lc", "pt"),
 
     SPRITE_FILES: {
 

@@ -8,6 +8,7 @@ __all__ = [
     "SPRITE_FILES",
     "EFFECT_FILES",
     "CHARACTER_STATES",
+    "FILTER_FILES",
     "IGNORE_FILES",
     "GROUP_FILES",
     "HIP_FILE_LIST",
@@ -22,7 +23,7 @@ __all__ = [
 
 from ..char_info import *
 
-from .constants import *
+from .util import *
 from .amane import AMANE_EXT
 from .arakune import ARAKUNE_EXT
 from .azrael import AZRAEL_EXT

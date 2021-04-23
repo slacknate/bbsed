@@ -748,7 +748,7 @@ class SpriteEditor(QtWidgets.QWidget):
             sprite_item.palette_num = palette_num
 
     @staticmethod
-    def _add_hip_items(parent_item, hip_file_list, hpl_fmt):
+    def _add_hip_items(parent_item, hip_file_list, hpl_fmt, filter_files=None):
         """
         Add all our HIP image files as a `SpriteFileItem` to the parent `SpriteGroupItem`.
         We associate an HPL palette file name format to each file item so we can dynamically
@@ -756,9 +756,12 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         for hip_full_path in hip_file_list:
             hip_file = os.path.basename(hip_full_path)
-            parent_item.addChild(SpriteFileItem(hip_full_path, hip_file, hpl_fmt))
 
-    def _add_hip_files(self, cache_dir, files_map, parent_item=None):
+            # If we have no file filter or the filter does not exclude this file we should display it to the user.
+            if filter_files is None or filter_files(hip_file):
+                parent_item.addChild(SpriteFileItem(hip_full_path, hip_file, hpl_fmt))
+
+    def _add_hip_files(self, cache_dir, files_map, parent_item=None, filter_files=None):
         """
         We group together sprites by the palette files associated to them.
         """
@@ -779,14 +782,14 @@ class SpriteEditor(QtWidgets.QWidget):
                 self.ui.sprite_list.addTopLevelItem(group_item)
 
             if GROUP_FILES in data:
-                processed_files.update(self._add_hip_files(cache_dir, data, group_item))
+                processed_files.update(self._add_hip_files(cache_dir, data, group_item, filter_files))
 
             else:
                 hpl_fmt = data[PALETTE_FILE]
                 hip_file_list = [os.path.join(cache_dir, hip_file) for hip_file in data[HIP_FILE_LIST]]
                 hip_file_list.sort()
 
-                self._add_hip_items(group_item, hip_file_list, hpl_fmt)
+                self._add_hip_items(group_item, hip_file_list, hpl_fmt, filter_files)
                 processed_files.update(hip_file_list)
 
         return processed_files
@@ -809,16 +812,19 @@ class SpriteEditor(QtWidgets.QWidget):
         sprite_file_list |= set(self.paths.get_effect_cache(character))
 
         with block_signals(self.ui.sprite_list):
+            # Get our file filter from the extended info and pass it around where we need to.
+            filter_files = ext_info.get(FILTER_FILES, None)
+
             # Look for any sprite-specific palettes.
             sprite_files = ext_info.get(SPRITE_FILES, {})
-            processed_files = self._add_hip_files(sprite_cache_path, sprite_files)
+            processed_files = self._add_hip_files(sprite_cache_path, sprite_files, filter_files=filter_files)
             # If we found any we need to remove them from the files that will get grouped
             # under the "Character" parent item.
             sprite_file_list -= processed_files
 
             # Look for any effect-specific palettes.
             effect_files = ext_info.get(EFFECT_FILES, {})
-            processed_files = self._add_hip_files(effect_cache_path, effect_files)
+            processed_files = self._add_hip_files(effect_cache_path, effect_files, filter_files=filter_files)
             # If we found any we need to remove them from the files that will get grouped
             # under the "Character" parent item.
             sprite_file_list -= processed_files
@@ -827,7 +833,7 @@ class SpriteEditor(QtWidgets.QWidget):
             sprite_file_list = list(sprite_file_list)
             sprite_file_list.sort()
 
-            self._add_hip_items(sprite_parent, sprite_file_list, default_palette_fmt)
+            self._add_hip_items(sprite_parent, sprite_file_list, default_palette_fmt, filter_files)
 
     def select_sprite(self):
         """

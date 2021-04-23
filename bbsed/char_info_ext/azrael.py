@@ -1,6 +1,8 @@
-from .constants import *
+from .util import *
 
 AZRAEL_EXT = {
+
+    FILTER_FILES: make_filter("bn", "rg"),
 
     SPRITE_FILES: {
 

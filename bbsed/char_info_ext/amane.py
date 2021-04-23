@@ -1,11 +1,14 @@
-from .constants import *
+from .util import *
 
 AMANE_EXT = {
+
+    FILTER_FILES: make_filter("kk", "rg"),
 
     EFFECT_FILES: {
 
         IGNORE_FILES: (
 
+            "vrdmy.hip",
             "vr_yugami.hip",
         ),
 

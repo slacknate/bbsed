@@ -1,6 +1,8 @@
-from .constants import *
+from .util import *
 
 IZAYOI_EXT = {
+
+    FILTER_FILES: make_filter("jn", "rg", "tb"),
 
     SPRITE_FILES: {
 
@@ -62,6 +64,9 @@ IZAYOI_EXT = {
 
         IGNORE_FILES: (
 
+            "vrASTact.hip",
+            "vr_light.hip",
+            "vr_white.hip",
             "vrdist_iz00.hip",
         ),
 

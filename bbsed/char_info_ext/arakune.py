@@ -1,6 +1,8 @@
-from .constants import *
+from .util import *
 
 ARAKUNE_EXT = {
+
+    FILTER_FILES: make_filter("bn"),
 
     SPRITE_FILES: {
 
@@ -60,9 +62,6 @@ ARAKUNE_EXT = {
                 PALETTE_FILE: "ar{}_00.hpl",
             },
 
-            # This group of files is actually filtered (see: bbsed.pathing line 97) but
-            # we can still explicitly include them in the sprite list. Not a super great solution
-            # if there were a lot of files being excluded by the filter. Perhaps the filter needs updating?
             "Unknown": {
 
                 HIP_FILE_LIST: (

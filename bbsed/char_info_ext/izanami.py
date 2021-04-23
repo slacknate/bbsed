@@ -1,6 +1,8 @@
-from .constants import *
+from .util import *
 
 IZANAMI_EXT = {
+
+    FILTER_FILES: make_filter("rg"),
 
     SPRITE_FILES: {
 
