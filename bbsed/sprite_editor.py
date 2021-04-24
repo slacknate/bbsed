@@ -59,11 +59,11 @@ def get_palette_swap(swap_palettes, sprite_item):
 
 
 class CharacterState:
-    def __init__(self, sprite, sprite_editor):
+    def __init__(self, palette_sprite, sprite_editor):
+        self.palette_sprite = palette_sprite
         self.sprite_editor = sprite_editor
         self.character_dialog = None
         self.palette_id = "INVALID"
-        self.sprite = sprite
         self.swap_info = {}
         self.initial = None
 
@@ -179,8 +179,8 @@ class CharacterState:
         """
         swap_indices = self.swap_info[sprite_item.hpl_fmt]
         for index1, index2 in swap_indices:
-            color1, color2 = self.sprite.get_index_color_range(index1, index2)
-            self.sprite.set_index_color_range((index1, color2), (index2, color1))
+            color1, color2 = self.palette_sprite.get_index_color_range(index1, index2)
+            self.palette_sprite.set_index_color_range((index1, color2), (index2, color1))
 
     def get_swap_of(self, sprite_item, index):
         """
@@ -266,11 +266,12 @@ class SpriteEditor(QtWidgets.QWidget):
         # The visualized palette of our sprite.
         self.palette = PNGPalette(COLOR_BOX_SIZE)
         # The sprite we display.
-        self.sprite = PNGPaletteImage()
+        self.palette_sprite = PNGPaletteImage()
+        self.rgba_sprite = bytearray()  # FIXME: currently the tool has no way to edit this type of sprite
         # An object to manage the display of stateful characters.
         # A stateful character is a character like Izayoi where a user action can
         # change a character state (Gain Art) that in turn changes the colors displayed on the character.
-        self.state = CharacterState(self.sprite, self)
+        self.state = CharacterState(self.palette_sprite, self)
 
         self.crosshair = Crosshair(CROSS_HAIR_SIZE, False, 0, 0)
 
@@ -595,13 +596,10 @@ class SpriteEditor(QtWidgets.QWidget):
         # Clear zoom view.
         self.zoom_dialog.reset()
 
-    def _refresh(self):
+    def _refresh_palette(self):
         """
-        Update the sprite preview with the given palette index.
-        If no index is provided we assume that the current index is to be used.
-        This method is only invoked when we pick a new sprite or select a new palette.
-        Our cached sprite uses a palette from the sprite data definition, NOT from the
-        in-game palette data. This means that we should always be re-writing the palette.
+        Refresh our sprite palette. Reload the palette file, apply it to the sprite, and
+        look for any color swaps that are applicable.
         """
         character = self.ui.char_select.currentData()
         slot_name = self.ui.slot_select.currentText()
@@ -622,7 +620,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         try:
             self.palette.load_hpl(hpl_full_path)
-            self.sprite.load_hpl(hpl_full_path)
+            self.palette_sprite.load_hpl(hpl_full_path)
 
         except Exception:
             self.show_error_dialog("Error Setting Palette", "Failed to update the selected palette!")
@@ -640,10 +638,34 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # Get the raw PNG of our sprite so we can load it into the sprite preview as a pixmap.
         sprite_image = io.BytesIO()
-        self.sprite.save_png(sprite_image)
+        self.palette_sprite.save_png(sprite_image)
         sprite_image = sprite_image.getvalue()
         # Make a copy for the zoom dialog so it can "read" the image and scale it.
         zoom_image = io.BytesIO(sprite_image)
+
+        return sprite_image, palette_image, zoom_image
+
+    def _refresh(self):
+        """
+        Update the sprite preview with the given palette index.
+        If no index is provided we assume that the current index is to be used.
+        This method is only invoked when we pick a new sprite or select a new palette.
+        Our cached sprite uses a palette from the sprite data definition, NOT from the
+        in-game palette data. This means that we should always be re-writing the palette.
+        """
+        if self.rgba_sprite:
+            palette_image = bytearray()
+            sprite_image = self.rgba_sprite
+            zoom_image = io.BytesIO(self.rgba_sprite)
+
+            # Hide our palette dialog if we need to.
+            # RGBA images do not feature a palette.
+            self.mainwindow.ui.view_palette.setEnabled(False)
+            if self.palette_dialog.isVisible():
+                self.palette_dialog.hide()
+
+        else:
+            sprite_image, palette_image, zoom_image = self._refresh_palette()
 
         png_pixmap = Qt.QPixmap()
         png_pixmap.loadFromData(sprite_image, "PNG")
@@ -673,8 +695,11 @@ class SpriteEditor(QtWidgets.QWidget):
         # until we change the current palette.
 
         # Show our palette dialog if we need to.
-        if self.palette_dialog.isHidden():
-            self.palette_dialog.show()
+        if not self.rgba_sprite:
+            self.mainwindow.ui.view_palette.setEnabled(True)
+
+            if self.palette_dialog.isHidden():
+                self.palette_dialog.show()
 
         # Show our zoom dialog if we need to.
         if self.zoom_dialog.isHidden():
@@ -851,11 +876,17 @@ class SpriteEditor(QtWidgets.QWidget):
         try:
             png_data = io.BytesIO()
             hip_to_png(hip_full_path, png_data)
-            self.sprite.load_png(png_data)
 
         except Exception:
             self.show_error_dialog("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
             return
+
+        if is_palette_image(png_data):
+            self.rgba_sprite = bytearray()
+            self.palette_sprite.load_png(png_data)
+
+        else:
+            self.rgba_sprite = png_data.getvalue()
 
         self._refresh()
 
@@ -947,13 +978,17 @@ class SpriteEditor(QtWidgets.QWidget):
         We can use the mapped coordinated to get the palette index of the color we clicked on.
         Finally we can use the palette index to choose a new color.
         """
+        # If the current image is not a palette image then we cannot pick a color as there is no palette.
+        if self.rgba_sprite:
+            return
+
         x = evt.x()
         y = evt.y()
 
         mapped_point = self.ui.sprite_preview.mapToScene(Qt.QPoint(x, y)).toPoint()
 
         try:
-            palette_index = self.sprite.get_palette_index((mapped_point.x(), mapped_point.y()))
+            palette_index = self.palette_sprite.get_palette_index((mapped_point.x(), mapped_point.y()))
 
         except Exception:
             self.show_error_dialog("Error Getting Palette Index", f"Failed to get palette index of selected color!")
