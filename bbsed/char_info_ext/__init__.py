@@ -32,6 +32,7 @@ from .bullet import BULLET_EXT
 from .carl import CARL_EXT
 from .celica import CELICA_EXT
 from .es import ES_EXT
+from .hakumen import HAKUMEN_EXT
 from .izanami import IZANAMI_EXT
 from .izayoi import IZAYOI_EXT
 
@@ -45,7 +46,7 @@ CHARACTER_EXT_INFO = {
     CARL: CARL_EXT,
     CELICA: CELICA_EXT,
     ES: ES_EXT,
-    HAKUMEN: {},
+    HAKUMEN: HAKUMEN_EXT,
     HAZAMA: {},
     HIBIKI: {},
     IRON_TAGER: {},
