@@ -44,7 +44,7 @@ SWAP_INDICES = 2
 def make_filter(*characters):
     """
     Helper to create a filter function to remove files from the list of sprite files to be displayed to the user.
-    Used to for bulk remove files that match a pattern.
+    Used to for bulk removal of files that match a pattern.
     """
     if len(characters) == 0:
         raise ValueError("Must provide at least one character!")
