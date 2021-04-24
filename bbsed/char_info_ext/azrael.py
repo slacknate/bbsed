@@ -2,7 +2,7 @@ from .util import *
 
 AZRAEL_EXT = {
 
-    FILTER_FILES: make_filter("bn", "rg"),
+    FILTER_FILES: make_filter("ar", "bn", "rg"),
 
     SPRITE_FILES: {
 
