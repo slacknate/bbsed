@@ -39,7 +39,6 @@ __all__ = [
     "delete_lock",
     "owns_lock",
     "check_lock",
-    "is_palette_image",
 ]
 
 import os
@@ -255,11 +254,3 @@ def check_lock(lock_file):
             pass
 
     return valid
-
-
-def is_palette_image(img_input):
-    """
-    Determine if the provided image is a Palette image or RGBA image.
-    """
-    with Image.open(img_input) as image_fp:
-        return image_fp.mode == "P"

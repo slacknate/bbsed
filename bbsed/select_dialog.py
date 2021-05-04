@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from PyQt5 import Qt, QtCore, QtWidgets
 
-from libhip import hip_to_png
+from libhip import HIPImage
 from libhpl import PNGPaletteImage
 
 from .ui.select_dialog_ui import Ui_Dialog
@@ -222,8 +222,11 @@ class SelectDialog(QtWidgets.QDialog):
         hip_full_path = sprite_cache[0]
 
         try:
+            hip_image = HIPImage()
+            hip_image.load_hip(hip_full_path)
+
             sprite_data = io.BytesIO()
-            hip_to_png(hip_full_path, sprite_data)
+            hip_image.save_png(sprite_data)
 
         except Exception:
             hip_file = os.path.basename(hip_full_path)
