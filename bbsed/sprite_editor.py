@@ -261,7 +261,7 @@ class Sprite:
 
     def is_palette_image(self):
         """
-        Expose helper from the HIP to determine if this sprite is a palette image.
+        Expose helper from the HIP image to determine if this sprite is a palette image.
         """
         return self.hip_image.is_palette_image()
 
