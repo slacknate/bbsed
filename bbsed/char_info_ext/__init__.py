@@ -33,8 +33,33 @@ from .carl import CARL_EXT
 from .celica import CELICA_EXT
 from .es import ES_EXT
 from .hakumen import HAKUMEN_EXT
+from .hazama import HAZAMA_EXT
+from .hibiki import HIBIKI_EXT
 from .izanami import IZANAMI_EXT
 from .izayoi import IZAYOI_EXT
+from .jin import JIN_EXT
+from .jubei import JUBEI_EXT
+from .kagura import KAGURA_EXT
+from .kokonoe import KOKONOE_EXT
+from .lam import LAMBDA_EXT
+from .litchi import LITCHI_EXT
+from .mai import MAI_EXT
+from .makoto import MAKOTO_EXT
+from .mu import MU_EXT
+from .naoto import NAOTO_EXT
+from .nine import NINE_EXT
+from .noel import NOEL_EXT
+from .nu import NU_EXT
+from .platinum import PLATINUM_EXT
+from .rachel import RACHEL_EXT
+from .ragna import RAGNA_EXT
+from .relius import RELIUS_EXT
+from .susanoo import SUSANOO_EXT
+from .tager import TAGER_EXT
+from .taokaka import TAOKAKA_EXT
+from .terumi import TERUMI_EXT
+from .tsubaki import TSUBAKI_EXT
+from .valkenhayne import VALKENHAYNE_EXT
 
 CHARACTER_EXT_INFO = {
 
@@ -47,31 +72,31 @@ CHARACTER_EXT_INFO = {
     CELICA: CELICA_EXT,
     ES: ES_EXT,
     HAKUMEN: HAKUMEN_EXT,
-    HAZAMA: {},
-    HIBIKI: {},
-    IRON_TAGER: {},
+    HAZAMA: HAZAMA_EXT,
+    HIBIKI: HIBIKI_EXT,
+    IRON_TAGER: TAGER_EXT,
     IZANAMI: IZANAMI_EXT,
     IZAYOI: IZAYOI_EXT,
-    JIN: {},
-    JUBEI: {},
-    KAGURA: {},
-    KOKONOE: {},
-    LITCHI: {},
-    MAKOTO: {},
-    MAI: {},
-    NAOTO: {},
-    NINE: {},
-    NOEL: {},
-    PLATINUM: {},
-    RACHEL: {},
-    RAGNA: {},
-    RELIUS: {},
-    SUSANOO: {},
-    TAOKAKA: {},
-    TSUBAKI: {},
-    TERUMI: {},
-    VALKENHAYNE: {},
-    LAMBDA: {},
-    MU: {},
-    NU: {}
+    JIN: JIN_EXT,
+    JUBEI: JUBEI_EXT,
+    KAGURA: KAGURA_EXT,
+    KOKONOE: KOKONOE_EXT,
+    LITCHI: LITCHI_EXT,
+    MAKOTO: MAKOTO_EXT,
+    MAI: MAI_EXT,
+    NAOTO: NAOTO_EXT,
+    NINE: NINE_EXT,
+    NOEL: NOEL_EXT,
+    PLATINUM: PLATINUM_EXT,
+    RACHEL: RACHEL_EXT,
+    RAGNA: RAGNA_EXT,
+    RELIUS: RELIUS_EXT,
+    SUSANOO: SUSANOO_EXT,
+    TAOKAKA: TAOKAKA_EXT,
+    TSUBAKI: TSUBAKI_EXT,
+    TERUMI: TERUMI_EXT,
+    VALKENHAYNE: VALKENHAYNE_EXT,
+    LAMBDA: LAMBDA_EXT,
+    MU: MU_EXT,
+    NU: NU_EXT
 }
