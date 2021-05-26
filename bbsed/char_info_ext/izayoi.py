@@ -7,7 +7,7 @@ IZAYOI_EXT = {
 
         GROUP_FILES: {
 
-            "000": {
+            "Idle - 5": {
 
                 GROUP_FILES: {
 
@@ -30,7 +30,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "001": {
+            "Intro Pose (?)": {
 
                 GROUP_FILES: {
 
@@ -55,7 +55,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "002": {
+            "Idle Action(s)": {
 
                 GROUP_FILES: {
 
@@ -114,7 +114,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "010": {
+            "Idle - 2": {
 
                 GROUP_FILES: {
 
@@ -153,7 +153,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "020": {
+            "Airborne": {
 
                 GROUP_FILES: {
 
@@ -175,7 +175,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "023": {
+            "Jump Startup (?) - 8": {
 
                 GROUP_FILES: {
 
@@ -190,7 +190,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "024": {
+            "Landing Recovery (?)": {
 
                 GROUP_FILES: {
 
@@ -224,7 +224,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "030": {
+            "Walk Forward - 6": {
 
                 GROUP_FILES: {
 
@@ -246,7 +246,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "031": {
+            "Walk Backward - 4": {
 
                 GROUP_FILES: {
 
@@ -268,7 +268,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "032": {
+            "Forward Dash - 66": {
 
                 GROUP_FILES: {
 
@@ -295,7 +295,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "033": {
+            "Back Dash -  44": {
 
                 GROUP_FILES: {
 
@@ -314,7 +314,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "035": {
+            "Air Forward Dash (?) - j66": {
 
                 GROUP_FILES: {
 
@@ -331,7 +331,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "036": {
+            "Air Back Dash (?) - j44": {
 
                 GROUP_FILES: {
 
@@ -348,7 +348,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "040": {
+            "Block - 4": {
 
                 GROUP_FILES: {
 
@@ -367,7 +367,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "041": {
+            "Barrier Block (?) -  4AB??": {
 
                 GROUP_FILES: {
 
@@ -386,7 +386,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "043": {
+            "Crouch Block - 1, 1AB??": {
 
                 GROUP_FILES: {
 
@@ -405,7 +405,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "045": {
+            "Air Block - j4, j4AB??": {
 
                 GROUP_FILES: {
 
@@ -737,7 +737,7 @@ IZAYOI_EXT = {
                             "iz082_00.hip",
                             "iz082_01.hip"
                         ),
-                        PALETTE_FILE: "iz{}_00.hpl",
+                        PALETTE_FILE: "iz{}_00.hpl",  # FIXME
                     },
                 },
             },
@@ -2136,7 +2136,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "430": {
+            "Justice Phorizor - 236236C": {
 
                 GROUP_FILES: {
 
@@ -2174,6 +2174,13 @@ IZAYOI_EXT = {
                             "iz430_27.hip",
                             "iz430_28.hip",
                             "iz430_29.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_00.hpl",
+                    },
+                    "Side Blades": {
+
+                        HIP_FILE_LIST: (
+
                             "iz430_f01.hip",
                             "iz430_f02.hip",
                             "iz430_f05.hip",
@@ -2201,7 +2208,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "431": {
+            "Slaver Trans-Am - 632146D": {
 
                 GROUP_FILES: {
 
@@ -2238,6 +2245,13 @@ IZAYOI_EXT = {
                             "iz431_26.hip",
                             "iz431_27.hip",
                             "iz431_28.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_00.hpl",
+                    },
+                    "Side Blades": {
+
+                        HIP_FILE_LIST: (
+
                             "iz431_f11.hip",
                             "iz431_f12.hip",
                             "iz431_f13.hip",
@@ -2248,13 +2262,13 @@ IZAYOI_EXT = {
                             "iz431_f19.hip",
                             "iz431_f20.hip",
                             "iz431_f24.hip",
-                            "iz431_f25.hip"
+                            "iz431_f25.hip",
                         ),
                         PALETTE_FILE: "iz{}_00.hpl",
                     },
                 },
             },
-            "440": {
+            "Banshee Lancer - ABCD": {
 
                 GROUP_FILES: {
 
@@ -2294,6 +2308,13 @@ IZAYOI_EXT = {
                             "iz440_29.hip",
                             "iz440_30.hip",
                             "iz440_31.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_00.hpl",
+                    },
+                    "Side Blades": {
+
+                        HIP_FILE_LIST: (
+
                             "iz440_f00.hip",
                             "iz440_f01.hip",
                             "iz440_f02.hip",
@@ -2326,7 +2347,7 @@ IZAYOI_EXT = {
                             "iz440_f28a.hip",
                             "iz440_f28b.hip",
                             "iz440_f29.hip",
-                            "iz440_f29ex.hip"
+                            "iz440_f29ex.hip",
                         ),
                         PALETTE_FILE: "iz{}_00.hpl",
                     },
@@ -2705,6 +2726,442 @@ IZAYOI_EXT = {
                         PALETTE_FILE: "iz{}_00.hpl",
                     },
                 },
+            },
+        },
+    },
+    EFFECT_FILES: {
+
+        IGNORE_FILES: (
+
+            "vrASTact.hip",
+            "vr_light.hip",
+            "vr_white.hip",
+            "vrdist_iz00.hip",
+        ),
+        GROUP_FILES: {
+
+            "202": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef202_01.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "203": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef202_00.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "204": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef204_00.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "210": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef210_f04.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "211": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef211_f09.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "212": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef212_f06.hip",
+                            "vrizef212_f07.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "232": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef232_00.hip",
+                            "vrizef232_01.hip",
+                            "vrizef232_02.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "233": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef233_00.hip",
+                            "vrizef233_01.hip",
+                            "vrizef233_02.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "234": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef234_00.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "235": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef235_00.hip",
+                            "vrizef235_01.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "252": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef252_00.hip",
+                            "vrizef252_01.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "254": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef254_00.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "213": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef213_00.hip",
+                            "vrizef213_01.hip",
+                            "vrizef213_02.hip",
+                            "vrizef213_03.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_02.hpl",
+                    },
+                },
+            },
+            "253": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef253_00.hip",
+                            "vrizef253_01.hip",
+                            "vrizef253_02.hip",
+                            "vrizef253_03.hip",
+                            "vrizef253_04.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_02.hpl",
+                    },
+                },
+            },
+            "400": {
+
+                GROUP_FILES: {
+
+                    "Projectiles": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef400swd00.hip",
+                            "vrizef400swd01.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_04.hpl",
+                    },
+                },
+            },
+            "402": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef_402_00.hip",
+                            "vrizef_402_01.hip",
+                            "vrizef_402_02.hip",
+                            "vrizef_402_03.hip",
+                            "vrizef_402_04.hip",
+                            "vrizef_402_05.hip",
+                            "vrizef_402_10.hip",
+                            "vrizef_402_11.hip",
+                            "vrizef_402_12.hip",
+                            "vrizef_402_13.hip",
+                            "vrizef_402_14.hip",
+                            "vrizef_402_15.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_04.hpl",
+                    },
+                },
+            },
+            "404": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef_404_00.hip",
+                            "vrizef_404_01.hip",
+                            "vrizef_404_02.hip",
+                            "vrizef_404_03.hip",
+                            "vrizef_404_04.hip",
+                            "vrizef_404_05.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_04.hpl",
+                    },
+                },
+            },
+            "405": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef_405_01.hip",
+                            "vrizef_405_02.hip",
+                            "vrizef_405_03.hip",
+                            "vrizef_405_04.hip",
+                            "vrizef_405_05.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_04.hpl",
+                    },
+                },
+            },
+            "406": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef_406_00.hip",
+                            "vrizef_406_01.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_04.hpl",
+                    },
+                },
+            },
+            "413": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef_413_00.hip",
+                            "vrizef_413_01.hip",
+                            "vrizef_413_02.hip",
+                            "vrizef_413_03.hip",
+                            "vrizef_413_04.hip",
+                            "vrizef_413_11.hip",
+                            "vrizef_413_12.hip",
+                            "vrizef_413_13.hip",
+                            "vrizef_413_14.hip",
+                            "vrizef_413_15.hip",
+                            "vrizef_413_21.hip",
+                            "vrizef_413_22.hip",
+                            "vrizef_413_23.hip",
+                            "vrizef_413_24.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_04.hpl",
+                    },
+                },
+            },
+            "Justice Phorizor - 236236C": {
+
+                GROUP_FILES: {
+
+                    "Spirit Blade": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef430swd00.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_06.hpl"
+                    },
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef430swd_env.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl"
+                    },
+                },
+            },
+            "Slaver Trans-Am - 632146D": {
+
+                GROUP_FILES: {
+
+                    "Summons": {
+
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef431_00.hip",
+                        ),
+
+                        PALETTE_FILE: "iz{}_00.hpl"
+                    },
+                },
+            },
+            "Banshee Lancer - ABCD": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef440_00.hip",
+                            "vrizef440_01.hip",
+                            "vrizef440_02.hip",
+                            "vrizef440_03.hip",
+                            "vrizef440_10.hip",
+                            "vrizef440_11.hip",
+                            "vrizef440_12.hip",
+                            "vrizef440_13.hip",
+                            "vrizef440_20.hip",
+                            "vrizef440_21.hip",
+                            "vrizef440_22.hip",
+                            "vrizef440_23.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_02.hpl"
+                    },
+                    "Unknown Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef440_30.hip",
+                            "vrizef440_31.hip",
+                            "vrizef440_50.hip",
+                            "vrizef440_51.hip",
+                            "vrizef440_52.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl"
+                    },
+                },
+            },
+            "Unknown": {
+
+                HIP_FILE_LIST: (
+
+                    "vrizef412_00.hip",
+
+                    "vrizef601_09.hip",
+                    "vrizef601_10.hip",
+                    "vrizef601_11.hip",
+                    "vrizef601_18.hip",
+                    "vrizef601_19.hip",
+
+                    "vrizef_408_00.hip",
+                    "vrizef_408_01.hip",
+                    "vrizef_408_02.hip",
+                ),
+
+                PALETTE_FILE: "iz{}_01.hpl"
             },
         },
     },
