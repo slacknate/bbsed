@@ -2708,4 +2708,29 @@ IZAYOI_EXT = {
             },
         },
     },
+    CHARACTER_STATES: {
+
+        # This will result in a Inactive being the first displayed choice.
+        STATE_DEFINITION: ("Gain Art", ("Inactive", "Active")),
+        STATE_INITIAL: "Inactive",
+        STATE_CHANGE: {
+
+            SWAP_COLORS: (
+
+                {
+                    PALETTE_FILE: "iz{}_00.hpl",
+                    SWAP_INDICES: (
+
+                        ((10, 11), (13, 11)),
+                        ((11, 11), (14, 11)),
+                        ((12, 11), (15, 11)),
+                    ),
+                },
+            ),
+            SWAP_PALETTES: (
+
+                ("iz{}_04.hpl", "iz{}_05.hpl"),
+            ),
+        },
+    },
 }

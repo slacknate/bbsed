@@ -2655,7 +2655,19 @@ IZANAMI_EXT = {
                     },
                 },
             },
+        },
+    },
+    CHARACTER_STATES: {
 
+        # This will result in a Inactive being the first displayed choice.
+        STATE_DEFINITION: ("Time Stop", ("Inactive", "Active")),
+        STATE_INITIAL: "Inactive",
+        STATE_CHANGE: {
+
+            SWAP_PALETTES: (
+
+                ("mi{}_00.hpl", "mi{}_02.hpl"),
+            ),
         },
     },
 }
