@@ -921,12 +921,7 @@ class SpriteEditor(QtWidgets.QWidget):
             processed_files.add(os.path.join(cache_dir, hip_file))
 
         for name, data in group_files.items():
-            group_item = SpriteGroupItem(name)
-
-            if parent_item is not None:
-                parent_item.addChild(group_item)
-            else:
-                self.ui.sprite_list.addTopLevelItem(group_item)
+            group_item = self._get_or_create_group(name, parent_item=parent_item)
 
             if GROUP_FILES in data:
                 processed_files.update(self._add_hip_files(cache_dir, data, group_item, filter_files))
@@ -941,17 +936,29 @@ class SpriteEditor(QtWidgets.QWidget):
 
         return processed_files
 
-    def _get_group_item(self, item_name):
+    def _get_or_create_group(self, name, parent_item=None):
         """
-        Get a group item by name.
-        FIXME: remove this!
+        Get a group item by name. If a parent item is provided we look for
+        children of that item to match. If we cannot find an item with the
+        given name we create one.
         """
         item_index = 0
 
         while True:
-            item = self.ui.sprite_list.topLevelItem(item_index)
+            if parent_item is not None:
+                item = parent_item.child(item_index)
+            else:
+                item = self.ui.sprite_list.topLevelItem(item_index)
 
-            if item is None or item.name == item_name:
+            if item is None:
+                item = SpriteGroupItem(name)
+
+                if parent_item is not None:
+                    parent_item.addChild(item)
+                else:
+                    self.ui.sprite_list.addTopLevelItem(item)
+
+            if item.name == name:
                 return item
 
             item_index += 1
@@ -992,11 +999,11 @@ class SpriteEditor(QtWidgets.QWidget):
             sprite_file_list = list(sprite_file_list)
             sprite_file_list.sort()
 
-            # FIXME: remove this eventually!
-            sprite_parent = self._get_group_item("Unknown")
-            if sprite_parent is None and sprite_file_list:
-                return
-            self._add_hip_items(sprite_parent, sprite_file_list, default_palette_fmt, filter_files)
+            parent_item = self._get_or_create_group("Unknown")
+            if parent_item is None and sprite_file_list:
+                return  # FIXME
+
+            self._add_hip_items(parent_item, sprite_file_list, default_palette_fmt, filter_files)
 
     def select_sprite(self):
         """
