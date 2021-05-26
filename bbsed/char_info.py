@@ -73,7 +73,7 @@ CHARACTER_INFO = {
     TSUBAKI: ("Tsubaki Yayoi", "tb"),
     TERUMI: ("Yuuki Terumi", "tm"),
     VALKENHAYNE: ("Valkenhayne R. Hellsing", "vh"),
-    LAMBDA: ("Lambda-11", "rm"),  # Ramuda
+    LAMBDA: ("Lambda-11", "rm"),  # Ramuda - FIXME: her palette and sprite files use the same abbreviation as Nu-13...
     MU: ("Mu-12", "mu"),
     NU: ("Nu-13", "ny")  # Nyu
 }
