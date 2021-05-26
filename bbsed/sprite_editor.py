@@ -941,6 +941,21 @@ class SpriteEditor(QtWidgets.QWidget):
 
         return processed_files
 
+    def _get_group_item(self, item_name):
+        """
+        Get a group item by name.
+        FIXME: remove this!
+        """
+        item_index = 0
+
+        while True:
+            item = self.ui.sprite_list.topLevelItem(item_index)
+
+            if item is None or item.name == item_name:
+                return item
+
+            item_index += 1
+
     def _populate_sprite_list(self, character_id):
         """
         Populate the sprite list with our character sprite files.
@@ -951,9 +966,6 @@ class SpriteEditor(QtWidgets.QWidget):
 
         sprite_cache_path = self.paths.get_sprite_cache_path(character)
         effect_cache_path = self.paths.get_effect_cache_path(character)
-
-        sprite_parent = SpriteGroupItem("Character")
-        self.ui.sprite_list.addTopLevelItem(sprite_parent)
 
         sprite_file_list = set(self.paths.get_sprite_cache(character))
         sprite_file_list |= set(self.paths.get_effect_cache(character))
@@ -980,6 +992,10 @@ class SpriteEditor(QtWidgets.QWidget):
             sprite_file_list = list(sprite_file_list)
             sprite_file_list.sort()
 
+            # FIXME: remove this eventually!
+            sprite_parent = self._get_group_item("Unknown")
+            if sprite_parent is None and sprite_file_list:
+                return
             self._add_hip_items(sprite_parent, sprite_file_list, default_palette_fmt, filter_files)
 
     def select_sprite(self):
