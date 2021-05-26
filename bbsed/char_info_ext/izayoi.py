@@ -114,7 +114,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "Idle - 2": {
+            "Crouch Idle - 2": {
 
                 GROUP_FILES: {
 
