@@ -1000,9 +1000,6 @@ class SpriteEditor(QtWidgets.QWidget):
             sprite_file_list.sort()
 
             parent_item = self._get_or_create_group("Unknown")
-            if parent_item is None and sprite_file_list:
-                return  # FIXME
-
             self._add_hip_items(parent_item, sprite_file_list, default_palette_fmt, filter_files)
 
     def select_sprite(self):
