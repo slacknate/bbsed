@@ -2257,28 +2257,22 @@ MAI_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "maef450_90.hip",
-                            "maef450_91.hip",
-                            "maef450_92.hip",
-                            "maef450_93.hip",
-                            "maef450_94.hip",
-                            "maef450_94ex.hip",
-                            "maef450_95.hip",
-                            "maef450_96.hip",
-                            "maef450_97.hip",
-                            "maef450_98.hip",
-                            "maef601_00.hip",
-                            "rg000_00.hip"
-                        ),
-                        PALETTE_FILE: "ma{}_00.hpl",
-                    },
-                },
+                    "maef450_90.hip",
+                    "maef450_91.hip",
+                    "maef450_92.hip",
+                    "maef450_93.hip",
+                    "maef450_94.hip",
+                    "maef450_94ex.hip",
+                    "maef450_95.hip",
+                    "maef450_96.hip",
+                    "maef450_97.hip",
+                    "maef450_98.hip",
+                    "maef601_00.hip",
+                    "rg000_00.hip"
+                ),
+                PALETTE_FILE: "ma{}_00.hpl",
             },
         },
     },

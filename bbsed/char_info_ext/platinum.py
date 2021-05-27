@@ -2337,33 +2337,27 @@ PLATINUM_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "bn000_00.hip",
-                            "bn000_01.hip",
-                            "bn000_02.hip",
-                            "bn000_03.hip",
-                            "bn000_04.hip",
-                            "bn000_05.hip",
-                            "bn000_06.hip",
-                            "bn000_07.hip",
-                            "bn000_08.hip",
-                            "bn000_09.hip",
-                            "bn000_10.hip",
-                            "bn000_11.hip",
-                            "bn050_00.hip",
-                            "bn050_01.hip",
-                            "bn050_02.hip",
-                            "bn050_03.hip",
-                            "bn050_04.hip"
-                        ),
-                        PALETTE_FILE: "pt{}_00.hpl",
-                    },
-                },
+                    "bn000_00.hip",
+                    "bn000_01.hip",
+                    "bn000_02.hip",
+                    "bn000_03.hip",
+                    "bn000_04.hip",
+                    "bn000_05.hip",
+                    "bn000_06.hip",
+                    "bn000_07.hip",
+                    "bn000_08.hip",
+                    "bn000_09.hip",
+                    "bn000_10.hip",
+                    "bn000_11.hip",
+                    "bn050_00.hip",
+                    "bn050_01.hip",
+                    "bn050_02.hip",
+                    "bn050_03.hip",
+                    "bn050_04.hip"
+                ),
+                PALETTE_FILE: "pt{}_00.hpl",
             },
         },
     },

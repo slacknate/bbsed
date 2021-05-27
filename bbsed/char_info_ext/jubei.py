@@ -2219,17 +2219,11 @@ JUBEI_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "Maker_dummy.hip",
-                        ),
-                        PALETTE_FILE: "jb{}_00.hpl",
-                    },
-                },
+                    "Maker_dummy.hip",
+                ),
+                PALETTE_FILE: "jb{}_00.hpl",
             },
         },
     },

@@ -2413,29 +2413,23 @@ MAKOTO_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "mu000_00.hip",
-                            "no033_00.hip",
-                            "no033_01.hip",
-                            "no033_02.hip",
-                            "no033_03.hip",
-                            "no064_02.hip",
-                            "no064_03.hip",
-                            "no064_04.hip",
-                            "no064_05.hip",
-                            "no064_06.hip",
-                            "no064_07.hip",
-                            "no064_08.hip",
-                            "no620_08.hip"
-                        ),
-                        PALETTE_FILE: "mk{}_00.hpl",
-                    },
-                },
+                    "mu000_00.hip",
+                    "no033_00.hip",
+                    "no033_01.hip",
+                    "no033_02.hip",
+                    "no033_03.hip",
+                    "no064_02.hip",
+                    "no064_03.hip",
+                    "no064_04.hip",
+                    "no064_05.hip",
+                    "no064_06.hip",
+                    "no064_07.hip",
+                    "no064_08.hip",
+                    "no620_08.hip"
+                ),
+                PALETTE_FILE: "mk{}_00.hpl",
             },
         },
     },

@@ -2607,37 +2607,31 @@ HAZAMA_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "no062_00.hip",
-                            "no072_01.hip",
-                            "no602_00.hip",
-                            "no620_08.hip",
-                            "rg000_00.hip",
-                            "rg000_01.hip",
-                            "rg000_02.hip",
-                            "rg000_03.hip",
-                            "rg000_04.hip",
-                            "rg000_05.hip",
-                            "rg000_06.hip",
-                            "rg033_00.hip",
-                            "rg033_01.hip",
-                            "rg033_02.hip",
-                            "rg033_03.hip",
-                            "rg620_00.hip",
-                            "rg620_01.hip",
-                            "rg620_02.hip",
-                            "rg620_03.hip",
-                            "rg620_04.hip",
-                            "rg620_05.hip"
-                        ),
-                        PALETTE_FILE: "hz{}_00.hpl",
-                    },
-                },
+                    "no062_00.hip",
+                    "no072_01.hip",
+                    "no602_00.hip",
+                    "no620_08.hip",
+                    "rg000_00.hip",
+                    "rg000_01.hip",
+                    "rg000_02.hip",
+                    "rg000_03.hip",
+                    "rg000_04.hip",
+                    "rg000_05.hip",
+                    "rg000_06.hip",
+                    "rg033_00.hip",
+                    "rg033_01.hip",
+                    "rg033_02.hip",
+                    "rg033_03.hip",
+                    "rg620_00.hip",
+                    "rg620_01.hip",
+                    "rg620_02.hip",
+                    "rg620_03.hip",
+                    "rg620_04.hip",
+                    "rg620_05.hip"
+                ),
+                PALETTE_FILE: "hz{}_00.hpl",
             },
         },
     },

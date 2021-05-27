@@ -2504,38 +2504,32 @@ NOEL_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "ha601_00.hip",
-                            "ha601_01.hip",
-                            "ha601_02.hip",
-                            "mk000_00.hip",
-                            "mk000_01.hip",
-                            "mk000_02.hip",
-                            "mk000_03.hip",
-                            "mk000_04.hip",
-                            "mk000_05.hip",
-                            "mk000_06.hip",
-                            "mk000_07.hip",
-                            "mk000_08.hip",
-                            "mk000_09.hip",
-                            "rc000_00.hip",
-                            "rc000_01.hip",
-                            "rc000_02.hip",
-                            "rc000_03.hip",
-                            "rc000_04.hip",
-                            "rc000_05.hip",
-                            "rc000_06.hip",
-                            "rc000_07.hip",
-                            "rc000_08.hip"
-                        ),
-                        PALETTE_FILE: "no{}_00.hpl",
-                    },
-                },
+                    "ha601_00.hip",
+                    "ha601_01.hip",
+                    "ha601_02.hip",
+                    "mk000_00.hip",
+                    "mk000_01.hip",
+                    "mk000_02.hip",
+                    "mk000_03.hip",
+                    "mk000_04.hip",
+                    "mk000_05.hip",
+                    "mk000_06.hip",
+                    "mk000_07.hip",
+                    "mk000_08.hip",
+                    "mk000_09.hip",
+                    "rc000_00.hip",
+                    "rc000_01.hip",
+                    "rc000_02.hip",
+                    "rc000_03.hip",
+                    "rc000_04.hip",
+                    "rc000_05.hip",
+                    "rc000_06.hip",
+                    "rc000_07.hip",
+                    "rc000_08.hip"
+                ),
+                PALETTE_FILE: "no{}_00.hpl",
             },
         },
     },

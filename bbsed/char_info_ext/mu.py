@@ -2636,25 +2636,19 @@ MU_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "mu_boss_f00.hip",
-                            "no000_00.hip",
-                            "no000_01.hip",
-                            "no000_02.hip",
-                            "no000_03.hip",
-                            "no000_04.hip",
-                            "no000_05.hip",
-                            "no000_06.hip",
-                            "no000_07.hip"
-                        ),
-                        PALETTE_FILE: "mu{}_00.hpl",
-                    },
-                },
+                    "mu_boss_f00.hip",
+                    "no000_00.hip",
+                    "no000_01.hip",
+                    "no000_02.hip",
+                    "no000_03.hip",
+                    "no000_04.hip",
+                    "no000_05.hip",
+                    "no000_06.hip",
+                    "no000_07.hip"
+                ),
+                PALETTE_FILE: "mu{}_00.hpl",
             },
         },
     },

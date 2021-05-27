@@ -2330,27 +2330,21 @@ JIN_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "jnef611_00.hip",
-                            "jnef611_01.hip",
-                            "jnef611_02.hip",
-                            "jnef611_03.hip",
-                            "jnef611_04.hip",
-                            "jnef611_05.hip",
-                            "jnef611_06.hip",
-                            "jnef611_07.hip",
-                            "jnef611_08.hip",
-                            "jnef611_09.hip",
-                            "pt999_00.hip"
-                        ),
-                        PALETTE_FILE: "jn{}_00.hpl",
-                    },
-                },
+                    "jnef611_00.hip",
+                    "jnef611_01.hip",
+                    "jnef611_02.hip",
+                    "jnef611_03.hip",
+                    "jnef611_04.hip",
+                    "jnef611_05.hip",
+                    "jnef611_06.hip",
+                    "jnef611_07.hip",
+                    "jnef611_08.hip",
+                    "jnef611_09.hip",
+                    "pt999_00.hip"
+                ),
+                PALETTE_FILE: "jn{}_00.hpl",
             },
         },
     },

@@ -2338,26 +2338,20 @@ BULLET_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "blef_target.hip",
-                            "ctk450_25.hip",
-                            "ctk450_26.hip",
-                            "ctk450_27.hip",
-                            "ctk450_28.hip",
-                            "rg000_00.hip",
-                            "tg072_00.hip",
-                            "tg072_01.hip",
-                            "tg072_02.hip",
-                            "tg620_02.hip"
-                        ),
-                        PALETTE_FILE: "bl{}_00.hpl",
-                    },
-                },
+                    "blef_target.hip",
+                    "ctk450_25.hip",
+                    "ctk450_26.hip",
+                    "ctk450_27.hip",
+                    "ctk450_28.hip",
+                    "rg000_00.hip",
+                    "tg072_00.hip",
+                    "tg072_01.hip",
+                    "tg072_02.hip",
+                    "tg620_02.hip"
+                ),
+                PALETTE_FILE: "bl{}_00.hpl",
             },
         },
     },

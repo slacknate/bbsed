@@ -2147,27 +2147,21 @@ NINE_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "phef600_01.hip",
-                            "phef600_02.hip",
-                            "phef600_03.hip",
-                            "phef600_04.hip",
-                            "phef600_05.hip",
-                            "phef600_06.hip",
-                            "phef600_10.hip",
-                            "phef600_11.hip",
-                            "phef600_12.hip",
-                            "phef600_hat.hip",
-                            "rg000_00.hip"
-                        ),
-                        PALETTE_FILE: "ph{}_00.hpl",
-                    },
-                },
+                    "phef600_01.hip",
+                    "phef600_02.hip",
+                    "phef600_03.hip",
+                    "phef600_04.hip",
+                    "phef600_05.hip",
+                    "phef600_06.hip",
+                    "phef600_10.hip",
+                    "phef600_11.hip",
+                    "phef600_12.hip",
+                    "phef600_hat.hip",
+                    "rg000_00.hip"
+                ),
+                PALETTE_FILE: "ph{}_00.hpl",
             },
         },
     },

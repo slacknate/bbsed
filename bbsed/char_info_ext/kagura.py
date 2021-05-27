@@ -2406,37 +2406,31 @@ KAGURA_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "hb000_00.hip",
-                            "hb000_01.hip",
-                            "hb000_02.hip",
-                            "hb000_03.hip",
-                            "hb000_04.hip",
-                            "hb000_05.hip",
-                            "hb000_06.hip",
-                            "hb000_07.hip",
-                            "hb000_08.hip",
-                            "hb000_09.hip",
-                            "hb031_00.hip",
-                            "hb031_01.hip",
-                            "hb031_02.hip",
-                            "hb031_03.hip",
-                            "hb031_04.hip",
-                            "hb031_05.hip",
-                            "hb031_06.hip",
-                            "hb031_07.hip",
-                            "hb031_08.hip",
-                            "hb031_09.hip",
-                            "rg000_00.hip"
-                        ),
-                        PALETTE_FILE: "kg{}_00.hpl",
-                    },
-                },
+                    "hb000_00.hip",
+                    "hb000_01.hip",
+                    "hb000_02.hip",
+                    "hb000_03.hip",
+                    "hb000_04.hip",
+                    "hb000_05.hip",
+                    "hb000_06.hip",
+                    "hb000_07.hip",
+                    "hb000_08.hip",
+                    "hb000_09.hip",
+                    "hb031_00.hip",
+                    "hb031_01.hip",
+                    "hb031_02.hip",
+                    "hb031_03.hip",
+                    "hb031_04.hip",
+                    "hb031_05.hip",
+                    "hb031_06.hip",
+                    "hb031_07.hip",
+                    "hb031_08.hip",
+                    "hb031_09.hip",
+                    "rg000_00.hip"
+                ),
+                PALETTE_FILE: "kg{}_00.hpl",
             },
         },
     },

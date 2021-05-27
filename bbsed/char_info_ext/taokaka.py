@@ -2643,34 +2643,28 @@ TAOKAKA_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "ar232_05.hip",
-                            "ar232_06.hip",
-                            "ar232_07.hip",
-                            "ar232_08.hip",
-                            "ar232_09.hip",
-                            "ar232_10.hip",
-                            "bn000_00.hip",
-                            "bn000_01.hip",
-                            "bn000_02.hip",
-                            "bn000_03.hip",
-                            "bn000_04.hip",
-                            "bn000_05.hip",
-                            "bn000_06.hip",
-                            "bn000_07.hip",
-                            "bn000_08.hip",
-                            "bn000_09.hip",
-                            "bn000_10.hip",
-                            "bn000_11.hip"
-                        ),
-                        PALETTE_FILE: "tk{}_00.hpl",
-                    },
-                },
+                    "ar232_05.hip",
+                    "ar232_06.hip",
+                    "ar232_07.hip",
+                    "ar232_08.hip",
+                    "ar232_09.hip",
+                    "ar232_10.hip",
+                    "bn000_00.hip",
+                    "bn000_01.hip",
+                    "bn000_02.hip",
+                    "bn000_03.hip",
+                    "bn000_04.hip",
+                    "bn000_05.hip",
+                    "bn000_06.hip",
+                    "bn000_07.hip",
+                    "bn000_08.hip",
+                    "bn000_09.hip",
+                    "bn000_10.hip",
+                    "bn000_11.hip"
+                ),
+                PALETTE_FILE: "tk{}_00.hpl",
             },
         },
     },

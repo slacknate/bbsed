@@ -2161,32 +2161,26 @@ TAGER_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "bl000_00.hip",
-                            "bl000_01.hip",
-                            "bl000_02.hip",
-                            "bl000_03.hip",
-                            "bl000_04.hip",
-                            "bl000_05.hip",
-                            "bl000_06.hip",
-                            "bl000_07.hip",
-                            "bl033_00.hip",
-                            "bl033_01.hip",
-                            "bl033_02.hip",
-                            "bl033_03.hip",
-                            "bl033_04.hip",
-                            "bl033_05.hip",
-                            "bl033_06.hip",
-                            "bl033_07.hip"
-                        ),
-                        PALETTE_FILE: "tg{}_00.hpl",
-                    },
-                },
+                    "bl000_00.hip",
+                    "bl000_01.hip",
+                    "bl000_02.hip",
+                    "bl000_03.hip",
+                    "bl000_04.hip",
+                    "bl000_05.hip",
+                    "bl000_06.hip",
+                    "bl000_07.hip",
+                    "bl033_00.hip",
+                    "bl033_01.hip",
+                    "bl033_02.hip",
+                    "bl033_03.hip",
+                    "bl033_04.hip",
+                    "bl033_05.hip",
+                    "bl033_06.hip",
+                    "bl033_07.hip"
+                ),
+                PALETTE_FILE: "tg{}_00.hpl",
             },
         },
     },

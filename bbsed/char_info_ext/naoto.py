@@ -2177,26 +2177,20 @@ NAOTO_EXT = {
             },
             "Unknown": {
 
-                GROUP_FILES: {
+                HIP_FILE_LIST: (
 
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "rg000_00.hip",
-                            "rl000_00.hip",
-                            "rl000_01.hip",
-                            "rl000_02.hip",
-                            "rl000_03.hip",
-                            "rl000_04.hip",
-                            "rl000_05.hip",
-                            "rl000_06.hip",
-                            "rl000_07.hip",
-                            "rl860_10.hip"
-                        ),
-                        PALETTE_FILE: "nt{}_00.hpl",
-                    },
-                },
+                    "rg000_00.hip",
+                    "rl000_00.hip",
+                    "rl000_01.hip",
+                    "rl000_02.hip",
+                    "rl000_03.hip",
+                    "rl000_04.hip",
+                    "rl000_05.hip",
+                    "rl000_06.hip",
+                    "rl000_07.hip",
+                    "rl860_10.hip"
+                ),
+                PALETTE_FILE: "nt{}_00.hpl",
             },
         },
     },
