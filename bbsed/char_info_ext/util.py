@@ -20,6 +20,7 @@ __all__ = [
 ]
 
 import re
+import os
 
 DEFAULT_PALETTE_FMT = "{}{{}}_00.hpl"
 
@@ -41,6 +42,15 @@ SWAP_PALETTES = 1
 SWAP_INDICES = 2
 
 
+def _filter_func(filter_regex, hip_full_path):
+    """
+    We are given full paths but need to regex on the file basename.
+    Thus we need an extra function to help us filter on the correct criteria.
+    """
+    hip_file = os.path.basename(hip_full_path)
+    return filter_regex.search(hip_file) is None
+
+
 def make_filter(*characters):
     """
     Helper to create a filter function to remove files from the list of sprite files to be displayed to the user.
@@ -56,4 +66,4 @@ def make_filter(*characters):
         char_selection = "(" + "|".join(characters) + ")"
 
     filter_regex = re.compile(f"^{char_selection}.+")
-    return lambda hip_file: filter_regex.search(hip_file) is None
+    return lambda hip_full_path: _filter_func(filter_regex, hip_full_path)
