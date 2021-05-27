@@ -2354,7 +2354,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "450": {
+            "Judge Of Destiny - 632146C": {
 
                 GROUP_FILES: {
 
@@ -2381,39 +2381,6 @@ IZAYOI_EXT = {
                             "iz450_16.hip",
                             "iz450_17.hip",
                             "iz450_18.hip",
-                            "iz450_19.hip",
-                            "iz450_20.hip",
-                            "iz450_21.hip",
-                            "iz450_22.hip",
-                            "iz450_23.hip",
-                            "iz450_24.hip",
-                            "iz450_25.hip",
-                            "iz450_26.hip",
-                            "iz450_26ex.hip",
-                            "iz450_27.hip",
-                            "iz450_28.hip",
-                            "iz450_29.hip",
-                            "iz450_29ex.hip",
-                            "iz450_30.hip",
-                            "iz450_31.hip",
-                            "iz450_32.hip",
-                            "iz450_33.hip",
-                            "iz450_34.hip",
-                            "iz450_35.hip",
-                            "iz450_36.hip",
-                            "iz450_37.hip",
-                            "iz450_38.hip",
-                            "iz450_39.hip",
-                            "iz450_40.hip",
-                            "iz450_41.hip",
-                            "iz450_42.hip",
-                            "iz450_43.hip",
-                            "iz450_44.hip",
-                            "iz450_44ex.hip",
-                            "iz450_45.hip",
-                            "iz450_46.hip",
-                            "iz450_47.hip",
-                            "iz450_48.hip",
                             "iz450cutin_00.hip",
                             "iz450cutin_00ex.hip",
                             "iz450cutin_01.hip",
@@ -2448,17 +2415,57 @@ IZAYOI_EXT = {
                             "iz450cutin_22.hip",
                             "iz450cutin_23.hip",
                             "iz450cutin_24.hip",
-                            "iz450cutin_25.hip"
+                            "iz450cutin_25.hip",
+                            "iz450_26.hip",
+                            "iz450_26ex.hip",
+                            "iz450_27.hip",
+                            "iz450_28.hip",
+                            "iz450_29.hip",
+                            "iz450_29ex.hip",
+                            "iz450_30.hip",
+                            "iz450_31.hip",
+                            "iz450_32.hip",
+                            "iz450_33.hip",
+                            "iz450_34.hip",
+                            "iz450_35.hip",
+                            "iz450_36.hip",
+                            "iz450_37.hip",
+                            "iz450_38.hip",
+                            "iz450_39.hip",
+                            "iz450_40.hip",
+                            "iz450_41.hip",
+                            "iz450_42.hip",
+                            "iz450_43.hip",
+                            "iz450_44.hip",
+                            "iz450_44ex.hip",
+                            "iz450_45.hip",
+                            "iz450_46.hip",
+                            "iz450_47.hip",
+                            "iz450_48.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_00.hpl",
+                    },
+                    "Whiff Recovery": {
+
+                        HIP_FILE_LIST: (
+
+                            "iz450_19.hip",
+                            "iz450_20.hip",
+                            "iz450_21.hip",
+                            "iz450_22.hip",
+                            "iz450_23.hip",
+                            "iz450_24.hip",
+                            "iz450_25.hip",
                         ),
                         PALETTE_FILE: "iz{}_00.hpl",
                     },
                 },
             },
-            "600": {
+            "Transformation Intro": {
 
                 GROUP_FILES: {
 
-                    "Animation": {
+                    "Initiation Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2483,6 +2490,13 @@ IZAYOI_EXT = {
                             "iz600_07ex02.hip",
                             "iz600_07ex03.hip",
                             "iz600_07ex04.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_03.hpl",
+                    },
+                    "Completion Animation": {
+
+                        HIP_FILE_LIST: (
+
                             "iz600_08.hip",
                             "iz600_09.hip",
                             "iz600_10.hip",
@@ -2496,7 +2510,7 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "601": {
+            "Weapon Summon Intro": {
 
                 GROUP_FILES: {
 
@@ -2525,7 +2539,14 @@ IZAYOI_EXT = {
                             "iz601_18.hip",
                             "iz601_19.hip",
                             "iz601_20.hip",
-                            "iz601_f00.hip"
+                        ),
+                        PALETTE_FILE: "iz{}_00.hpl",
+                    },
+                    "Weapon Sprite": {
+
+                        HIP_FILE_LIST: (
+
+                            "iz601_f00.hip",
                         ),
                         PALETTE_FILE: "iz{}_00.hpl",
                     },
@@ -2699,35 +2720,6 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "Unknown": {
-
-                GROUP_FILES: {
-
-                    "Animation": {
-
-                        HIP_FILE_LIST: (
-
-                            "jn063_09.hip",
-                            "rg000_00.hip",
-                            "tb070_00.hip",
-                            "tb070_01.hip",
-                            "tb070_02.hip",
-                            "tb070_03.hip",
-                            "tb070_04.hip",
-                            "tb070_05.hip",
-                            "tb070_06.hip",
-                            "tb070_07.hip",
-                            "tb070_08.hip",
-                            "tb070_09.hip",
-                            "tb070_10.hip",
-                            "tb070_11.hip",
-                            "tb070_12.hip",
-                            "tb070_13.hip"
-                        ),
-                        PALETTE_FILE: "iz{}_00.hpl",
-                    },
-                },
-            },
         },
     },
     EFFECT_FILES: {
@@ -2749,6 +2741,7 @@ IZAYOI_EXT = {
 
                         HIP_FILE_LIST: (
 
+                            "vrizef202_00.hip",
                             "vrizef202_01.hip",
                         ),
                         PALETTE_FILE: "iz{}_01.hpl",
@@ -2763,7 +2756,7 @@ IZAYOI_EXT = {
 
                         HIP_FILE_LIST: (
 
-                            "vrizef202_00.hip",
+                            "vrizef203_00.hip",
                         ),
                         PALETTE_FILE: "iz{}_01.hpl",
                     },
@@ -3043,6 +3036,36 @@ IZAYOI_EXT = {
                     },
                 },
             },
+            "408": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef_408_00.hip",
+                            "vrizef_408_01.hip",
+                            "vrizef_408_02.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
+            "412": {
+
+                GROUP_FILES: {
+
+                    "Effects": {
+
+                        HIP_FILE_LIST: (
+
+                            "vrizef412_00.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
+            },
             "413": {
 
                 GROUP_FILES: {
@@ -3137,6 +3160,12 @@ IZAYOI_EXT = {
 
                             "vrizef440_30.hip",
                             "vrizef440_31.hip",
+                            "vrizef440_40.hip",
+                            "vrizef440_41.hip",
+                            "vrizef440_42.hip",
+                            "vrizef440_43.hip",
+                            "vrizef440_44.hip",
+                            "vrizef440_45.hip",
                             "vrizef440_50.hip",
                             "vrizef440_51.hip",
                             "vrizef440_52.hip",
@@ -3145,24 +3174,23 @@ IZAYOI_EXT = {
                     },
                 },
             },
-            "Unknown": {
+            "Weapon Summon Intro": {
 
-                HIP_FILE_LIST: (
+                GROUP_FILES: {
 
-                    "vrizef412_00.hip",
+                    "Effects": {
 
-                    "vrizef601_09.hip",
-                    "vrizef601_10.hip",
-                    "vrizef601_11.hip",
-                    "vrizef601_18.hip",
-                    "vrizef601_19.hip",
+                        HIP_FILE_LIST: (
 
-                    "vrizef_408_00.hip",
-                    "vrizef_408_01.hip",
-                    "vrizef_408_02.hip",
-                ),
-
-                PALETTE_FILE: "iz{}_01.hpl"
+                            "vrizef601_09.hip",
+                            "vrizef601_10.hip",
+                            "vrizef601_11.hip",
+                            "vrizef601_18.hip",
+                            "vrizef601_19.hip",
+                        ),
+                        PALETTE_FILE: "iz{}_01.hpl",
+                    },
+                },
             },
         },
     },
