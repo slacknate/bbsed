@@ -11,7 +11,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -34,7 +34,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -50,7 +50,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -75,7 +75,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -91,7 +91,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -112,7 +112,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -127,7 +127,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -145,7 +145,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -161,7 +161,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -185,7 +185,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -209,7 +209,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -229,7 +229,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -249,7 +249,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -269,7 +269,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -289,7 +289,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -308,7 +308,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -327,7 +327,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -346,7 +346,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -365,7 +365,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -383,7 +383,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -401,7 +401,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -419,7 +419,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -447,7 +447,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -470,7 +470,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -494,7 +494,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -519,7 +519,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -542,7 +542,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -569,7 +569,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -595,7 +595,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -611,7 +611,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -629,7 +629,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -646,7 +646,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -666,7 +666,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -681,7 +681,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -699,7 +699,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -717,7 +717,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -735,7 +735,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -759,7 +759,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -783,7 +783,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -805,7 +805,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -821,7 +821,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -839,7 +839,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -858,7 +858,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -892,7 +892,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -923,7 +923,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -947,7 +947,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1008,7 +1008,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1080,7 +1080,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1108,7 +1108,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1127,7 +1127,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1147,7 +1147,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1179,7 +1179,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1207,7 +1207,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1263,7 +1263,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1282,7 +1282,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1327,7 +1327,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1366,7 +1366,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1409,7 +1409,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1437,7 +1437,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1461,7 +1461,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1481,7 +1481,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1520,7 +1520,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1542,7 +1542,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1565,7 +1565,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1587,7 +1587,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1617,7 +1617,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1639,7 +1639,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1663,7 +1663,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1687,7 +1687,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1717,7 +1717,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1766,7 +1766,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1819,7 +1819,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1860,7 +1860,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1913,7 +1913,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1972,7 +1972,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2011,7 +2011,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2057,7 +2057,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2086,7 +2086,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2145,7 +2145,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2194,7 +2194,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2240,7 +2240,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2358,7 +2358,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2432,7 +2432,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2451,7 +2451,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2486,7 +2486,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2521,7 +2521,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2546,7 +2546,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2567,7 +2567,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2586,7 +2586,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2610,7 +2610,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2624,7 +2624,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2638,7 +2638,7 @@ MU_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 

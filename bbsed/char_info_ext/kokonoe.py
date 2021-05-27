@@ -11,7 +11,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -40,7 +40,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -62,7 +62,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -78,7 +78,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -105,7 +105,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -121,7 +121,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -143,7 +143,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -158,7 +158,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -176,7 +176,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -192,7 +192,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -226,7 +226,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -260,7 +260,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -281,7 +281,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -302,7 +302,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -319,7 +319,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -336,7 +336,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -356,7 +356,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -376,7 +376,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -396,7 +396,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -415,7 +415,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -433,7 +433,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -451,7 +451,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -469,7 +469,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -497,7 +497,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -521,7 +521,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -545,7 +545,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -570,7 +570,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -595,7 +595,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -622,7 +622,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -648,7 +648,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -664,7 +664,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -682,7 +682,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -699,7 +699,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -719,7 +719,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -734,7 +734,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -752,7 +752,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -770,7 +770,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -788,7 +788,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -813,7 +813,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -838,7 +838,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -861,7 +861,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -877,7 +877,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -895,7 +895,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -919,7 +919,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -945,7 +945,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -968,7 +968,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -996,7 +996,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1029,7 +1029,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1057,7 +1057,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1077,7 +1077,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1104,7 +1104,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1130,7 +1130,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1153,7 +1153,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1182,7 +1182,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1203,7 +1203,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1226,7 +1226,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1253,7 +1253,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1279,7 +1279,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1302,7 +1302,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1325,7 +1325,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1344,7 +1344,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1374,7 +1374,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1396,7 +1396,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1427,7 +1427,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1446,7 +1446,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1476,7 +1476,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1498,7 +1498,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1526,7 +1526,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1556,7 +1556,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1587,7 +1587,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1642,7 +1642,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1694,7 +1694,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1731,7 +1731,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1770,7 +1770,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1793,7 +1793,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1828,7 +1828,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1869,7 +1869,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1904,7 +1904,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1971,7 +1971,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2010,7 +2010,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2059,7 +2059,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2082,7 +2082,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2118,7 +2118,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2143,7 +2143,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2166,7 +2166,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2198,7 +2198,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2222,7 +2222,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2242,7 +2242,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2256,7 +2256,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2270,7 +2270,7 @@ KOKONOE_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 

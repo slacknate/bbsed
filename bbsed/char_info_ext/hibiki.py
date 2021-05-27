@@ -11,7 +11,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -34,7 +34,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -54,7 +54,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -69,7 +69,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -92,7 +92,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -107,7 +107,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -132,7 +132,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -147,7 +147,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -168,7 +168,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -183,7 +183,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -217,7 +217,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -240,7 +240,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -266,7 +266,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -288,7 +288,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -305,7 +305,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -322,7 +322,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -341,7 +341,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -360,7 +360,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -379,7 +379,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -398,7 +398,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -416,7 +416,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -434,7 +434,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -452,7 +452,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -480,7 +480,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -503,7 +503,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -527,7 +527,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -552,7 +552,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -575,7 +575,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -602,7 +602,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -628,7 +628,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -644,7 +644,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -662,7 +662,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -679,7 +679,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -699,7 +699,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -714,7 +714,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -732,7 +732,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -750,7 +750,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -768,7 +768,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -792,7 +792,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -816,7 +816,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -838,7 +838,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -854,7 +854,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -872,7 +872,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -900,7 +900,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -923,7 +923,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -952,7 +952,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -977,7 +977,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1015,7 +1015,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1061,7 +1061,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1095,7 +1095,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1113,7 +1113,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1144,7 +1144,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1169,7 +1169,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1194,7 +1194,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1234,7 +1234,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1252,7 +1252,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1283,7 +1283,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1308,7 +1308,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1336,7 +1336,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1364,7 +1364,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1386,7 +1386,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1406,7 +1406,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1438,7 +1438,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1460,7 +1460,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1489,7 +1489,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1511,7 +1511,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1537,7 +1537,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1559,7 +1559,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1587,7 +1587,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1617,7 +1617,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1649,7 +1649,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1684,7 +1684,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1710,7 +1710,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1746,7 +1746,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1772,7 +1772,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1799,7 +1799,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1823,7 +1823,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1846,7 +1846,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1871,7 +1871,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1901,7 +1901,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1923,7 +1923,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1962,7 +1962,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2007,7 +2007,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2036,7 +2036,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2073,7 +2073,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2104,7 +2104,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2119,7 +2119,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2135,7 +2135,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2155,7 +2155,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2181,7 +2181,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2204,7 +2204,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2233,7 +2233,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2255,7 +2255,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2269,7 +2269,7 @@ HIBIKI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 

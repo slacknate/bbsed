@@ -11,7 +11,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -60,7 +60,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -76,7 +76,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -98,7 +98,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -114,7 +114,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -136,7 +136,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -151,7 +151,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -169,7 +169,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -185,7 +185,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -205,7 +205,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -228,7 +228,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -252,7 +252,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -271,7 +271,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -288,7 +288,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -305,7 +305,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -324,7 +324,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -343,7 +343,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -362,7 +362,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -381,7 +381,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -399,7 +399,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -417,7 +417,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -435,7 +435,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -463,7 +463,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -487,7 +487,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -511,7 +511,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -536,7 +536,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -560,7 +560,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -587,7 +587,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -613,7 +613,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -629,7 +629,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -647,7 +647,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -664,7 +664,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -684,7 +684,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -699,7 +699,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -717,7 +717,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -735,7 +735,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -753,7 +753,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -776,7 +776,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -799,7 +799,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -822,7 +822,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -838,7 +838,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -856,7 +856,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -879,7 +879,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -909,7 +909,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -941,7 +941,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -967,7 +967,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -991,7 +991,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1016,7 +1016,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1034,7 +1034,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1056,7 +1056,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1086,7 +1086,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1118,7 +1118,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1147,7 +1147,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1164,7 +1164,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1185,7 +1185,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1214,7 +1214,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1237,7 +1237,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1270,7 +1270,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1291,7 +1291,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1311,7 +1311,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1340,7 +1340,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1361,7 +1361,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1391,7 +1391,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1412,7 +1412,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1447,7 +1447,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1465,7 +1465,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1489,7 +1489,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1513,7 +1513,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1545,7 +1545,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1574,7 +1574,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1601,7 +1601,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1629,7 +1629,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1663,7 +1663,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1690,7 +1690,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1710,7 +1710,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1736,7 +1736,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1762,7 +1762,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1787,7 +1787,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1814,7 +1814,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1847,7 +1847,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1865,7 +1865,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1889,7 +1889,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1910,7 +1910,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1938,7 +1938,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1970,7 +1970,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2008,7 +2008,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2069,7 +2069,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2109,7 +2109,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2186,7 +2186,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2216,7 +2216,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2245,7 +2245,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2264,7 +2264,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2287,7 +2287,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2312,7 +2312,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2336,7 +2336,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2363,7 +2363,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2387,7 +2387,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2401,7 +2401,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2415,7 +2415,7 @@ MAKOTO_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 

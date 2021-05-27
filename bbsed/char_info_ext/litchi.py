@@ -11,7 +11,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -33,7 +33,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -51,7 +51,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -67,7 +67,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -87,7 +87,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -103,7 +103,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -125,7 +125,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -140,7 +140,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -160,7 +160,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -176,7 +176,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -205,7 +205,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -233,7 +233,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -261,7 +261,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -290,7 +290,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -309,7 +309,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -328,7 +328,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -347,7 +347,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -366,7 +366,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -385,7 +385,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -404,7 +404,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -422,7 +422,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -440,7 +440,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -458,7 +458,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -486,7 +486,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -514,7 +514,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -538,7 +538,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -563,7 +563,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -591,7 +591,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -619,7 +619,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -645,7 +645,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -661,7 +661,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -679,7 +679,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -696,7 +696,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -716,7 +716,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -731,7 +731,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -749,7 +749,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -767,7 +767,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -785,7 +785,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -809,7 +809,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -833,7 +833,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -859,7 +859,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -875,7 +875,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -895,7 +895,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -919,7 +919,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -950,7 +950,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -973,7 +973,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1003,7 +1003,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1036,7 +1036,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1065,7 +1065,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1098,7 +1098,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1119,7 +1119,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1150,7 +1150,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1178,7 +1178,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1205,7 +1205,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1223,7 +1223,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1256,7 +1256,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1288,7 +1288,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1312,7 +1312,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1341,7 +1341,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1370,7 +1370,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1396,7 +1396,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1417,7 +1417,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1441,7 +1441,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1470,7 +1470,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1499,7 +1499,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1531,7 +1531,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1560,7 +1560,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1593,7 +1593,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1617,7 +1617,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1643,7 +1643,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1665,7 +1665,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1690,7 +1690,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1713,7 +1713,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1746,7 +1746,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1767,7 +1767,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1796,7 +1796,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1816,7 +1816,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1843,7 +1843,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1868,7 +1868,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1900,7 +1900,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1916,7 +1916,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1933,7 +1933,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1957,7 +1957,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1977,7 +1977,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -1997,7 +1997,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2021,7 +2021,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2053,7 +2053,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2082,7 +2082,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2112,7 +2112,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2139,7 +2139,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2180,7 +2180,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2215,7 +2215,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2245,7 +2245,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2272,7 +2272,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2298,7 +2298,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2326,7 +2326,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2351,7 +2351,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2374,7 +2374,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2400,7 +2400,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2428,7 +2428,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2456,7 +2456,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2496,7 +2496,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2531,7 +2531,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2575,7 +2575,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2637,7 +2637,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2662,7 +2662,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2719,7 +2719,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2749,7 +2749,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2784,7 +2784,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2810,7 +2810,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2837,7 +2837,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2860,7 +2860,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2883,7 +2883,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2904,7 +2904,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2919,7 +2919,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2933,7 +2933,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
@@ -2947,7 +2947,7 @@ LITCHI_EXT = {
 
                 GROUP_FILES: {
 
-                    "Character": {
+                    "Animation": {
 
                         HIP_FILE_LIST: (
 
