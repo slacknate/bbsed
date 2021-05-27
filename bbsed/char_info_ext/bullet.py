@@ -3,6 +3,7 @@ from .util import *
 
 BULLET_EXT = {
 
+    FILTER_FILES: make_filter("ctk", "rg", "tg"),
     SPRITE_FILES: {
 
         GROUP_FILES: {

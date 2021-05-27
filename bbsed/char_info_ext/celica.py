@@ -3,6 +3,7 @@ from .util import *
 
 CELICA_EXT = {
 
+    FILTER_FILES: make_filter("no"),
     SPRITE_FILES: {
 
         GROUP_FILES: {

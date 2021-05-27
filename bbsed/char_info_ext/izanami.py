@@ -3,6 +3,7 @@ from .util import *
 
 IZANAMI_EXT = {
 
+    FILTER_FILES: make_filter("rg"),
     SPRITE_FILES: {
 
         GROUP_FILES: {

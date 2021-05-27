@@ -3,6 +3,7 @@ from .util import *
 
 IZAYOI_EXT = {
 
+    FILTER_FILES: make_filter("jn", "rg", "tb"),
     SPRITE_FILES: {
 
         GROUP_FILES: {

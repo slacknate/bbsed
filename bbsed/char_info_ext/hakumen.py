@@ -3,6 +3,7 @@ from .util import *
 
 HAKUMEN_EXT = {
 
+    FILTER_FILES: make_filter("pt", "rc", "tb"),
     SPRITE_FILES: {
 
         GROUP_FILES: {

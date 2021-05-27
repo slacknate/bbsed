@@ -3,6 +3,7 @@ from .util import *
 
 ARAKUNE_EXT = {
 
+    FILTER_FILES: make_filter("bn"),
     SPRITE_FILES: {
 
         GROUP_FILES: {

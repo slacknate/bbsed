@@ -3,6 +3,7 @@ from .util import *
 
 AMANE_EXT = {
 
+    FILTER_FILES: make_filter("kk", "rg"),
     SPRITE_FILES: {
 
         GROUP_FILES: {
