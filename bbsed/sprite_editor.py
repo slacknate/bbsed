@@ -929,7 +929,6 @@ class SpriteEditor(QtWidgets.QWidget):
             else:
                 hpl_fmt = data[PALETTE_FILE]
                 hip_file_list = [os.path.join(cache_dir, hip_file) for hip_file in data[HIP_FILE_LIST]]
-                hip_file_list.sort()
 
                 self._add_hip_items(group_item, hip_file_list, hpl_fmt, filter_files)
                 processed_files.update(hip_file_list)
