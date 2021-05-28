@@ -22,3 +22,8 @@ they are hidden/shown
 may be displayed under certain circumstances
 * When importing palettes that feature a save name, that meta data is not properly processed which results in the user 
 being prompted to choose a name for palettes that are already named
+
+# Shoutouts
+
+Huge thanks to Dantarion and contributors for the repo [bbtools](https://github.com/dantarion/bbtools). 
+Without it this project would not be possible. 
