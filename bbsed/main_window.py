@@ -218,8 +218,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Helper to check if we have a Steam install configured and should enable relevant UI elements.
         """
-        if self.app_config["bbsed"]["steam_install"]:
-            self.sprite_editor.set_selection_enable(True)
+        enabled = bool(self.app_config["bbsed"]["steam_install"])
+        self.sprite_editor.set_selection_enable(enabled)
 
     def _detect_nameless_hpl(self, hpl_file, save_name_map):
         """
