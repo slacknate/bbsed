@@ -2646,7 +2646,6 @@ IZANAMI_EXT = {
                     "mief900_15.hip",
                     "mief900_17.hip",
                     "mief900_18.hip",
-                    "rg000_00.hip"
                 ),
                 PALETTE_FILE: "mi{}_00.hpl",
             },

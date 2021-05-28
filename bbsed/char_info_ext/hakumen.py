@@ -2336,33 +2336,6 @@ HAKUMEN_EXT = {
                     },
                 },
             },
-            "Unknown": {
-
-                HIP_FILE_LIST: (
-
-                    "pt999_00.hip",
-                    "rc000_00.hip",
-                    "rc000_01.hip",
-                    "rc000_02.hip",
-                    "rc000_03.hip",
-                    "rc000_04.hip",
-                    "rc000_05.hip",
-                    "rc000_06.hip",
-                    "rc000_07.hip",
-                    "rc000_08.hip",
-                    "tb033_00.hip",
-                    "tb033_01.hip",
-                    "tb033_02.hip",
-                    "tb033_03.hip",
-                    "tb033_04.hip",
-                    "tb033_05.hip",
-                    "tb070_00.hip",
-                    "tb070_01.hip",
-                    "tb070_02.hip",
-                    "tb070_03.hip"
-                ),
-                PALETTE_FILE: "ha{}_00.hpl",
-            },
         },
     },
 }

@@ -2259,30 +2259,6 @@ AMANE_EXT = {
                     },
                 },
             },
-            "Unknown": {
-
-                HIP_FILE_LIST: (
-
-                    "kk000_00.hip",
-                    "kk000_01.hip",
-                    "kk000_02.hip",
-                    "kk000_03.hip",
-                    "kk000_04.hip",
-                    "kk000_05.hip",
-                    "kk000_06.hip",
-                    "kk000_07.hip",
-                    "kk000_08.hip",
-                    "kk000_09.hip",
-                    "kk000_10.hip",
-                    "kk000_11.hip",
-                    "kk000_12.hip",
-                    "kk000_13.hip",
-                    "kk000_14.hip",
-                    "kk000_15.hip",
-                    "rg000_00.hip"
-                ),
-                PALETTE_FILE: "am{}_00.hpl",
-            },
         },
     },
 }
