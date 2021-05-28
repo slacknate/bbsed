@@ -19,30 +19,6 @@
   <widget class="QWidget" name="central_widget">
    <layout class="QVBoxLayout" name="verticalLayout"/>
   </widget>
-  <widget class="QToolBar" name="game_files_toolbar">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <property name="movable">
-    <bool>true</bool>
-   </property>
-   <property name="toolButtonStyle">
-    <enum>Qt::ToolButtonTextUnderIcon</enum>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="apply_palettes"/>
-   <addaction name="separator"/>
-   <addaction name="restore_all"/>
-   <addaction name="restore_character"/>
-  </widget>
   <widget class="QMenuBar" name="menu_bar">
    <property name="enabled">
     <bool>true</bool>
@@ -123,7 +99,7 @@
    <addaction name="view_menu"/>
    <addaction name="help_menu"/>
   </widget>
-  <widget class="QToolBar" name="palettes_toolbar">
+  <widget class="QToolBar" name="toolbar">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -137,10 +113,14 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
    <addaction name="import_palettes"/>
    <addaction name="export_palettes"/>
+   <addaction name="separator"/>
+   <addaction name="apply_palettes"/>
+   <addaction name="restore_all"/>
+   <addaction name="restore_character"/>
    <addaction name="separator"/>
    <addaction name="save_palette"/>
    <addaction name="save_palette_as"/>
