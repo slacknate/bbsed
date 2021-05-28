@@ -1,9 +1,12 @@
 # BBCF Sprite Editor
 
-This tool aims to simplify the process of creating custom color palettes for BlazBlue: Central Fiction. 
-Manual palette creation is fairly well documented by the community, but it can be a tedious process that 
-involves a lot of effort. There also exists the BBCF Improvement Mod which allows for in-game palette editing, 
-but unfortunately this mod does not seem to work well for everyone.
+The foremost goal of the project is to streamline the process of creating custom color palettes 
+for BlazBlue: Central Fiction. Manual palette creation is fairly well documented by the community, but it can 
+be a tedious process that involves a lot of effort. There also exists the BBCF Improvement Mod which allows for 
+in-game palette editing, but unfortunately this mod does not seem to work well for everyone.
+
+The tool also aims to provide a means to share palettes with others so we can all view and admire each others 
+creative work and appreciate it within the game easily and quickly.
 
 # Upcoming Functionality
 
