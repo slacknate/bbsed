@@ -2,7 +2,7 @@
 
 This tool aims to simplify the process of creating custom color palettes for BlazBlue: Central Fiction. 
 Manual palette creation is fairly well documented by the community, but it can be a tedious process that 
-involes a lot of effort. There also exists the BBCF Improvement Mod which allows for in-game palette editing, 
+involves a lot of effort. There also exists the BBCF Improvement Mod which allows for in-game palette editing, 
 but unfortunately this mod does not seem to work well for everyone.
 
 # Upcoming Functionality
