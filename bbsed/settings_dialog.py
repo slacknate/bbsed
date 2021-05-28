@@ -1,4 +1,4 @@
-from PyQt5 import Qt, QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from .ui.settings_dialog_ui import Ui_Dialog
 
