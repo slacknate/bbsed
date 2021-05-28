@@ -14,6 +14,7 @@ from .ui.main_window_ui import Ui_MainWindow
 
 from .exceptions import AppError, AppException
 from .settings_dialog import SettingsDialog
+from .tutorial_dialog import TutorialDialog
 from .select_dialog import SelectDialog
 from .sprite_editor import SpriteEditor
 from .about_dialog import AboutDialog
@@ -80,7 +81,6 @@ class AppConfig(Configuration):
         paths.set_app_config(self)
 
 
-# TODO: implement in-app Tutorial.
 class MainWindow(QtWidgets.QMainWindow):
 
     unhandled_exc = QtCore.pyqtSignal(tuple)
@@ -195,7 +195,7 @@ class MainWindow(QtWidgets.QMainWindow):
         Callback for the settings action. Display a dialog showing our app settings.
         """
         dialog = SettingsDialog(self.app_config, parent=self)
-        dialog.exec_()
+        dialog.show()
 
         # This will enable UI elements if we set a Steam install in the dialog.
         self._check_steam_install()
@@ -458,31 +458,43 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for the Export All action. Share all your palettes with friends :D
         """
+        dialog = SelectDialog(self.paths, multi_select=True, parent=self)
+        dialog.selection_made.connect(self._export_palettes)
+        dialog.show()
+
+    def _export_palettes(self, dialog):
+        """
+        Callback for when the SelectDialog is accepted.
+        Necessary for running this dialog non-modal.
+        """
         pac_path = self._choose_export_pac()
 
         if pac_path:
-            dialog = SelectDialog(self.paths, multi_select=True, parent=self)
-            export = dialog.exec_()
+            thread = ExportThread(pac_path, dialog.get_selected_palettes(), self.paths)
+            self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
 
-            # If we accepted the dialog then we should actually create the export.
-            if export:
-                thread = ExportThread(pac_path, dialog.get_selected_palettes(), self.paths)
-                self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
+        else:
+            self.show_message_dialog("Export Aborted", "Export path not chosen! Aborting palette export!")
 
     def apply_palettes(self, _):
         """
         Callback for the Apply All action. Apply all palettes to the BBCF game data.
         """
         dialog = SelectDialog(self.paths, config=self.apply_config, parent=self)
-        selection_made = dialog.exec_()
+        dialog.selection_made.connect(self._apply_palettes)
+        dialog.show()
 
-        if selection_made:
-            message = "Do you wish to apply the selected palettes to the BBCF game files?"
-            confirmed = self.show_confirm_dialog("Apply Palette Confirmation", message)
+    def _apply_palettes(self, dialog):
+        """
+        Callback for when the SelectDialog is accepted.
+        Necessary for running this dialog non-modal.
+        """
+        message = "Do you wish to apply the selected palettes to the BBCF game files?"
+        confirmed = self.show_confirm_dialog("Apply Palette Confirmation", message)
 
-            if confirmed:
-                thread = ApplyThread(dialog.get_selected_palettes(), self.paths)
-                self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
+        if confirmed:
+            thread = ApplyThread(dialog.get_selected_palettes(), self.paths)
+            self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
     def discard_palette(self, _):
         """
@@ -937,7 +949,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Bring up the in-app tutorial dialog so users can learn how to use the tool.
         """
-        self.show_message_dialog("Feature Not Implemented", "The in-app tutorial is not yet implemented! Coming soon!")
+        dialog = TutorialDialog(self)
+        dialog.show()
 
     def show_about_dialog(self):
         """

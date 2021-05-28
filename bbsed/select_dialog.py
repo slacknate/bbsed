@@ -36,6 +36,9 @@ def normalize_index(select_index):
 
 
 class SelectDialog(QtWidgets.QDialog):
+
+    selection_made = QtCore.pyqtSignal(QtWidgets.QDialog)
+
     def __init__(self, paths, config=None, multi_select=False, parent=None):
         QtWidgets.QDialog.__init__(self, parent, flags=QtCore.Qt.WindowType.WindowTitleHint)
 
@@ -103,6 +106,8 @@ class SelectDialog(QtWidgets.QDialog):
         # Only update a backend config for this dialog if it exists.
         if self.config is not None:
             self.config.save()
+
+        self.selection_made.emit(self)
 
     def iter_widgets(self):
         """
