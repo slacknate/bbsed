@@ -49,8 +49,6 @@ import contextlib
 
 import psutil
 
-from PIL import Image
-
 BBCF_STEAM_APP_ID = "586140"
 STEAM_PROCESS_NAME = "steam.exe"
 APP_PROCESS_NAME = "bbsed.exe"
