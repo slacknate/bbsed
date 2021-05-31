@@ -16,6 +16,7 @@ __all__ = [
     "STATE_DEFINITION",
     "STATE_INITIAL",
     "STATE_CHANGE",
+    "FILE_OVERRIDE",
     "SWAP_COLORS",
     "SWAP_PALETTES",
     "SWAP_INDICES",

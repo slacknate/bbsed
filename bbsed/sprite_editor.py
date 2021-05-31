@@ -965,7 +965,9 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         character_name, character = CHARACTER_INFO[character_id]
         ext_info = CHARACTER_EXT_INFO[character_id]
-        default_palette_fmt = DEFAULT_PALETTE_FMT.format(character)
+
+        character_file = ext_info.get(FILE_OVERRIDE, character)
+        default_palette_fmt = DEFAULT_PALETTE_FMT.format(character_file)
 
         sprite_cache_path = self.paths.get_sprite_cache_path(character)
         effect_cache_path = self.paths.get_effect_cache_path(character)

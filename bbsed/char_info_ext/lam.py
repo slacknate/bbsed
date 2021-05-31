@@ -3,6 +3,7 @@ from .util import *
 
 LAMBDA_EXT = {
 
+    FILE_OVERRIDE: "ny",  # Lambda-11 uses the same character abbreviation as Nu-13 for sprite and palette files.
     SPRITE_FILES: {
 
         GROUP_FILES: {

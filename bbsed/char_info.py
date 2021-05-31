@@ -59,7 +59,7 @@ CHARACTER_INFO = {
     KAGURA: ("Kagura Mutsuki", "kg"),
     KOKONOE: ("Kokonoe", "kk"),
     LITCHI: ("Litchi Faye Ling", "lc"),
-    LAMBDA: ("Lambda-11", "rm"),  # Ramuda - FIXME: her palette and sprite files use the same abbreviation as Nu-13...
+    LAMBDA: ("Lambda-11", "rm"),  # Ramuda
     MAKOTO: ("Makoto Nanaya", "mk"),
     MAI: ("Mai Natsume", "ma"),
     MU: ("Mu-12", "mu"),
