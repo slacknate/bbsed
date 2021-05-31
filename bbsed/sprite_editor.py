@@ -722,6 +722,8 @@ class SpriteEditor(QtWidgets.QWidget):
         self.sprite_scene.clear()
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
+        # Reset our crosshair.
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE, False, 0, 0)
         # Clear palette data.
         self.palette_dialog.reset()
         # Clear zoom view.
