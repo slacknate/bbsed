@@ -181,14 +181,41 @@ With palettes now applied to the game files, you can launch the game and expect 
 the fruits of your labor in action!<br><br>
 
 For convenience you can launch the game from the editor with the "Launch BBCF" option<br>
-in the <a href="file_menu">File</a> menu.
+in the <a href="file_menu">File</a> menu.<br><br>
+
+If you wish to restore the game files to their original state (without using Steam),<br>
+then you can use the "Restore All" and "Restore Character" options found in the 
+<a href="game_files_menu">Game Files</a> menu.<br><br>
+
+As the option names suggest, this will restore all character palette files and the<br>
+currently selected character palette files to their original states, respectively.
 </body>
 </html>
 """
 
-# TODO: Restore All, Restore Character, Export, Import
-
 PAGE_11 = """
+<html>
+<body>
+If you want to share your palettes with others, you can export a selection of your<br>
+edit and save slots via the "Export" option found in the <a href="pal_menu">Palettes</a> menu.<br>
+This will bring up a selection dialog like we have seen with "Apply Palettes", except<br>
+this time it will allow us to select multiple slots per palette.<br><br>
+
+Likewise, if you have downloaded or otherwise receive palettes from other folks,<br>
+you can import those palettes via the "Import" option found in the <a href="pal_menu">Palettes</a> menu.<br>
+Note that the importer allows for importing the export files created by the tool and also<br>
+individual palette files. This is allowed so any pre-existing manually created palettes<br>
+can be imported into the tool.<br><br>
+
+When individual palette files are imported, the tool will prompt you to pick a save<br>
+slot name for those files. Note that if an imported palette is marked as being exported<br>
+from an "Edit" slot that it will be applied to the "Edit" slot on import. Be sure not<br>
+to overwrite any unsaved work!
+</body>
+</html>
+"""
+
+PAGE_12 = """
 <html>
 <body>
 That should be all you need to know! Happy palette creation!
@@ -210,6 +237,7 @@ TUTORIAL_PAGES = [
     PAGE_9,
     PAGE_10,
     PAGE_11,
+    PAGE_12,
 ]
 
 
