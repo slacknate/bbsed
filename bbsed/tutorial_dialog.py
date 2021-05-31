@@ -133,9 +133,28 @@ A save slot must be actively selected for the "Delete" option to be enabled.
 </html>
 """
 
-# TODO: Copy, Paste, Discard
-
 PAGE_8 = """
+<html>
+<body>
+Note that there are also "Copy", "Paste", and "Discard" options<br>
+found in the <a href="pal_menu">Palettes</a> menu and toolbar.<br><br>
+
+When "Copy" is activated the tool will copy the current selected palette<br>
+slot. This occurs whether or not there are active changes. Both save slots<br>
+and the "Edit" slot can be copied.<br><br>
+
+When "Paste" is activated the tool will overwrite the current selected<br>
+palette slot with a previously been copied palette.<br>
+This will clear the palette clipboard.<br><br>
+
+The "Discard" option will remove any active changes present in the "Edit" slot.<br>
+An "Edit" slot must be actively selected and have active changes for the "Discard"<br>
+option to be enabled.
+</body>
+</html>
+"""
+
+PAGE_9 = """
 <html>
 <body>
 To get your custom palettes into the game, you must apply your palettes to the game files.<br>
@@ -155,9 +174,7 @@ re-selected each time you want to add new creations to your palette selections.
 </html>
 """
 
-# TODO: Restore All, Restore Character, Export, Import
-
-PAGE_9 = """
+PAGE_10 = """
 <html>
 <body>
 With palettes now applied to the game files, you can launch the game and expect to see<br>
@@ -169,7 +186,9 @@ in the <a href="file_menu">File</a> menu.
 </html>
 """
 
-PAGE_10 = """
+# TODO: Restore All, Restore Character, Export, Import
+
+PAGE_11 = """
 <html>
 <body>
 That should be all you need to know! Happy palette creation!
@@ -190,6 +209,7 @@ TUTORIAL_PAGES = [
     PAGE_8,
     PAGE_9,
     PAGE_10,
+    PAGE_11,
 ]
 
 
