@@ -3,6 +3,7 @@ from .util import *
 
 NU_EXT = {
 
+    FILTER_FILES: make_filter("ca", "rl"),
     SPRITE_FILES: {
 
         GROUP_FILES: {
@@ -2521,42 +2522,6 @@ NU_EXT = {
                         PALETTE_FILE: "ny{}_00.hpl",
                     },
                 },
-            },
-            "Unknown": {
-
-                HIP_FILE_LIST: (
-
-                    "ca000_00.hip",
-                    "ca000_01.hip",
-                    "ca000_02.hip",
-                    "ca000_03.hip",
-                    "ca000_04.hip",
-                    "ca000_05.hip",
-                    "ca000_06.hip",
-                    "ca000_07.hip",
-                    "ca000_08.hip",
-                    "ca000_09.hip",
-                    "ca070_03.hip",
-                    "ca070_10.hip",
-                    "ca070_11.hip",
-                    "ca070_12.hip",
-                    "ca070_13.hip",
-                    "ca610_00.hip",
-                    "ca610_01.hip",
-                    "ca610_02.hip",
-                    "ca610_03.hip",
-                    "ca610_04.hip",
-                    "ca805_09.hip",
-                    "rl000_00.hip",
-                    "rl000_01.hip",
-                    "rl000_02.hip",
-                    "rl000_03.hip",
-                    "rl000_04.hip",
-                    "rl000_05.hip",
-                    "rl000_06.hip",
-                    "rl000_07.hip"
-                ),
-                PALETTE_FILE: "ny{}_00.hpl",
             },
         },
     },
