@@ -19,23 +19,23 @@ JUBEI = 15
 KAGURA = 16
 KOKONOE = 17
 LITCHI = 18
-MAKOTO = 19
-MAI = 20
-NAOTO = 21
-NINE = 22
-NOEL = 23
-PLATINUM = 24
-RACHEL = 25
-RAGNA = 26
-RELIUS = 27
-SUSANOO = 28
-TAOKAKA = 29
-TSUBAKI = 30
-TERUMI = 31
-VALKENHAYNE = 32
-LAMBDA = 33
-MU = 34
-NU = 35
+LAMBDA = 19
+MAKOTO = 20
+MAI = 21
+MU = 22
+NAOTO = 23
+NINE = 24
+NOEL = 25
+NU = 26
+PLATINUM = 27
+RACHEL = 28
+RAGNA = 29
+RELIUS = 30
+SUSANOO = 31
+TAOKAKA = 32
+TSUBAKI = 33
+TERUMI = 34
+VALKENHAYNE = 35
 
 # Reference for character file prefixes: https://steamcommunity.com/sharedfiles/filedetails/?id=915991216
 CHARACTER_INFO = {
@@ -59,11 +59,14 @@ CHARACTER_INFO = {
     KAGURA: ("Kagura Mutsuki", "kg"),
     KOKONOE: ("Kokonoe", "kk"),
     LITCHI: ("Litchi Faye Ling", "lc"),
+    LAMBDA: ("Lambda-11", "rm"),  # Ramuda - FIXME: her palette and sprite files use the same abbreviation as Nu-13...
     MAKOTO: ("Makoto Nanaya", "mk"),
     MAI: ("Mai Natsume", "ma"),
+    MU: ("Mu-12", "mu"),
     NAOTO: ("Naoto Kurogane", "nt"),
     NINE: ("Nine the Phantom", "ph"),
     NOEL: ("Noel Vermillion", "no"),
+    NU: ("Nu-13", "ny"),  # Nyu
     PLATINUM: ("Platinum the Trinity", "pt"),
     RACHEL: ("Rachel Alucard", "rc"),
     RAGNA: ("Ragna the Bloodedge", "rg"),
@@ -73,9 +76,6 @@ CHARACTER_INFO = {
     TSUBAKI: ("Tsubaki Yayoi", "tb"),
     TERUMI: ("Yuuki Terumi", "tm"),
     VALKENHAYNE: ("Valkenhayne R. Hellsing", "vh"),
-    LAMBDA: ("Lambda-11", "rm"),  # Ramuda - FIXME: her palette and sprite files use the same abbreviation as Nu-13...
-    MU: ("Mu-12", "mu"),
-    NU: ("Nu-13", "ny")  # Nyu
 }
 
 VALID_CHARACTERS = tuple([_character for _, _character in CHARACTER_INFO.values()])
