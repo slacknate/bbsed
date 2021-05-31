@@ -20,8 +20,6 @@ creative work and appreciate it within the game easily and quickly.
 they are hidden/shown
 * If the user drag-selects a sprite in the HIP image list, there is an off-by-one error and the wrong sprite 
 may be displayed under certain circumstances
-* When importing palettes that feature a save name, that meta data is not properly processed which results in the user 
-being prompted to choose a name for palettes that are already named
 
 # Shoutouts
 

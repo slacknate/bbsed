@@ -14,6 +14,30 @@ class ImportThread(WorkThread):
         self.pac_to_import = pac_to_import
         self.paths = paths
 
+    def _process_meta_data(self, character, palette_id, hpl_file, save_name):
+        """
+        Helper method to process any meta data present in the source HPL file name.
+        This method returns the destination file path to which this HPL file should be copied.
+        """
+        if save_name == EDIT_INTERNAL_NAME:
+            character_edit_path = self.paths.get_edit_palette_path(character, palette_id)
+
+            hpl_dst_path = os.path.join(character_edit_path, hpl_file)
+            hpl_dst_path = hpl_dst_path.replace(PALETTE_EDIT_MARKER, "")
+
+        else:
+            character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
+
+            hpl_dst_path = os.path.join(character_save_path, hpl_file)
+            hpl_dst_path = hpl_dst_path.split(PALETTE_SAVE_MARKER)[0]
+
+            # If our HPL file to import features a save marker then string the split above removes the file extension.
+            # We should add it back if it does not exist in our destination path.
+            if not hpl_dst_path.endswith(PALETTE_EXT):
+                hpl_dst_path += PALETTE_EXT
+
+        return hpl_dst_path
+
     def _get_palettes_hpl(self):
         """
         Helper method to handle the import of palettes in the form of HPL files.
@@ -25,17 +49,7 @@ class ImportThread(WorkThread):
         for (character, palette_id, save_name), hpl_files_list in self.hpl_to_import.items():
             for hpl_src_path in hpl_files_list:
                 hpl_file = os.path.basename(hpl_src_path)
-
-                # FIXME: we need to replace PALETTE_SAVE_MARKER as well
-                if save_name == EDIT_INTERNAL_NAME:
-                    character_edit_path = self.paths.get_edit_palette_path(character, palette_id)
-                    hpl_dst_path = os.path.join(character_edit_path, hpl_file)
-                    hpl_dst_path = hpl_dst_path.replace(PALETTE_EDIT_MARKER, "")
-
-                else:
-                    character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
-                    hpl_dst_path = os.path.join(character_save_path, hpl_file)
-
+                hpl_dst_path = self._process_meta_data(character, palette_id, hpl_file, save_name)
                 hpl_import_files.append((hpl_src_path, hpl_dst_path))
 
         return hpl_import_files
@@ -58,16 +72,7 @@ class ImportThread(WorkThread):
             for (character, palette_id, save_name), hpl_file_list in file_info.items():
                 for hpl_file in hpl_file_list:
                     hpl_src_path = os.path.join(temp_dir, hpl_file)
-
-                    if save_name == EDIT_INTERNAL_NAME:
-                        character_edit_path = self.paths.get_edit_palette_path(character, palette_id)
-                        hpl_dst_path = os.path.join(character_edit_path, hpl_file)
-                        hpl_dst_path = hpl_dst_path.replace(PALETTE_EDIT_MARKER, "")
-
-                    else:
-                        character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
-                        hpl_dst_path = os.path.join(character_save_path, hpl_file)
-
+                    hpl_dst_path = self._process_meta_data(character, palette_id, hpl_file, save_name)
                     hpl_import_files.append((hpl_src_path, hpl_dst_path))
 
         return hpl_import_files
