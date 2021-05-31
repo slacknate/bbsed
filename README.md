@@ -10,7 +10,6 @@ creative work and appreciate it within the game easily and quickly.
 
 # Upcoming Functionality
 
-* Tutorial entries for Copy, Paste, Discard, Restore All, Restore Character, Export, Import actions
 * Sprite image content editing support - No ETA
 
 # Known Issues
