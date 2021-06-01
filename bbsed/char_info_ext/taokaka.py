@@ -1,4 +1,3 @@
-
 from .util import *
 
 TAOKAKA_EXT = {

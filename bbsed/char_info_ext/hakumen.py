@@ -1,4 +1,3 @@
-
 from .util import *
 
 HAKUMEN_EXT = {

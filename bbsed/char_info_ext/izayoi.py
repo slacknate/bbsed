@@ -1,4 +1,3 @@
-
 from .util import *
 
 IZAYOI_EXT = {
