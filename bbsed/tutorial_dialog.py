@@ -275,17 +275,16 @@ class TutorialDialog(QtWidgets.QDialog):
         if self.page_index > 0:
             self.page_index -= 1
 
-        self.update_button_enable()
         self.load_page()
 
     def next_page(self):
         if self.page_index < len(TUTORIAL_PAGES) - 1:
             self.page_index += 1
 
-        self.update_button_enable()
         self.load_page()
 
     def load_page(self):
+        self.update_button_enable()
         html_contents = TUTORIAL_PAGES[self.page_index]
         self.ui.tutorial_text.setText(html_contents)
         self.adjustSize()
