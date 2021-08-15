@@ -19,5 +19,8 @@ Package to contain UI files created by Qt Designer and the Python generated from
 # apply.ico - https://icon-icons.com/icon/apply-accept-ok-done/93488
 # info.ico - https://icon-icons.com/icon/info-circle/178958
 # play.ico - https://icon-icons.com/icon/play/121777
+# pause.ico - https://icon-icons.com/icon/pause/121782
+# stop.ico - https://icon-icons.com/icon/stop/121740
 # exit.ico - https://icon-icons.com/icon/exit/121846
+# launch.ico - https://icon-icons.com/icon/arrow-right-top/121922
 # app.png - https://icon-icons.com/icon/fire/98982 - note that this icon was modified to better suit app aesthetic
