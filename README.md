@@ -19,10 +19,14 @@ creative work and appreciate it within the game easily and quickly.
 they are hidden/shown
 * If the user drag-selects a sprite in the HIP image list, there is an off-by-one error and the wrong sprite 
 may be displayed under certain circumstances
-* Playing animations currently only displays each frame for a 1 frame duration (this is far too fast)
+* Playing animations currently only displays each frame for a 1 frame duration (at the moment this is hardcoded rather
+than using game data as script parsing is still very WIP)
 * Animation dialog cannot currently show effects (it is completely unimplemented)
 
 # Shoutouts
 
 Huge thanks to Dantarion and contributors for the repo [bbtools](https://github.com/dantarion/bbtools). 
 Without it this project would not be possible. 
+
+Also a huge thanks to Labreezy for the repo [bb-collision-editor](https://github.com/Labreezy/bb-collision-editor).
+It was invaluable for learning how sprite coordinate systems are calculated using the game data.
