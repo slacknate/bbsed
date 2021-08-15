@@ -70,7 +70,7 @@ class Ui_MainWindow(object):
         self.restore_character.setObjectName("restore_character")
         self.launch_bbcf = QtWidgets.QAction(MainWindow)
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/images/images/play.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(QtGui.QPixmap(":/images/images/launch.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.launch_bbcf.setIcon(icon4)
         self.launch_bbcf.setObjectName("launch_bbcf")
         self.view_palette = QtWidgets.QAction(MainWindow)

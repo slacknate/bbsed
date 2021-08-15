@@ -191,7 +191,7 @@
   <action name="launch_bbcf">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/images/images/play.ico</normaloff>:/images/images/play.ico</iconset>
+     <normaloff>:/images/images/launch.ico</normaloff>:/images/images/launch.ico</iconset>
    </property>
    <property name="text">
     <string>&amp;Launch BBCF</string>
