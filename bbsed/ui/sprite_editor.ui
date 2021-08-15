@@ -96,6 +96,16 @@
     </widget>
    </item>
   </layout>
+  <action name="play_animation">
+   <property name="text">
+    <string>Play Animation</string>
+   </property>
+  </action>
+  <action name="detail_img_info">
+   <property name="text">
+    <string>Detailed Image Info</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

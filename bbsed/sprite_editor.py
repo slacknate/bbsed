@@ -1,13 +1,15 @@
 import io
 import os
 
-from PyQt5 import Qt, QtCore, QtWidgets
+from PyQt5 import Qt, QtCore, QtGui, QtWidgets
 
 from libhip import HIPImage
 from libhpl import PNGPalette, PNGPaletteImage
 
 from .ui.sprite_editor_ui import Ui_Editor
 
+from .animation_prep import AnimationPrepThread
+from .animation_dialog import AnimationDialog
 from .palette_dialog import COLOR_BOX_SIZE, PaletteDialog
 from .zoom_dialog import ZoomDialog
 from .crosshair import Crosshair
@@ -236,6 +238,13 @@ class SpriteFileItem(QtWidgets.QTreeWidgetItem):
         self.palette_num = ""
 
     @property
+    def name(self):
+        """
+        TODO: remove this when we no longer rely on it.
+        """
+        return self.hip_file
+
+    @property
     def hpl_file(self):
         """
         Our HPL palette file is associated to a character and palette.
@@ -428,8 +437,14 @@ class SpriteEditor(QtWidgets.QWidget):
         self.palette_dialog.index_selected.connect(self.choose_color_from_index)
 
         # FIXME: Drag select off-by-one issue still present.
+        # Set the selection mode and selection callbacks for the sprite file list.
         self.ui.sprite_list.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
         self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
+        # Set up the sprite file list context menu.
+        self.ui.sprite_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.sprite_list.customContextMenuRequested.connect(self._show_image_menu)
+        # Set up the callback for playing animations.
+        self.ui.play_animation.triggered.connect(self.show_animation_dialog)
 
         # Ensure that we center the view on our sprite scene.
         self.ui.sprite_preview.setResizeAnchor(QtWidgets.QGraphicsView.ViewportAnchor.AnchorViewCenter)
@@ -866,7 +881,7 @@ class SpriteEditor(QtWidgets.QWidget):
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
             self._refresh()
 
-    def _iterate_sprite_files(self, parent_item=None):
+    def _iterate_sprite_files(self, parent_item=None, recurse=True):
         """
         Iterate the files in our sprite list.
         """
@@ -881,7 +896,7 @@ class SpriteEditor(QtWidgets.QWidget):
             if item is None:
                 break
 
-            if isinstance(item, SpriteGroupItem):
+            if isinstance(item, SpriteGroupItem) and recurse:
                 yield from self._iterate_sprite_files(item)
             else:
                 yield item
@@ -1024,6 +1039,77 @@ class SpriteEditor(QtWidgets.QWidget):
             return
 
         self._refresh()
+
+    def _show_image_menu(self, _):
+        """
+        Popup the HIP file list context menu at the cursor.
+        """
+        selected_sprite = self.ui.sprite_list.currentItem()
+
+        image_menu = QtWidgets.QMenu(parent=self)
+        image_menu.addAction(self.ui.play_animation)
+        # FIXME: we need a better condition than a UI item name...
+        if selected_sprite.parent() is not None and selected_sprite.name.upper() != "ANIMATION":
+            image_menu.addAction(self.ui.detail_img_info)
+
+        image_menu.popup(QtGui.QCursor().pos())
+
+    def _get_animation_files(self, selected_item, character):
+        """
+        Return the current palette file name as well as the image files assocaited to the selected animation.
+        """
+        parent_item = None
+
+        # We have selected a top-level group item.
+        if selected_item.parent() is None:
+            for item in self._iterate_sprite_files(selected_item, recurse=False):
+                # FIXME: we need a better condition than a UI item name...
+                if item.name.upper() == "ANIMATION":
+                    parent_item = item
+                    break
+
+            if parent_item is None:
+                icon = QtWidgets.QMessageBox.Icon.Critical
+                self.show_message_dialog("Animation Load Error!", "Unable to determine animation target!", icon)
+                return
+
+        # We have selected a HIP file item.
+        # FIXME: we need a better condition than a UI item name...
+        elif selected_item.name.upper() != "ANIMATION":
+            parent_item = selected_item.parent()
+
+        # We have selected on the "ANIMATION" subgroup.
+        else:
+            parent_item = selected_item
+
+        frame1 = parent_item.child(0)
+        palette_id = self.ui.palette_select.currentText()
+        hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
+        palette_full_path = os.path.join(hpl_file_path, frame1.hpl_file)
+
+        frame_files = []
+        for frame_item in self._iterate_sprite_files(parent_item, recurse=False):
+            frame_files.append(frame_item.hip_full_path)
+
+        return palette_full_path, frame_files
+
+    def show_animation_dialog(self, _):
+        """
+        Show the animation dialog so we can play an animation as we would see it in game.
+        """
+        selected_item = self.ui.sprite_list.currentItem()
+        character = self.ui.char_select.currentData()
+
+        palette_full_path, frame_files = self._get_animation_files(selected_item, character)
+
+        # Extract prepare data needed to render the animation.
+        thread = AnimationPrepThread(character, self.paths, palette_full_path, frame_files)
+        if not self.mainwindow.run_work_thread(thread, "Animation Prep", "Loading animation data into memory..."):
+            # If our preparation procedure did not succeed we return early to avoid problems displaying the animation.
+            return
+
+        dialog = AnimationDialog(thread.frames, thread.chunks, thread.hitboxes, thread.hurtboxes, parent=self)
+        dialog.show()
 
     def mouse_move_event(self, evt):
         """
@@ -1202,6 +1288,12 @@ class SpriteEditor(QtWidgets.QWidget):
         Wrapper for `MainWindow.show_confirm_dialog()` solely to save line length.
         """
         return self.mainwindow.show_confirm_dialog(*args, **kwargs)
+
+    def show_message_dialog(self, *args, **kwargs):
+        """
+        Wrapper for `MainWindow.show_message_dialog()` solely to save line length.
+        """
+        return self.mainwindow.show_message_dialog(*args, **kwargs)
 
     def show_error_dialog(self, *args, **kwargs):
         """

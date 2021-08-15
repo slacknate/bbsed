@@ -7,6 +7,7 @@ __all__ = [
     "GAME_SPRITE_FILE_FMT",
     "GAME_PALETTE_FILE_FMT",
     "GAME_EFFECT_FILE_FMT",
+    "GAME_COLLISION_FILE_FMT",
     "PALETTE_ID_FMT",
     "EFFECT_IMG_PREFIX",
     "BACKUP_GAME_PALETTE_EXT",
@@ -59,6 +60,7 @@ LOCK_FILE_EXT = ".lock"
 GAME_SPRITE_FILE_FMT = "char_{}_img.pac"
 GAME_PALETTE_FILE_FMT = "char_{}_pal.pac"
 GAME_EFFECT_FILE_FMT = "char_{}_vri.pac"
+GAME_COLLISION_FILE_FMT = "char_{}_col.pac"
 
 PALETTE_ID_FMT = "{:02}"
 EFFECT_IMG_PREFIX = "vr{}ef"

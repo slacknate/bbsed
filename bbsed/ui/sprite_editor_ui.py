@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'bbsed\ui\spriteeditor.ui'
+# Form implementation generated from reading ui file 'bbsed\ui\sprite_editor.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -55,6 +55,10 @@ class Ui_Editor(object):
         self.sprite_preview.setObjectName("sprite_preview")
         self.horizontalLayout_2.addWidget(self.sprite_preview)
         self.verticalLayout.addWidget(self.sprite_group)
+        self.play_animation = QtWidgets.QAction(Editor)
+        self.play_animation.setObjectName("play_animation")
+        self.detail_img_info = QtWidgets.QAction(Editor)
+        self.detail_img_info.setObjectName("detail_img_info")
 
         self.retranslateUi(Editor)
         QtCore.QMetaObject.connectSlotsByName(Editor)
@@ -66,3 +70,5 @@ class Ui_Editor(object):
         self.sprite_group.setTitle(_translate("Editor", "Sprite"))
         self.sprite_list.headerItem().setText(0, _translate("Editor", "Group"))
         self.sprite_list.headerItem().setText(1, _translate("Editor", "File"))
+        self.play_animation.setText(_translate("Editor", "Play Animation"))
+        self.detail_img_info.setText(_translate("Editor", "Detailed Image Info"))

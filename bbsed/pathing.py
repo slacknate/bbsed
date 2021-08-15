@@ -133,6 +133,18 @@ class Paths:
         effect_cache_path = self._get_effect_cache_path(character)
         return self._get_image_cache(effect_cache_path)
 
+    def _get_collision_cache_path(self, character):
+        """
+        Ensure all cached collision box datas the app manages are located in the same top-level directory.
+        """
+        return os.path.join(self.data_dir, "collision_boxes", character)
+
+    def get_collision_cache_path(self, character):
+        """
+        Get the path where we should cache collision box data for the given character.
+        """
+        return self._get_collision_cache_path(character)
+
     @staticmethod
     def _get_path_pcs(*pcs):
         """

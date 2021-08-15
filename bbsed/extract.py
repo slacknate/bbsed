@@ -2,6 +2,7 @@ import os
 import shutil
 
 from libpac import extract_pac, enumerate_pac
+from libjonb import extract_collision_boxes
 
 from .work_thread import WorkThread, AppException
 from .util import *
@@ -168,7 +169,47 @@ class ExtractThread(WorkThread):
         effect_cache_path = self.paths.get_effect_cache_path(self.character)
         self._extract_images(effect_cache_path, GAME_EFFECT_FILE_FMT)
 
+    def _exctract_collisions(self):
+        """
+        Helper method to extract JONBIN files from a PAC file and dump them to the cache path in JSON format.
+        """
+        collision_cache_path = self.paths.get_collision_cache_path(self.character)
+
+        # If our cache directory doesn't exist we should create it.
+        if not os.path.exists(collision_cache_path):
+            os.makedirs(collision_cache_path)
+
+        # Get the file name for the PAC file associated to the the character `self.character`.
+        jonb_file_name = GAME_COLLISION_FILE_FMT.format(self.character)
+        jonb_file_path = os.path.join(self.paths.bbcf_data_dir, jonb_file_name)
+
+        self.message.emit("Looking for missing collision box files...")
+        existing_jonb_files = [file_name.replace(".json", ".jonbin") for file_name in os.listdir(collision_cache_path)]
+        missing_jonb_files = get_missing_files(jonb_file_path, existing_jonb_files)
+
+        # Only perform a PAC extraction if we are missing any files called out in the PAC.
+        if missing_jonb_files:
+            jonb_file_filter = missing_file_filter(missing_jonb_files)
+
+            # Extract the PAC to a temporary location that will be deleted when we are done.
+            with temp_directory() as temp_dir:
+                try:
+                    self.message.emit("Extracting collision box files...")
+                    extract_pac(jonb_file_path, temp_dir, extract_filter=jonb_file_filter)
+
+                except Exception:
+                    message = f"Failed to extract collision box files from {jonb_file_name}!"
+                    raise AppException("Error Extracting PAC File", message)
+
+                # Extract new palettes to the edit palette directory for this character.
+                self.message.emit("Creating collision box file meta data...")
+                for jonb_file in os.listdir(temp_dir):
+                    jonb_src_path = os.path.join(temp_dir, jonb_file)
+                    jonb_dst_path = os.path.join(collision_cache_path, jonb_file.replace(".jonbin", ".json"))
+                    extract_collision_boxes(jonb_src_path, jonb_dst_path)
+
     def work(self):
         self._extract_palettes()
         self._extract_sprites()
         self._extract_effects()
+        self._exctract_collisions()
