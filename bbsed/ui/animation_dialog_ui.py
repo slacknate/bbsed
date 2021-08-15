@@ -81,6 +81,6 @@ class Ui_Dialog(object):
         self.pause_button.setText(_translate("Dialog", "Pause"))
         self.stop_button.setText(_translate("Dialog", "Stop"))
         self.loop_animation.setText(_translate("Dialog", "Loop"))
-        self.show_boxes.setText(_translate("Dialog", "Show Hit/Hurt boxes"))
+        self.show_boxes.setText(_translate("Dialog", "Show Hit/Hurt Boxes"))
         self.show_effects.setText(_translate("Dialog", "Show Effects"))
 from bbsed.ui import resources_rc

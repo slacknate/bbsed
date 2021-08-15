@@ -68,7 +68,7 @@
         <item>
          <widget class="QCheckBox" name="show_boxes">
           <property name="text">
-           <string>Show Hit/Hurt boxes</string>
+           <string>Show Hit/Hurt Boxes</string>
           </property>
          </widget>
         </item>
