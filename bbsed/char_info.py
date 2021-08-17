@@ -79,3 +79,61 @@ CHARACTER_INFO = {
 }
 
 VALID_CHARACTERS = tuple([_character for _, _character in CHARACTER_INFO.values()])
+
+DEFAULT_PALETTE_FMT = "{}{{}}_00.hpl"
+
+CHARACTER_STATES = 3
+
+STATE_DEFINITION = 5
+STATE_INITIAL = 6
+STATE_CHANGE = 7
+FILE_OVERRIDE = 8
+
+SWAP_COLORS = 0
+SWAP_PALETTES = 1
+
+CHARACTER_INFO_EXT = {
+
+    IZANAMI: {
+
+        CHARACTER_STATES: {
+
+            # This will result in a Inactive being the first displayed choice.
+            STATE_DEFINITION: ("Time Stop", ("Inactive", "Active")),
+            STATE_INITIAL: "Inactive",
+            STATE_CHANGE: {
+
+                SWAP_PALETTES: (
+
+                    ("mi{}_00.hpl", "mi{}_02.hpl"),
+                ),
+            },
+        },
+    },
+    IZAYOI: {
+
+        CHARACTER_STATES: {
+
+            # This will result in a Inactive being the first displayed choice.
+            STATE_DEFINITION: ("Gain Art", ("Inactive", "Active")),
+            STATE_INITIAL: "Inactive",
+            STATE_CHANGE: {
+
+                SWAP_COLORS: (
+
+                    ((10, 11), (13, 11)),
+                    ((11, 11), (14, 11)),
+                    ((12, 11), (15, 11)),
+                ),
+                SWAP_PALETTES: (
+
+                    ("iz{}_04.hpl", "iz{}_05.hpl"),
+                ),
+            },
+        },
+    },
+    LAMBDA: {
+
+        FILE_OVERRIDE: "ny",  # Lambda-11 uses the same character abbreviation as Nu-13 for sprite and palette files.
+    }
+}

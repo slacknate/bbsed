@@ -1,10 +1,12 @@
 import io
 import os
+import json
 
 from PyQt5 import Qt, QtCore, QtGui, QtWidgets
 
 from libhip import HIPImage
 from libhpl import PNGPalette, PNGPaletteImage
+from libscr.commands import CMD_SPRITE
 
 from .ui.sprite_editor_ui import Ui_Editor
 
@@ -13,7 +15,6 @@ from .animation_dialog import AnimationDialog
 from .palette_dialog import COLOR_BOX_SIZE, PaletteDialog
 from .zoom_dialog import ZoomDialog
 from .crosshair import Crosshair
-from .char_info_ext import *
 from .char_info import *
 from .util import *
 
@@ -26,6 +27,9 @@ COLUMN_HIP_FILE = 1
 
 SPRITE_PREFIX_LEN = 8
 EFFECT_PREFIX_LEN = 8
+
+SCR_FILE_FMT = "scr_{}.json"
+SCR_EFFECT_FILE_FMT = "scr_{}ea.json"
 
 
 def get_other(two_tuple, item):
@@ -66,21 +70,8 @@ class CharacterState:
         self.sprite_editor = sprite_editor
         self.character_dialog = None
         self.palette_id = "INVALID"
-        self.swap_info = {}
+        self.swap_info = ()
         self.initial = None
-
-    def _set_swap_info(self, char_states):
-        """
-        Create a mapping of HPL palette formats to color indices that
-        need to be swapped when a state change occurs.
-        """
-        swap_colors = char_states[STATE_CHANGE].get(SWAP_COLORS, ())
-
-        for color_swap_info in swap_colors:
-            hpl_fmt = color_swap_info[PALETTE_FILE]
-            swap_indices = color_swap_info[SWAP_INDICES]
-
-            self.swap_info[hpl_fmt] = swap_indices
 
     def _show_states(self, character_name, state_name, state_choices):
         """
@@ -138,7 +129,7 @@ class CharacterState:
         Reset our character state information and determine if we have
         character state information that the user needs to be able to work with.
         """
-        self.swap_info = {}
+        self.swap_info = ()
         self.initial = None
 
         if self.character_dialog is not None:
@@ -146,7 +137,7 @@ class CharacterState:
             self.character_dialog = None
 
         character_name, _ = CHARACTER_INFO[character_id]
-        ext_info = CHARACTER_EXT_INFO[character_id]
+        ext_info = CHARACTER_INFO_EXT.get(character_id, {})
         char_states = ext_info.get(CHARACTER_STATES, {})
 
         # If we have defined character states then we need parse the definition
@@ -155,10 +146,10 @@ class CharacterState:
             self.initial = char_states[STATE_INITIAL]
             state_name, state_choices = char_states[STATE_DEFINITION]
 
-            self._set_swap_info(char_states)
+            self.swap_info = char_states[STATE_CHANGE].get(SWAP_COLORS, ())
             self._show_states(character_name, state_name, state_choices)
 
-    def should_swap(self, sprite_item):
+    def should_swap(self):
         """
         This method is used by the sprite editor in `SpriteEditor._refresh()`, and in
         that method we always reload the palette file.
@@ -171,20 +162,19 @@ class CharacterState:
         # Only attempt to fetch the character state if there is a state to be fetched!
         if self.character_dialog is not None:
             state = self.character_dialog.get_state()
-            swap = (sprite_item.hpl_fmt in self.swap_info and state != self.initial)
+            swap = state != self.initial
 
         return swap
 
-    def swap_colors(self, sprite_item):
+    def swap_colors(self):
         """
         Swap the colors of the relevant palette indices for this sprite item.
         """
-        swap_indices = self.swap_info[sprite_item.hpl_fmt]
-        for index1, index2 in swap_indices:
+        for index1, index2 in self.swap_info:
             color1, color2 = self.sprite.get_index_color_range(index1, index2)
             self.sprite.set_index_color_range((index1, color2), (index2, color1))
 
-    def get_swap_of(self, sprite_item, index):
+    def get_swap_of(self, index):
         """
         When we fetch the palette index of a double clicked pixel we need to
         check if that palette index is an index that has been swapped.
@@ -193,10 +183,8 @@ class CharacterState:
         """
         swap_index = None
 
-        if self.should_swap(sprite_item):
-            swap_indices = self.swap_info[sprite_item.hpl_fmt]
-
-            for swap in swap_indices:
+        if self.should_swap():
+            for swap in self.swap_info:
                 if index in swap:
                     swap_index = get_other(swap, index)
                     break
@@ -230,9 +218,10 @@ class SpriteFileItem(QtWidgets.QTreeWidgetItem):
     """
     Child item in the sprite list to represent a HIP image associated to the current selected character.
     """
-    def __init__(self, hip_full_path, hip_file, hpl_fmt):
+    def __init__(self, hip_full_path, sprite_duration, hip_file, hpl_fmt):
         QtWidgets.QTreeWidgetItem.__init__(self)
         self.hip_full_path = hip_full_path
+        self.sprite_duration = sprite_duration
         self.hip_file = hip_file
         self.hpl_fmt = hpl_fmt
         self.palette_num = ""
@@ -598,7 +587,7 @@ class SpriteEditor(QtWidgets.QWidget):
         should_refresh = False
 
         character_id = self.ui.char_select.currentIndex()
-        ext_info = CHARACTER_EXT_INFO[character_id]
+        ext_info = CHARACTER_INFO_EXT[character_id]
 
         char_states = ext_info[CHARACTER_STATES]
         swap_palettes = char_states[STATE_CHANGE].get(SWAP_PALETTES, ())
@@ -775,8 +764,8 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # We only need to color swap if we have an active item.
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
-            if self.state.should_swap(sprite_item):
-                self.state.swap_colors(sprite_item)
+            if self.state.should_swap():
+                self.state.swap_colors()
 
     def _refresh(self):
         """
@@ -918,36 +907,9 @@ class SpriteEditor(QtWidgets.QWidget):
         We associate an HPL palette file name format to each file item so we can dynamically
         select a palette on a per-image basis.
         """
-        for hip_full_path in hip_file_list:
+        for hip_full_path, sprite_duration in hip_file_list:
             hip_file = os.path.basename(hip_full_path)
-            parent_item.addChild(SpriteFileItem(hip_full_path, hip_file, hpl_fmt))
-
-    def _add_hip_files(self, cache_dir, files_map, parent_item=None):
-        """
-        We group together sprites by the palette files associated to them.
-        """
-        processed_files = set()
-
-        ignore_files = files_map.get(IGNORE_FILES, ())
-        group_files = files_map.get(GROUP_FILES, {})
-
-        for hip_file in ignore_files:
-            processed_files.add(os.path.join(cache_dir, hip_file))
-
-        for name, data in group_files.items():
-            group_item = self._get_or_create_group(name, parent_item=parent_item)
-
-            if GROUP_FILES in data:
-                processed_files.update(self._add_hip_files(cache_dir, data, group_item))
-
-            else:
-                hpl_fmt = data[PALETTE_FILE]
-                hip_file_list = [os.path.join(cache_dir, hip_file) for hip_file in data[HIP_FILE_LIST]]
-
-                self._add_hip_items(group_item, hip_file_list, hpl_fmt)
-                processed_files.update(hip_file_list)
-
-        return processed_files
+            parent_item.addChild(SpriteFileItem(hip_full_path, sprite_duration, hip_file, hpl_fmt))
 
     def _get_or_create_group(self, name, parent_item=None):
         """
@@ -976,47 +938,51 @@ class SpriteEditor(QtWidgets.QWidget):
 
             item_index += 1
 
+    def _populate_script_sprites(self, nodes, sprite_cache_path, default_palette_fmt):
+        """
+        ???.
+        """
+        for node in nodes:
+            sprite_file_data = []
+
+            for nested_node in node["body"]:
+                if nested_node["cmd_id"] == CMD_SPRITE:
+                    sprite_file_data.append(nested_node["cmd_args"])
+
+            if sprite_file_data:
+                animation_name = node["cmd_args"][0]
+                hip_file_list = []
+
+                for sprite_name, sprite_duration in sprite_file_data:
+                    hip_full_path = os.path.join(sprite_cache_path, sprite_name + ".hip")
+                    hip_file_list.append((hip_full_path, sprite_duration))
+
+                parent_item = self._get_or_create_group(animation_name)
+                self._add_hip_items(parent_item, hip_file_list, default_palette_fmt)
+
     def _populate_sprite_list(self, character_id):
         """
         Populate the sprite list with our character sprite files.
         """
         character_name, character = CHARACTER_INFO[character_id]
-        ext_info = CHARACTER_EXT_INFO[character_id]
 
-        character_file = ext_info.get(FILE_OVERRIDE, character)
-        default_palette_fmt = DEFAULT_PALETTE_FMT.format(character_file)
+        # Lambda uses the same character abbreviation in the sprite files (but not script files?) because reasons.
+        file_character = character
+        if character == "rm":
+            file_character = "ny"
+
+        default_palette_fmt = DEFAULT_PALETTE_FMT.format(file_character)
 
         sprite_cache_path = self.paths.get_sprite_cache_path(character)
-        effect_cache_path = self.paths.get_effect_cache_path(character)
+        script_cache_path = self.paths.get_script_cache_path(character)
 
-        sprite_file_list = set(self.paths.get_sprite_cache(character))
-        sprite_file_list |= set(self.paths.get_effect_cache(character))
+        for scr_fmt in (SCR_FILE_FMT, SCR_EFFECT_FILE_FMT):
+            script_path = os.path.join(script_cache_path, scr_fmt.format(character))
 
-        with block_signals(self.ui.sprite_list):
-            # Get our file filter from the extended info and pass it around where we need to.
-            filter_files = ext_info.get(FILTER_FILES, None)
+            with open(script_path, "r") as ast_fp:
+                nodes = json.load(ast_fp)
 
-            # If we have a filter then apply it to our file list.
-            if filter_files is not None:
-                sprite_file_list = set(filter(filter_files, sprite_file_list))
-
-            # Look for any sprite-specific palettes.
-            sprite_files = ext_info.get(SPRITE_FILES, {})
-            processed_files = self._add_hip_files(sprite_cache_path, sprite_files)
-            sprite_file_list -= processed_files
-
-            # Look for any effect-specific palettes.
-            effect_files = ext_info.get(EFFECT_FILES, {})
-            processed_files = self._add_hip_files(effect_cache_path, effect_files)
-            sprite_file_list -= processed_files
-
-            # Only create the "Unknown" group if we have any unprocessed sprites.
-            if sprite_file_list:
-                sprite_file_list = list(sprite_file_list)
-                sprite_file_list.sort()
-
-                parent_item = self._get_or_create_group("Unknown")
-                self._add_hip_items(parent_item, sprite_file_list, default_palette_fmt)
+            self._populate_script_sprites(nodes, sprite_cache_path, default_palette_fmt)
 
     def select_sprite(self):
         """
@@ -1048,8 +1014,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         image_menu = QtWidgets.QMenu(parent=self)
         image_menu.addAction(self.ui.play_animation)
-        # FIXME: we need a better condition than a UI item name...
-        if selected_sprite.parent() is not None and selected_sprite.name.upper() != "ANIMATION":
+        if selected_sprite.parent() is not None:
             image_menu.addAction(self.ui.detail_img_info)
 
         image_menu.popup(QtGui.QCursor().pos())
@@ -1058,28 +1023,10 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         Return the current palette file name as well as the image files assocaited to the selected animation.
         """
-        parent_item = None
+        parent_item = selected_item.parent()
 
-        # We have selected a top-level group item.
-        if selected_item.parent() is None:
-            for item in self._iterate_sprite_files(selected_item, recurse=False):
-                # FIXME: we need a better condition than a UI item name...
-                if item.name.upper() == "ANIMATION":
-                    parent_item = item
-                    break
-
-            if parent_item is None:
-                icon = QtWidgets.QMessageBox.Icon.Critical
-                self.show_message_dialog("Animation Load Error!", "Unable to determine animation target!", icon)
-                return
-
-        # We have selected a HIP file item.
-        # FIXME: we need a better condition than a UI item name...
-        elif selected_item.name.upper() != "ANIMATION":
-            parent_item = selected_item.parent()
-
-        # We have selected on the "ANIMATION" subgroup.
-        else:
+        # We have selected a top-level group item which thus serves as our parent item.
+        if parent_item is None:
             parent_item = selected_item
 
         frame1 = parent_item.child(0)
@@ -1089,7 +1036,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         frame_files = []
         for frame_item in self._iterate_sprite_files(parent_item, recurse=False):
-            frame_files.append(frame_item.hip_full_path)
+            frame_files.append((frame_item.hip_full_path, frame_item.sprite_duration))
 
         return palette_full_path, frame_files
 

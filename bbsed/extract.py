@@ -3,6 +3,7 @@ import shutil
 
 from libpac import extract_pac, enumerate_pac
 from libjonb import extract_collision_boxes
+from libscr import parse_script
 
 from .work_thread import WorkThread, AppException
 from .util import *
@@ -169,6 +170,45 @@ class ExtractThread(WorkThread):
         effect_cache_path = self.paths.get_effect_cache_path(self.character)
         self._extract_images(effect_cache_path, GAME_EFFECT_FILE_FMT)
 
+    def _extract_scripts(self):
+        """
+        Helper method to extract SCR files from a PAC file and dump them to the cache path in JSON format.
+        """
+        script_cache_path = self.paths.get_script_cache_path(self.character)
+
+        # If our cache directory doesn't exist we should create it.
+        if not os.path.exists(script_cache_path):
+            os.makedirs(script_cache_path)
+
+        # Get the file name for the PAC file associated to the the character `self.character`.
+        scr_file_name = GAME_SCRIPT_FILE_FMT.format(self.character)
+        scr_file_path = os.path.join(self.paths.bbcf_data_dir, scr_file_name)
+
+        self.message.emit("Looking for missing script files...")
+        existing_scr_files = [file_name.replace(".json", ".bin") for file_name in os.listdir(script_cache_path)]
+        missing_scr_files = get_missing_files(scr_file_path, existing_scr_files)
+
+        # Only perform a PAC extraction if we are missing any files called out in the PAC.
+        if missing_scr_files:
+            scr_file_filter = missing_file_filter(missing_scr_files)
+
+            # Extract the PAC to a temporary location that will be deleted when we are done.
+            with temp_directory() as temp_dir:
+                try:
+                    self.message.emit("Extracting script files...")
+                    extract_pac(scr_file_path, temp_dir, extract_filter=scr_file_filter)
+
+                except Exception:
+                    message = f"Failed to extract script files from {scr_file_name}!"
+                    raise AppException("Error Extracting PAC File", message)
+
+                # Extract new palettes to the edit palette directory for this character.
+                self.message.emit("Creating script file meta data...")
+                for scr_file in os.listdir(temp_dir):
+                    scr_src_path = os.path.join(temp_dir, scr_file)
+                    scr_dst_path = os.path.join(script_cache_path, scr_file.replace(".bin", ".json"))
+                    parse_script(scr_src_path, scr_dst_path)
+
     def _exctract_collisions(self):
         """
         Helper method to extract JONBIN files from a PAC file and dump them to the cache path in JSON format.
@@ -212,4 +252,5 @@ class ExtractThread(WorkThread):
         self._extract_palettes()
         self._extract_sprites()
         self._extract_effects()
+        self._extract_scripts()
         self._exctract_collisions()

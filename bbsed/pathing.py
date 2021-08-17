@@ -145,6 +145,18 @@ class Paths:
         """
         return self._get_collision_cache_path(character)
 
+    def _get_script_cache_path(self, character):
+        """
+        Ensure all cached script data the app manages are located in the same top-level directory.
+        """
+        return os.path.join(self.data_dir, "scripts", character)
+
+    def get_script_cache_path(self, character):
+        """
+        Get the path where we should script data for the given character.
+        """
+        return self._get_script_cache_path(character)
+
     @staticmethod
     def _get_path_pcs(*pcs):
         """

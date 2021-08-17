@@ -152,7 +152,7 @@ class AnimationDialog(QtWidgets.QDialog):
         self.sprite_scene.clear()
 
         # The number of frames (i.e. units of time) and binary image data for the animation.
-        frame_count, coord_size, offset, frame_bytes = self.frames[self.index]
+        sprite_duration, coord_size, offset, frame_bytes = self.frames[self.index]
         hitboxes = self.hitboxes[self.index]
         hurtboxes = self.hurtboxes[self.index]
 
@@ -194,4 +194,4 @@ class AnimationDialog(QtWidgets.QDialog):
             # If we are indeed looping and have not stopped the play routine then we should schedule
             # the next frame render. The delay between animation frames is determined by the game data.
             if self.playing:
-                QtCore.QTimer.singleShot(frame_count * FRAME_TIME, self._update_frame)
+                QtCore.QTimer.singleShot(sprite_duration * FRAME_TIME, self._update_frame)

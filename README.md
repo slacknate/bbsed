@@ -19,8 +19,6 @@ creative work and appreciate it within the game easily and quickly.
 they are hidden/shown
 * If the user drag-selects a sprite in the HIP image list, there is an off-by-one error and the wrong sprite 
 may be displayed under certain circumstances
-* Playing animations currently only displays each frame for a 1 frame duration (at the moment this is hardcoded rather
-than using game data as script parsing is still very WIP)
 * Animation dialog cannot currently show effects (it is completely unimplemented)
 
 # Shoutouts

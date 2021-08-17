@@ -17,6 +17,7 @@ REQUIREMENTS = [
     "libhip==0.0.1",
     "libhpl==0.0.1",
     "libpac==0.0.1",
+    "libscr==0.0.1",
     "libjonb==0.0.1",
 ]
 
