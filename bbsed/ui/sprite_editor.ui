@@ -77,14 +77,12 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <attribute name="headerVisible">
+         <bool>false</bool>
+        </attribute>
         <column>
          <property name="text">
-          <string>Group</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>File</string>
+          <string>Animations</string>
          </property>
         </column>
        </widget>

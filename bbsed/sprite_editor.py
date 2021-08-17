@@ -22,8 +22,7 @@ CROSS_HAIR_SIZE = 20
 
 HIP_FILE_ROLE = QtCore.Qt.ItemDataRole.UserRole
 
-COLUMN_SPRITE_NAME = 0
-COLUMN_HIP_FILE = 1
+COLUMN_ANIMATIONS = 0
 
 SPRITE_PREFIX_LEN = 8
 EFFECT_PREFIX_LEN = 8
@@ -210,7 +209,7 @@ class SpriteGroupItem(QtWidgets.QTreeWidgetItem):
         self.name = name
 
     def data(self, column, role):
-        if column == COLUMN_SPRITE_NAME and role == QtCore.Qt.ItemDataRole.DisplayRole:
+        if column == COLUMN_ANIMATIONS and role == QtCore.Qt.ItemDataRole.DisplayRole:
             return self.name
 
 
@@ -244,7 +243,7 @@ class SpriteFileItem(QtWidgets.QTreeWidgetItem):
         return self.hpl_fmt.format(self.palette_num)
 
     def data(self, column, role):
-        if column == COLUMN_HIP_FILE and role == QtCore.Qt.ItemDataRole.DisplayRole:
+        if column == COLUMN_ANIMATIONS and role == QtCore.Qt.ItemDataRole.DisplayRole:
             return self.hip_file
 
 
