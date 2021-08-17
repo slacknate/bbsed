@@ -42,35 +42,15 @@ def get_other(two_tuple, item):
     return two_tuple[other_index]
 
 
-def get_palette_swap(swap_palettes, sprite_item):
-    """
-    Check if we need to swap the HPL format for this sprite item in the file list.
-    We return a boolean indicating if we swapped a palette file.
-    """
-    swapped = False
-
-    # Each swap is a tuple of two HPL formats.
-    for swap_files in swap_palettes:
-        hpl_fmt = sprite_item.hpl_fmt
-
-        # If our item HPL format is in the swap tuple then we need to get the format
-        # that is NOT the one currently associated to the item and assign it.
-        if hpl_fmt in swap_files:
-            sprite_item.hpl_fmt = get_other(swap_files, hpl_fmt)
-            swapped = True
-            break
-
-    return swapped
-
-
 class CharacterState:
     def __init__(self, sprite, sprite_editor):
         self.sprite = sprite
         self.sprite_editor = sprite_editor
         self.character_dialog = None
         self.palette_id = "INVALID"
-        self.swap_info = ()
+        self.character_id = "INVALID"
         self.initial = None
+        self.current = None
 
     def _show_states(self, character_name, state_name, state_choices):
         """
@@ -128,8 +108,8 @@ class CharacterState:
         Reset our character state information and determine if we have
         character state information that the user needs to be able to work with.
         """
-        self.swap_info = ()
-        self.initial = None
+        self.character_id = character_id
+        self.current = None
 
         if self.character_dialog is not None:
             self.character_dialog.hide()
@@ -142,13 +122,11 @@ class CharacterState:
         # If we have defined character states then we need parse the definition
         # into actionable data that this object can use.
         if char_states:
-            self.initial = char_states[STATE_INITIAL]
+            self.current = self.initial = char_states[STATE_INITIAL]
             state_name, state_choices = char_states[STATE_DEFINITION]
-
-            self.swap_info = char_states[STATE_CHANGE].get(SWAP_COLORS, ())
             self._show_states(character_name, state_name, state_choices)
 
-    def should_swap(self):
+    def _update_state(self):
         """
         This method is used by the sprite editor in `SpriteEditor._refresh()`, and in
         that method we always reload the palette file.
@@ -156,22 +134,64 @@ class CharacterState:
         when the palette is reloaded the initial state is automatically displayed.
         Note that we also ensure that the given sprite item has a palette that requires a swap in the first place.
         """
-        swap = False
+        is_initial = True
 
         # Only attempt to fetch the character state if there is a state to be fetched!
         if self.character_dialog is not None:
             state = self.character_dialog.get_state()
-            swap = state != self.initial
+            is_initial = (state == self.initial)
+            self.current = state
 
-        return swap
+        return is_initial
 
     def swap_colors(self):
         """
-        Swap the colors of the relevant palette indices for this sprite item.
+        Swap the colors of the relevant palette indices.
+
+        Note that the way this works is that we only swap the colors when not
+        in the initial character state.
+
+        When a sprite is selected, the current selected palette is applied to the
+        sprite. This means we need to swap the colors every time a sprite is loaded,
+        as on sprite select the unswapped colors are always set on the image.
         """
-        for index1, index2 in self.swap_info:
-            color1, color2 = self.sprite.get_index_color_range(index1, index2)
-            self.sprite.set_index_color_range((index1, color2), (index2, color1))
+        ext_info = CHARACTER_INFO_EXT.get(self.character_id, {})
+        char_states = ext_info.get(CHARACTER_STATES, {})
+        swap_colors = char_states.get(STATE_CHANGE, {}).get(SWAP_COLORS, ())
+
+        is_initial = self._update_state()
+
+        if not is_initial:
+            for index1, index2 in swap_colors:
+                color1, color2 = self.sprite.get_index_color_range(index1, index2)
+                self.sprite.set_index_color_range((index1, color2), (index2, color1))
+
+    def swap_palettes(self, sprite_item):
+        """
+        Swap the palette of this sprite item if it uses a palette associated to the character state.
+
+        Note that the way this works is that we only swap the palettes when not
+        in the initial character state.
+        """
+        ext_info = CHARACTER_INFO_EXT.get(self.character_id, {})
+        char_states = ext_info.get(CHARACTER_STATES, {})
+        swap_palettes = char_states.get(STATE_CHANGE, {}).get(SWAP_PALETTES, ())
+
+        is_initial = self._update_state()
+
+        for swap_files in swap_palettes:
+            hpl_fmt = sprite_item.hpl_fmt
+
+            # If our item HPL format is in the swap tuple then we need to get the format
+            # that is NOT the one currently associated to the item and assign it.
+            if hpl_fmt in swap_files:
+                swap_palette = None
+
+                # Each the swap data is a tuple of two HPL formats.
+                if not is_initial:
+                    swap_palette = get_other(swap_files, hpl_fmt)
+
+                sprite_item.swap_hpl_fmt = swap_palette
 
     def get_swap_of(self, index):
         """
@@ -181,9 +201,14 @@ class CharacterState:
         we actually had to swap in the first place before getting our swap index.
         """
         swap_index = None
+        is_initial = self._update_state()
 
-        if self.should_swap():
-            for swap in self.swap_info:
+        if not is_initial:
+            ext_info = CHARACTER_INFO_EXT.get(self.character_id, {})
+            char_states = ext_info.get(CHARACTER_STATES, {})
+            swap_colors = char_states[STATE_CHANGE].get(SWAP_COLORS, ())
+
+            for swap in swap_colors:
                 if index in swap:
                     swap_index = get_other(swap, index)
                     break
@@ -222,6 +247,7 @@ class SpriteFileItem(QtWidgets.QTreeWidgetItem):
         self.hip_full_path = hip_full_path
         self.sprite_duration = sprite_duration
         self.hip_file = hip_file
+        self.swap_hpl_fmt = None
         self.hpl_fmt = hpl_fmt
         self.palette_num = ""
 
@@ -239,8 +265,16 @@ class SpriteFileItem(QtWidgets.QTreeWidgetItem):
         The character abbreviation is already include in this string but
         the palette can change dynamically from the user interface.
         The palette number is updated when we call `SpriteEditor.refresh()`.
+        Additionally, the palette file may also be swapped depending on character
+        state controls for the selected character.
         """
-        return self.hpl_fmt.format(self.palette_num)
+        if self.swap_hpl_fmt is not None:
+            _hpl_file = self.swap_hpl_fmt.format(self.palette_num)
+
+        else:
+            _hpl_file = self.hpl_fmt.format(self.palette_num)
+
+        return _hpl_file
 
     def data(self, column, role):
         if column == COLUMN_ANIMATIONS and role == QtCore.Qt.ItemDataRole.DisplayRole:
@@ -583,19 +617,7 @@ class SpriteEditor(QtWidgets.QWidget):
         An example of sprite item palette swaps would be Izayoi's special moves; the
         slash effects change color depending on Gain Art.
         """
-        should_refresh = False
-
-        character_id = self.ui.char_select.currentIndex()
-        ext_info = CHARACTER_INFO_EXT[character_id]
-
-        char_states = ext_info[CHARACTER_STATES]
-        swap_palettes = char_states[STATE_CHANGE].get(SWAP_PALETTES, ())
-
-        for sprite_item in self._iterate_sprite_files():
-            should_refresh |= get_palette_swap(swap_palettes, sprite_item)
-
-        if should_refresh:
-            self.refresh()
+        self.refresh()
 
     def select_character(self):
         """
@@ -741,6 +763,11 @@ class SpriteEditor(QtWidgets.QWidget):
         slot_name = self.ui.slot_select.currentText()
         slot_type = self.ui.slot_select.currentData()
         palette_id = self.ui.palette_select.currentText()
+        sprite_item = self.ui.sprite_list.currentItem()
+
+        # We only need to palette swap if we have an active item.
+        if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
+            self.state.swap_palettes(sprite_item)
 
         # If we have a saved palette selected we should display that palette.
         if slot_type == PALETTE_SAVE:
@@ -751,7 +778,6 @@ class SpriteEditor(QtWidgets.QWidget):
         else:
             hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
 
-        sprite_item = self.ui.sprite_list.currentItem()
         hpl_full_path = os.path.join(hpl_file_path, sprite_item.hpl_file)
 
         try:
@@ -763,8 +789,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # We only need to color swap if we have an active item.
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
-            if self.state.should_swap():
-                self.state.swap_colors()
+            self.state.swap_colors()
 
     def _refresh(self):
         """
@@ -813,7 +838,7 @@ class SpriteEditor(QtWidgets.QWidget):
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
 
-        # Update the dialog palette data since we have switched palettes.
+        # Update the dialog palette data since we may have switched palettes.
         self.palette_dialog.set_palette(palette_image)
         # Update the zoom dialog to the current sprite.
         self.zoom_dialog.set_sprite(zoom_image)
@@ -1165,7 +1190,7 @@ class SpriteEditor(QtWidgets.QWidget):
         # state change, and if so get the swap index as that is the index for which we should edit the color.
         sprite_item = self.ui.sprite_list.currentItem()
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
-            swap_index = self.state.get_swap_of(sprite_item, palette_index)
+            swap_index = self.state.get_swap_of(palette_index)
 
             if swap_index is not None:
                 palette_index = swap_index
