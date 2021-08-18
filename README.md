@@ -10,7 +10,7 @@ creative work and appreciate it within the game easily and quickly.
 
 Eventually I would like to include more advanced game data editing capabilities, but for now those ideas are not high 
 priority and the focus is on a well designed UI/UX that allows for intuitive palette editing and sharing. Some 
-features (like the animation viewer) are present so the tool has use to people other than custom palette enthusiasts.
+features, like the animation viewer, are present so the tool has use to people other than custom palette enthusiasts.
 
 # Upcoming Functionality
 
