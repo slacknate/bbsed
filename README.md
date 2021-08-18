@@ -12,9 +12,11 @@ Eventually I would like to include more advanced game data editing capabilities,
 priority and the focus is on a well designed UI/UX that allows for intuitive palette editing and sharing. Some 
 features, like the animation viewer, are present so the tool has use to people other than custom palette enthusiasts.
 
-# Upcoming Functionality
+# Slated Functionality (No ETA)
 
-* Sprite image content editing support - No ETA
+* Sprite image data editing
+* Frame data editing
+* Collision box editing
 
 # Known Issues
 
