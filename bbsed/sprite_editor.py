@@ -959,7 +959,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
     def _populate_script_sprites(self, nodes, sprite_cache_path, default_palette_fmt):
         """
-        ???.
+        Read a parsed bbscript file and find all character sprites.
         """
         for node in nodes:
             sprite_file_data = []
