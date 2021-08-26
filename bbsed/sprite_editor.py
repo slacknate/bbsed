@@ -46,27 +46,33 @@ class CharacterState:
     def __init__(self, sprite, sprite_editor):
         self.sprite = sprite
         self.sprite_editor = sprite_editor
-        self.character_dialog = None
+        self.state_visible = lambda: not sprite_editor.ui.extra_group.isHidden()
+        self.set_state_visibility = sprite_editor.ui.extra_group.setVisible
+        self.get_state_name = None
+        self.get_state = None
         self.palette_id = "INVALID"
         self.character_id = "INVALID"
         self.initial = None
         self.current = None
 
-    def _show_states(self, character_name, state_name, state_choices):
+    def _show_states(self, state_name, state_choices):
         """
-        Create and display a dialog for the given character that displays a character state (e.g.
-        Izayoi Gain Art) and choices for the state.
+        Create and display a dialog for the given character that displays a character
+        state (e.g. Izayoi Gain Art) and choices for the state.
         """
-        dialog = QtWidgets.QDialog(flags=QtCore.Qt.WindowType.WindowTitleHint, parent=self.sprite_editor.mainwindow)
-        dialog.setWindowTitle(f"{character_name} - Extra Controls")
+        self.set_state_visibility(True)
 
-        parent_layout = QtWidgets.QVBoxLayout()
-        dialog.setLayout(parent_layout)
+        layout = self.sprite_editor.ui.extra_group.layout()
+        if layout is None:
+            layout = QtWidgets.QHBoxLayout(self.sprite_editor.ui.extra_group)
 
-        state_layout = QtWidgets.QHBoxLayout()
+        # If we have widgets in the layout we need to remove them so we can add new widgets for the new state display.
+        for i in reversed(range(layout.count())):
+            layout.itemAt(i).widget().setParent(None)
+
         label = QtWidgets.QLabel()
         label.setText(state_name)
-        state_layout.addWidget(label)
+        layout.addWidget(label)
 
         def _make_state_callback():
             """
@@ -78,18 +84,10 @@ class CharacterState:
         combobox = QtWidgets.QComboBox()
         combobox.addItems(state_choices)
         combobox.currentTextChanged.connect(_make_state_callback())
-        state_layout.addWidget(combobox)
+        layout.addWidget(combobox)
 
-        spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        state_layout.addItem(spacer)
-
-        parent_layout.addLayout(state_layout)
-
-        dialog.get_state_name = lambda: state_name
-        dialog.get_state = combobox.currentText
-        dialog.show()
-
-        self.character_dialog = dialog
+        self.get_state_name = lambda: state_name
+        self.get_state = combobox.currentText
 
     def set_palette_id(self, palette_id):
         """
@@ -111,9 +109,8 @@ class CharacterState:
         self.character_id = character_id
         self.current = None
 
-        if self.character_dialog is not None:
-            self.character_dialog.hide()
-            self.character_dialog = None
+        if self.state_visible():
+            self.set_state_visibility(False)
 
         character_name, _ = CHARACTER_INFO[character_id]
         ext_info = CHARACTER_INFO_EXT.get(character_id, {})
@@ -124,7 +121,10 @@ class CharacterState:
         if char_states:
             self.current = self.initial = char_states[STATE_INITIAL]
             state_name, state_choices = char_states[STATE_DEFINITION]
-            self._show_states(character_name, state_name, state_choices)
+            self._show_states(state_name, state_choices)
+
+        else:
+            self.set_state_visibility(False)
 
     def _update_state(self):
         """
@@ -137,8 +137,8 @@ class CharacterState:
         is_initial = True
 
         # Only attempt to fetch the character state if there is a state to be fetched!
-        if self.character_dialog is not None:
-            state = self.character_dialog.get_state()
+        if self.state_visible():
+            state = self.get_state()
             is_initial = (state == self.initial)
             self.current = state
 
@@ -214,15 +214,6 @@ class CharacterState:
                     break
 
         return swap_index
-
-    def hide(self):
-        """
-        Hide the character dialog if it exists.
-        We need to expose this control to the spride editor so we can close
-        the dialog when we close the app if necessary.
-        """
-        if self.character_dialog is not None:
-            self.character_dialog.hide()
 
 
 class SpriteGroupItem(QtWidgets.QTreeWidgetItem):
@@ -448,10 +439,14 @@ class SpriteEditor(QtWidgets.QWidget):
         for _, (character_name, character) in sorted_chars:
             self.ui.char_select.addItem(character_name, character)
 
+        # Set up character, palette, and save slot UI callbacks.
+        # By default no character is selected.
         self.ui.char_select.setCurrentIndex(-1)
         self.ui.char_select.currentIndexChanged.connect(self.select_character)
         self.ui.palette_select.currentIndexChanged.connect(self.select_palette)
         self.ui.slot_select.currentIndexChanged.connect(self.select_palette_slot)
+        # Hide the extra controls by default as there is no controls to display when no character is selected.
+        self.ui.extra_group.setVisible(False)
 
         # Create editor related dialogs and associate them to their respective View Menu check items.
         self.zoom_dialog = ZoomDialog(self.mainwindow.ui.view_zoom, parent=mainwindow)
@@ -1203,8 +1198,6 @@ class SpriteEditor(QtWidgets.QWidget):
         Resets everything except character selection so we can
         use this method in `select_character`.
         """
-        self.state.hide()
-
         with block_signals(self.ui.palette_select):
             self.ui.palette_select.setCurrentIndex(-1)
 
@@ -1242,7 +1235,6 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         self.palette_dialog.hide()
         self.zoom_dialog.hide()
-        self.state.hide()
 
         character = self.ui.char_select.currentData()
         palette_id = self.ui.palette_select.currentText()
