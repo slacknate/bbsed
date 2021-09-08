@@ -115,12 +115,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="import_palettes"/>
-   <addaction name="export_palettes"/>
-   <addaction name="separator"/>
    <addaction name="apply_palettes"/>
    <addaction name="restore_all"/>
    <addaction name="restore_character"/>
+   <addaction name="separator"/>
+   <addaction name="export_palettes"/>
+   <addaction name="import_palettes"/>
    <addaction name="separator"/>
    <addaction name="save_palette"/>
    <addaction name="save_palette_as"/>
