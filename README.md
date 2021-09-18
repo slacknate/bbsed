@@ -20,7 +20,7 @@ features, like the animation viewer, are present so the tool has use to people o
 
 # Known Issues
 
-* Not all character sprite files are mapped out with human readable names (yet)
+* Some characters/sprites do not properly load
 * Palette Data, Zoom, and extra character control dialog positions are not file saved, and thus reset each time 
 they are hidden/shown
 * If the user drag-selects a sprite in the HIP image list, there is an off-by-one error and the wrong sprite 
