@@ -2,10 +2,14 @@
 Package to contain UI files created by Qt Designer and the Python generated from those files.
 """
 
-# All icon files included are licensed with a basic "Free for commercial use" license (as of 4/12/2021).
+# All icon files included are licensed with a basic "Free for commercial use" license (as of 9/18/2021).
 # All of the images, with called out licenses, can be found online as follows:
 
 # settings.ico - https://www.iconfinder.com/icons/1493289/settings_cog_gear_options_preferences_setting_system_icon
+# cut.ico - https://www.iconfinder.com/icons/1493291/cut_scissors_icon
+# fill.ico - https://icon-icons.com/icon/paint-bucket-color/57295
+# swap.ico - https://icon-icons.com/icon/arrow-swap/50461
+# gradient.ico - https://icon-icons.com/icon/gradient/89891
 # save.ico - https://www.iconfinder.com/icons/1493294/save_disk_floppy_guardar_icon
 # undo.ico - https://www.iconfinder.com/icons/1493283/undo_icon
 # paste.ico - https://www.iconfinder.com/icons/1493290/paste_board_clipboard_task_icon

@@ -1,5 +1,9 @@
 <RCC>
   <qresource prefix="images">
+    <file>images/fill.ico</file>
+    <file>images/swap.ico</file>
+    <file>images/gradient.ico</file>
+    <file>images/cut.ico</file>
     <file>images/stop.ico</file>
     <file>images/launch.ico</file>
     <file>images/delete.ico</file>
