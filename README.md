@@ -26,6 +26,7 @@ they are hidden/shown
 * If the user drag-selects a sprite in the HIP image list, there is an off-by-one error and the wrong sprite 
 may be displayed under certain circumstances
 * Animation dialog cannot currently show effects (it is completely unimplemented)
+* Sprite preview cursor sometimes gets into a bad state and shows a dialog about a C/C++ object being deleted
 
 # Shoutouts
 
