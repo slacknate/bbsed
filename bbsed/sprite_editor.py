@@ -9,6 +9,8 @@ from libhpl import PNGPalette, PNGPaletteImage
 from libscr.commands import CMD_SPRITE
 
 from .ui.sprite_editor_ui import Ui_Editor
+from .ui.selector_widget_ui import Ui_Selector
+from .ui.extra_widget_ui import Ui_Extra
 
 from .animation_prep import AnimationPrepThread
 from .animation_dialog import AnimationDialog
@@ -46,8 +48,8 @@ class CharacterState:
     def __init__(self, sprite, sprite_editor):
         self.sprite = sprite
         self.sprite_editor = sprite_editor
-        self.state_visible = lambda: not sprite_editor.ui.extra_group.isHidden()
-        self.set_state_visibility = sprite_editor.ui.extra_group.setVisible
+        self.state_visible = sprite_editor.get_extra_visibility
+        self.set_state_visibility = sprite_editor.set_extra_visibility
         self.get_state_name = None
         self.get_state = None
         self.palette_id = "INVALID"
@@ -60,20 +62,6 @@ class CharacterState:
         Create and display a dialog for the given character that displays a character
         state (e.g. Izayoi Gain Art) and choices for the state.
         """
-        self.set_state_visibility(True)
-
-        layout = self.sprite_editor.ui.extra_group.layout()
-        if layout is None:
-            layout = QtWidgets.QHBoxLayout(self.sprite_editor.ui.extra_group)
-
-        # If we have widgets in the layout we need to remove them so we can add new widgets for the new state display.
-        for i in reversed(range(layout.count())):
-            layout.itemAt(i).widget().setParent(None)
-
-        label = QtWidgets.QLabel()
-        label.setText(state_name)
-        layout.addWidget(label)
-
         def _make_state_callback():
             """
             Make a function that accepts the combobox string value and uses a closure of
@@ -81,13 +69,14 @@ class CharacterState:
             """
             return lambda _state_value: self.sprite_editor.character_state_change(state_name, _state_value)
 
-        combobox = QtWidgets.QComboBox()
-        combobox.addItems(state_choices)
-        combobox.currentTextChanged.connect(_make_state_callback())
-        layout.addWidget(combobox)
+        self.sprite_editor.extra_controls.set_name(state_name)
+        self.sprite_editor.extra_controls.set_choices(state_choices)
+        self.sprite_editor.extra_controls.set_callback(_make_state_callback())
 
         self.get_state_name = lambda: state_name
-        self.get_state = combobox.currentText
+        self.get_state = self.sprite_editor.extra_controls.get_state
+
+        self.set_state_visibility(True)
 
     def set_palette_id(self, palette_id):
         """
@@ -406,6 +395,76 @@ class Sprite:
         return palette_image.getvalue()
 
 
+class EditorSelector(QtWidgets.QWidget):
+    def __init__(self, parent):
+        QtWidgets.QWidget.__init__(self, parent)
+
+        self.ui = Ui_Selector()
+        self.ui.setupUi(self)
+
+    @property
+    def character(self):
+        """
+        Convenience property to abbreviate usages of this combobox in the sprite editor.
+        """
+        return self.ui.char_select
+
+    @property
+    def palette(self):
+        """
+        Convenience property to abbreviate usages of this combobox in the sprite editor.
+        """
+        return self.ui.palette_select
+
+    @property
+    def slot(self):
+        """
+        Convenience property to abbreviate usages of this combobox in the sprite editor.
+        """
+        return self.ui.slot_select
+
+
+class ExtraControls(QtWidgets.QWidget):
+    def __init__(self, parent):
+        QtWidgets.QWidget.__init__(self, parent)
+
+        self.ui = Ui_Extra()
+        self.ui.setupUi(self)
+
+        self.callback = None
+
+    def set_name(self, name):
+        """
+        Set the name of this character state selector.
+        """
+        self.ui.state_name.setText(name)
+
+    def set_choices(self, choices):
+        """
+        Set the valid choices for the character state selector.
+        We clear any previously added choices first.
+        """
+        self.ui.state_choices.clear()
+        self.ui.state_choices.addItems(choices)
+
+    def get_state(self):
+        """
+        Get the current selected character state.
+        """
+        return self.ui.state_choices.currentText()
+
+    def set_callback(self, callback):
+        """
+        Set the callback for character state change.
+        If a callback has been set previously we remove it before adding the new callback.
+        """
+        if self.callback is not None:
+            self.ui.state_choices.currentTextChanged.disconnect(self.callback)
+
+        self.ui.state_choices.currentTextChanged.connect(callback)
+        self.callback = callback
+
+
 class SpriteEditor(QtWidgets.QWidget):
 
     image_data_changed = QtCore.pyqtSignal()
@@ -436,17 +495,27 @@ class SpriteEditor(QtWidgets.QWidget):
         sorted_chars = list(CHARACTER_INFO.items())
         sorted_chars.sort(key=lambda item: item[0])
 
+        # Create our extra controls widget and add it to the toolbar.
+        # Hide the extra controls by default as there are no controls to display when no character is selected.
+        self.extra_controls = ExtraControls(self)
+        self.extra_separator = self.mainwindow.ui.toolbar.addSeparator()
+        self.ex_ctrl_action = self.mainwindow.ui.toolbar.addWidget(self.extra_controls)
+        self.set_extra_visibility(False)
+
+        # Create our character/palette/slot selector widget and add it to the toolbar.
+        self.selector = EditorSelector(self)
+        self.mainwindow.ui.toolbar.insertWidget(self.mainwindow.ui.cut_color, self.selector)
+        self.mainwindow.ui.toolbar.insertSeparator(self.mainwindow.ui.cut_color)
+
         for _, (character_name, character) in sorted_chars:
-            self.ui.char_select.addItem(character_name, character)
+            self.selector.character.addItem(character_name, character)
 
         # Set up character, palette, and save slot UI callbacks.
         # By default no character is selected.
-        self.ui.char_select.setCurrentIndex(-1)
-        self.ui.char_select.currentIndexChanged.connect(self.select_character)
-        self.ui.palette_select.currentIndexChanged.connect(self.select_palette)
-        self.ui.slot_select.currentIndexChanged.connect(self.select_palette_slot)
-        # Hide the extra controls by default as there is no controls to display when no character is selected.
-        self.ui.extra_group.setVisible(False)
+        self.selector.character.setCurrentIndex(-1)
+        self.selector.character.currentIndexChanged.connect(self.select_character)
+        self.selector.palette.currentIndexChanged.connect(self.select_palette)
+        self.selector.slot.currentIndexChanged.connect(self.select_palette_slot)
 
         # Create editor related dialogs and associate them to their respective View Menu check items.
         self.zoom_dialog = ZoomDialog(self.mainwindow.ui.view_zoom, parent=mainwindow)
@@ -485,8 +554,8 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         Get the name and character ID of the current selected character.
         """
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
+        character_name = self.selector.character.currentText()
+        character = self.selector.character.currentData()
         return character_name, character
 
     def find_character(self, character_name=None, character=None):
@@ -499,10 +568,10 @@ class SpriteEditor(QtWidgets.QWidget):
             raise ValueError("Must provide either a character name or a character abbreviation!")
 
         if character_name:
-            character_id = self.ui.char_select.findText(character_name)
+            character_id = self.selector.character.findText(character_name)
 
         if character:
-            character_id = self.ui.char_select.findData(character)
+            character_id = self.selector.character.findData(character)
 
         return CHARACTER_INFO[character_id]
 
@@ -511,16 +580,16 @@ class SpriteEditor(QtWidgets.QWidget):
         Get the palette ID and palette number of the current selected palette.
         A palette ID is the number displayed in game, a palette number is the number used in the files on disk.
         """
-        palette_id = self.ui.palette_select.currentText()
-        palette_num = self.ui.palette_select.currentData()
+        palette_id = self.selector.palette.currentText()
+        palette_num = self.selector.palette.currentData()
         return palette_id, palette_num
 
     def get_slot(self):
         """
         Get the palette slot name and slot typeof the current selected palette slot.
         """
-        slot_name = self.ui.slot_select.currentText()
-        slot_type = self.ui.slot_select.currentData()
+        slot_name = self.selector.slot.currentText()
+        slot_type = self.selector.slot.currentData()
         return slot_name, slot_type
 
     def set_slot(self, slot_name=None, slot_type=None):
@@ -533,76 +602,76 @@ class SpriteEditor(QtWidgets.QWidget):
             raise ValueError("Must provide either a slot name or a slot type!")
 
         if slot_name:
-            slot_index = self.ui.slot_select.findText(slot_name)
+            slot_index = self.selector.slot.findText(slot_name)
 
         if slot_type:
-            slot_index = self.ui.slot_select.findData(slot_type)
+            slot_index = self.selector.slot.findData(slot_type)
 
-        self.ui.slot_select.setCurrentIndex(slot_index)
+        self.selector.slot.setCurrentIndex(slot_index)
 
     def delete_slot(self, save_name):
         """
         We have deleted the save slot identified by `save_name`. We should remove it from the UI.
         """
-        save_index = self.ui.slot_select.findText(save_name)
+        save_index = self.selector.slot.findText(save_name)
 
-        with block_signals(self.ui.slot_select):
-            self.ui.slot_select.removeItem(save_index)
+        with block_signals(self.selector.slot):
+            self.selector.slot.removeItem(save_index)
 
         # Re-select the edit slot after we delete a palette.
-        self.ui.slot_select.setCurrentIndex(0)
+        self.selector.slot.setCurrentIndex(0)
 
     def import_palette_data(self, character, palette_id, hpl_to_import, pac_to_import):
         """
         We have successfully imported palette data. Update the UI to include the new palettes if applicable.
         """
-        with block_signals(self.ui.slot_select):
+        with block_signals(self.selector.slot):
             for save_char, save_pal_id, save_name in hpl_to_import.keys():
                 if save_char == character and save_pal_id == palette_id:
-                    self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
+                    self.selector.slot.addItem(save_name, PALETTE_SAVE)
 
             for file_info in pac_to_import.values():
                 for save_char, save_pal_id, save_name in file_info.keys():
                     if save_char == character and save_pal_id == palette_id:
-                        self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
+                        self.selector.slot.addItem(save_name, PALETTE_SAVE)
 
     def add_save_slot(self, slot_name):
         """
         We have saved a palette. Add the slot name to the UI if necessary and select the slot.
         """
         # We may be saving changes made to a palette that already has a save name.
-        save_index = self.ui.slot_select.findText(slot_name)
+        save_index = self.selector.slot.findText(slot_name)
 
-        with block_signals(self.ui.slot_select):
+        with block_signals(self.selector.slot):
             # Only add a new item if this save name is new.
             # This will happen if the palette has not been saved before
             # or if the user has selected the "Save As" option.
             if save_index < 0:
-                self.ui.slot_select.addItem(slot_name, PALETTE_SAVE)
-                save_index = self.ui.slot_select.findText(slot_name)
+                self.selector.slot.addItem(slot_name, PALETTE_SAVE)
+                save_index = self.selector.slot.findText(slot_name)
 
-            self.ui.slot_select.setCurrentIndex(save_index)
+            self.selector.slot.setCurrentIndex(save_index)
 
         # If this is the first palette saved for this character and palette ID then we will need to enable
         # the save select combobox.
-        if not self.ui.slot_select.isEnabled():
-            self.ui.slot_select.setEnabled(True)
+        if not self.selector.slot.isEnabled():
+            self.selector.slot.setEnabled(True)
 
     def _update_save_slots(self, character_saves):
         """
         We have selected a character or a palette.
         We need to update the available slots presented in the UI.
         """
-        with block_signals(self.ui.slot_select):
+        with block_signals(self.selector.slot):
             # Clearing the save select and re-adding items will auto-select the first item
             # which will always be a non-saved palette.
-            self.ui.slot_select.clear()
-            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
+            self.selector.slot.clear()
+            self.selector.slot.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
             # Set the save select enable state based on the presence of files on disk.
-            self.ui.slot_select.setEnabled(bool(character_saves))
+            self.selector.slot.setEnabled(bool(character_saves))
             for save_name in character_saves:
-                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
+                self.selector.slot.addItem(save_name, PALETTE_SAVE)
 
     def character_state_change(self, _, __):
         """
@@ -623,27 +692,27 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         self._reset()
 
-        character_id = self.ui.char_select.currentIndex()
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
+        character_id = self.selector.character.currentIndex()
+        character_name = self.selector.character.currentText()
+        character = self.selector.character.currentData()
 
         # Don't allow the user to interact with these parts of the UI while we are updating them.
-        self.ui.sprite_group.setEnabled(False)
+        self.set_selection_enable(False)
 
         # Block signals while we add items so the signals are not emitted.
         # We do not want to try to select a palette before a sprite is selected, and
         # at the very least we do not want to spam the signals in a loop regardless.
-        with block_signals(self.ui.palette_select):
+        with block_signals(self.selector.palette):
             for palette_id, palette_num in iter_palettes():
-                self.ui.palette_select.addItem(palette_id, palette_num)
+                self.selector.palette.addItem(palette_id, palette_num)
 
             # Automatically select the first palette.
             # We intentionally select this in the block_signals block so we do not try to set
             # palette data before a sprite is selected.
-            self.ui.palette_select.setCurrentIndex(0)
+            self.selector.palette.setCurrentIndex(0)
 
         # Get the palette ID from the widget for the sake of consistency.
-        palette_id = self.ui.palette_select.currentText()
+        palette_id = self.selector.palette.currentText()
 
         # Update the UI to show any save slots for the first palette.
         character_saves = self.paths.get_character_saves(character, palette_id)
@@ -653,7 +722,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.state.load_character(character_id)
 
         # Re-enable user interaction for everything else.
-        self.ui.sprite_group.setEnabled(True)
+        self.set_selection_enable(True)
 
         self.character_changed.emit(character_name, character)
 
@@ -681,15 +750,15 @@ class SpriteEditor(QtWidgets.QWidget):
             if not edit_palette:
                 # If the user has chosen not to edit the palette we select the previous palette.
                 # This may in fact de-select a palette all together.
-                with block_signals(self.ui.palette_select):
-                    palette_index = self.ui.palette_select.findText(prev_palette_id)
-                    self.ui.palette_select.setCurrentIndex(palette_index)
+                with block_signals(self.selector.palette):
+                    palette_index = self.selector.palette.findText(prev_palette_id)
+                    self.selector.palette.setCurrentIndex(palette_index)
 
                 # We also need to update our slot selection. If we are selected a valid previous
                 # palette then we select the edit slow. Otherwise we also de-select all slots.
-                with block_signals(self.ui.slot_select):
+                with block_signals(self.selector.slot):
                     slot_index = 0 if palette_index >= 0 else -1
-                    self.ui.slot_select.setCurrentIndex(slot_index)
+                    self.selector.slot.setCurrentIndex(slot_index)
 
         # We are for sure selecting this palette. Create the lock and update our state!
         if edit_palette:
@@ -703,10 +772,10 @@ class SpriteEditor(QtWidgets.QWidget):
         A new palette has been selected.
         Replace the palette of the currently selected sprite and update the image preview.
         """
-        character = self.ui.char_select.currentData()
-        character_name = self.ui.char_select.currentText()
-        palette_id = self.ui.palette_select.currentText()
-        palette_num = self.ui.palette_select.currentData()
+        character = self.selector.character.currentData()
+        character_name = self.selector.character.currentText()
+        palette_id = self.selector.palette.currentText()
+        palette_num = self.selector.palette.currentData()
 
         # We have selected a new palette and should now lock it for editing.
         # If it is locked by another process and the user wishes to respect that we should not continue.
@@ -727,8 +796,8 @@ class SpriteEditor(QtWidgets.QWidget):
         We have selected a palette which has been saved by the user.
         Disable the delete button when we have the Edit slot selected.
         """
-        slot_name = self.ui.slot_select.currentText()
-        slot_type = self.ui.slot_select.currentData()
+        slot_name = self.selector.slot.currentText()
+        slot_type = self.selector.slot.currentData()
 
         self.refresh()
 
@@ -754,10 +823,10 @@ class SpriteEditor(QtWidgets.QWidget):
         Refresh our sprite palette. Reload the palette file, apply it to the sprite, and
         look for any color swaps that are applicable.
         """
-        character = self.ui.char_select.currentData()
-        slot_name = self.ui.slot_select.currentText()
-        slot_type = self.ui.slot_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
+        character = self.selector.character.currentData()
+        slot_name = self.selector.slot.currentText()
+        slot_type = self.selector.slot.currentData()
+        palette_id = self.selector.palette.currentText()
         sprite_item = self.ui.sprite_list.currentItem()
 
         # We only need to palette swap if we have an active item.
@@ -865,11 +934,11 @@ class SpriteEditor(QtWidgets.QWidget):
         Update the sprite list to the current palette.
         We also update the sprite preview but only if a sprite is selected.
         """
-        character_id = self.ui.char_select.currentIndex()
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
-        palette_num = self.ui.palette_select.currentData()
+        character_id = self.selector.character.currentIndex()
+        character_name = self.selector.character.currentText()
+        character = self.selector.character.currentData()
+        palette_id = self.selector.palette.currentText()
+        palette_num = self.selector.palette.currentData()
 
         # Do not try to populate the sprite list if no character is selected or if
         # it has already has been populated. The sprite list is cleared on reset so
@@ -1049,7 +1118,7 @@ class SpriteEditor(QtWidgets.QWidget):
             parent_item = selected_item
 
         frame1 = parent_item.child(0)
-        palette_id = self.ui.palette_select.currentText()
+        palette_id = self.selector.palette.currentText()
         hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
         palette_full_path = os.path.join(hpl_file_path, frame1.hpl_file)
 
@@ -1064,7 +1133,7 @@ class SpriteEditor(QtWidgets.QWidget):
         Show the animation dialog so we can play an animation as we would see it in game.
         """
         selected_item = self.ui.sprite_list.currentItem()
-        character = self.ui.char_select.currentData()
+        character = self.selector.character.currentData()
 
         palette_full_path, frame_files = self._get_animation_files(selected_item, character)
 
@@ -1093,9 +1162,9 @@ class SpriteEditor(QtWidgets.QWidget):
         The color in a palette has been changed by the user.
         Save the changes to disk and update the character visuals live.
         """
-        palette_id = self.ui.palette_select.currentText()
-        character_name = self.ui.char_select.currentText()
-        character = self.ui.char_select.currentData()
+        palette_id = self.selector.palette.currentText()
+        character_name = self.selector.character.currentText()
+        character = self.selector.character.currentData()
 
         try:
             self.sprite.set_index_color(palette_index, color_tuple)
@@ -1198,13 +1267,13 @@ class SpriteEditor(QtWidgets.QWidget):
         Resets everything except character selection so we can
         use this method in `select_character`.
         """
-        with block_signals(self.ui.palette_select):
-            self.ui.palette_select.setCurrentIndex(-1)
+        with block_signals(self.selector.palette):
+            self.selector.palette.setCurrentIndex(-1)
 
-        with block_signals(self.ui.slot_select):
-            self.ui.slot_select.setEnabled(False)
-            self.ui.slot_select.clear()
-            self.ui.slot_select.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
+        with block_signals(self.selector.slot):
+            self.selector.slot.setEnabled(False)
+            self.selector.slot.clear()
+            self.selector.slot.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
         with block_signals(self.ui.sprite_list):
             self.ui.sprite_list.clear()
@@ -1216,8 +1285,8 @@ class SpriteEditor(QtWidgets.QWidget):
         Reset the editor state. We reset character, palette, and slot select, as well as
         the sprite file list and sprite image data.
         """
-        with block_signals(self.ui.char_select):
-            self.ui.char_select.setCurrentIndex(-1)
+        with block_signals(self.selector.character):
+            self.selector.character.setCurrentIndex(-1)
 
         self._reset()
 
@@ -1226,7 +1295,23 @@ class SpriteEditor(QtWidgets.QWidget):
         Set the enable state of the character group.
         Used to enable or disable the character, palette, and slot selection widgets.
         """
-        self.ui.character_group.setEnabled(state)
+        self.selector.character.setEnabled(state)
+        self.selector.palette.setEnabled(state)
+        self.selector.slot.setEnabled(state)
+
+    def get_extra_visibility(self):
+        """
+        Get the visibility state of the extra controls.
+        """
+        return self.ex_ctrl_action.isVisible()
+
+    def set_extra_visibility(self, state):
+        """
+        Set the visibility state of the extra controls.
+        This includes the separator next to the extra controls widget.
+        """
+        self.ex_ctrl_action.setVisible(state)
+        self.extra_separator.setVisible(state)
 
     def close(self):
         """
@@ -1236,8 +1321,8 @@ class SpriteEditor(QtWidgets.QWidget):
         self.palette_dialog.hide()
         self.zoom_dialog.hide()
 
-        character = self.ui.char_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
+        character = self.selector.character.currentData()
+        palette_id = self.selector.palette.currentText()
 
         # If we have an active lock file remove it.
         if character is not None and palette_id is not None:
