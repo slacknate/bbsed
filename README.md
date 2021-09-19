@@ -27,6 +27,7 @@ they are hidden/shown
 may be displayed under certain circumstances
 * Animation dialog cannot currently show effects (it is completely unimplemented)
 * Sprite preview cursor sometimes gets into a bad state and shows a dialog about a C/C++ object being deleted
+* Palette dialog gradient tool needs some improvements (in terms of gradient generation math)
 
 # Shoutouts
 
