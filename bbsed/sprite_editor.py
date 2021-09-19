@@ -437,13 +437,13 @@ class ExtraControls:
 
     def get_visibility(self):
         """
-        ???.
+        Get the visibulity of extra controls actions.
         """
         return self.separator.isVisible()
 
     def set_visibility(self, state):
         """
-        ???.
+        Set the visibulity of extra controls actions.
         """
         self.separator.setVisible(state)
         self.name_action.setVisible(state)
