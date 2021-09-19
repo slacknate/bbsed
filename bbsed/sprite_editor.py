@@ -9,8 +9,6 @@ from libhpl import PNGPalette, PNGPaletteImage
 from libscr.commands import CMD_SPRITE
 
 from .ui.sprite_editor_ui import Ui_Editor
-from .ui.selector_widget_ui import Ui_Selector
-from .ui.extra_widget_ui import Ui_Extra
 
 from .animation_prep import AnimationPrepThread
 from .animation_dialog import AnimationDialog
@@ -48,8 +46,8 @@ class CharacterState:
     def __init__(self, sprite, sprite_editor):
         self.sprite = sprite
         self.sprite_editor = sprite_editor
-        self.state_visible = sprite_editor.get_extra_visibility
-        self.set_state_visibility = sprite_editor.set_extra_visibility
+        self.state_visible = sprite_editor.extra_controls.get_visibility
+        self.set_state_visibility = sprite_editor.extra_controls.set_visibility
         self.get_state_name = None
         self.get_state = None
         self.palette_id = "INVALID"
@@ -414,63 +412,62 @@ class Sprite:
         return palette_image.getvalue()
 
 
-class EditorSelector(QtWidgets.QWidget):
-    def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+class EditorSelector:
+    def __init__(self, toolbar, before_widget):
+        self.character = QtWidgets.QComboBox()
+        self.palette = QtWidgets.QComboBox()
+        self.slot = QtWidgets.QComboBox()
 
-        self.ui = Ui_Selector()
-        self.ui.setupUi(self)
-
-    @property
-    def character(self):
-        """
-        Convenience property to abbreviate usages of this combobox in the sprite editor.
-        """
-        return self.ui.char_select
-
-    @property
-    def palette(self):
-        """
-        Convenience property to abbreviate usages of this combobox in the sprite editor.
-        """
-        return self.ui.palette_select
-
-    @property
-    def slot(self):
-        """
-        Convenience property to abbreviate usages of this combobox in the sprite editor.
-        """
-        return self.ui.slot_select
+        toolbar.insertWidget(before_widget, self.character)
+        toolbar.insertWidget(before_widget, self.palette)
+        toolbar.insertWidget(before_widget, self.slot)
+        toolbar.insertSeparator(before_widget)
 
 
-class ExtraControls(QtWidgets.QWidget):
-    def __init__(self, parent):
-        QtWidgets.QWidget.__init__(self, parent)
+class ExtraControls:
+    def __init__(self, toolbar):
+        self.state_name = QtWidgets.QLabel()
+        self.state_choices = QtWidgets.QComboBox()
 
-        self.ui = Ui_Extra()
-        self.ui.setupUi(self)
+        self.separator = toolbar.addSeparator()
+        self.name_action = toolbar.addWidget(self.state_name)
+        self.choice_action = toolbar.addWidget(self.state_choices)
 
         self.callback = None
+
+    def get_visibility(self):
+        """
+        ???.
+        """
+        return self.separator.isVisible()
+
+    def set_visibility(self, state):
+        """
+        ???.
+        """
+        self.separator.setVisible(state)
+        self.name_action.setVisible(state)
+        self.choice_action.setVisible(state)
 
     def set_name(self, name):
         """
         Set the name of this character state selector.
         """
-        self.ui.state_name.setText(name)
+        self.state_name.setText(name)
 
     def set_choices(self, choices):
         """
         Set the valid choices for the character state selector.
         We clear any previously added choices first.
         """
-        self.ui.state_choices.clear()
-        self.ui.state_choices.addItems(choices)
+        self.state_choices.clear()
+        self.state_choices.addItems(choices)
 
     def get_state(self):
         """
         Get the current selected character state.
         """
-        return self.ui.state_choices.currentText()
+        return self.state_choices.currentText()
 
     def set_callback(self, callback):
         """
@@ -478,9 +475,9 @@ class ExtraControls(QtWidgets.QWidget):
         If a callback has been set previously we remove it before adding the new callback.
         """
         if self.callback is not None:
-            self.ui.state_choices.currentTextChanged.disconnect(self.callback)
+            self.state_choices.currentTextChanged.disconnect(self.callback)
 
-        self.ui.state_choices.currentTextChanged.connect(callback)
+        self.state_choices.currentTextChanged.connect(callback)
         self.callback = callback
 
 
@@ -496,6 +493,14 @@ class SpriteEditor(QtWidgets.QWidget):
 
         self.ui = Ui_Editor()
         self.ui.setupUi(self)
+
+        # Create our extra controls widget and add it to the toolbar.
+        # Hide the extra controls by default as there are no controls to display when no character is selected.
+        self.extra_controls = ExtraControls(mainwindow.ui.toolbar)
+        self.extra_controls.set_visibility(False)
+
+        # Create our character/palette/slot selector widget and add it to the toolbar.
+        self.selector = EditorSelector(mainwindow.ui.toolbar, mainwindow.ui.cut_color)
 
         # The sprite we are currently editing.
         self.sprite = Sprite()
@@ -513,18 +518,6 @@ class SpriteEditor(QtWidgets.QWidget):
         # This way the combo box index will match the defined character IDs in the char_info module.
         sorted_chars = list(CHARACTER_INFO.items())
         sorted_chars.sort(key=lambda item: item[0])
-
-        # Create our extra controls widget and add it to the toolbar.
-        # Hide the extra controls by default as there are no controls to display when no character is selected.
-        self.extra_controls = ExtraControls(self)
-        self.extra_separator = self.mainwindow.ui.toolbar.addSeparator()
-        self.ex_ctrl_action = self.mainwindow.ui.toolbar.addWidget(self.extra_controls)
-        self.set_extra_visibility(False)
-
-        # Create our character/palette/slot selector widget and add it to the toolbar.
-        self.selector = EditorSelector(self)
-        self.mainwindow.ui.toolbar.insertWidget(self.mainwindow.ui.cut_color, self.selector)
-        self.mainwindow.ui.toolbar.insertSeparator(self.mainwindow.ui.cut_color)
 
         for _, (character_name, character) in sorted_chars:
             self.selector.character.addItem(character_name, character)
@@ -1325,20 +1318,6 @@ class SpriteEditor(QtWidgets.QWidget):
         self.selector.character.setEnabled(state)
         self.selector.palette.setEnabled(state)
         self.selector.slot.setEnabled(state)
-
-    def get_extra_visibility(self):
-        """
-        Get the visibility state of the extra controls.
-        """
-        return self.ex_ctrl_action.isVisible()
-
-    def set_extra_visibility(self, state):
-        """
-        Set the visibility state of the extra controls.
-        This includes the separator next to the extra controls widget.
-        """
-        self.ex_ctrl_action.setVisible(state)
-        self.extra_separator.setVisible(state)
 
     def close(self):
         """
