@@ -119,6 +119,19 @@ edits or is completely unchanged. Let's create a slot and save your active chang
 PAGE_7 = """
 <html>
 <body>
+There are also several palette editing tools found in the <a href="edit_menu">Edit</a> menu and toolbar.<br><br>
+
+These tools are enabled when a palette index selection has been made in the Palette Dialog.<br>
+To make a selection, left click or left-click drag within the Palette Dialog.<br><br>
+
+Try making a selection and using the tools to edit some palette colors!
+</body>
+</html>
+"""
+
+PAGE_8 = """
+<html>
+<body>
 Your changes have been saved as the name you chose for this palette slot when prompted.<br>
 This name will now appear in the right-most <a href="slot_select">dropdown</a> and<br>
 you can recall this palette to view or edit whenever you like!<br><br>
@@ -133,7 +146,7 @@ A save slot must be actively selected for the "Delete" option to be enabled.
 </html>
 """
 
-PAGE_8 = """
+PAGE_9 = """
 <html>
 <body>
 Note that there are also "Copy", "Paste", and "Discard" options<br>
@@ -154,7 +167,7 @@ option to be enabled.
 </html>
 """
 
-PAGE_9 = """
+PAGE_10 = """
 <html>
 <body>
 To get your custom palettes into the game, you must apply your palettes to the game files.<br>
@@ -174,7 +187,7 @@ re-selected each time you want to add new creations to your palette selections.
 </html>
 """
 
-PAGE_10 = """
+PAGE_11 = """
 <html>
 <body>
 With palettes now applied to the game files, you can launch the game and expect to see<br>
@@ -193,7 +206,7 @@ currently selected character palette files to their original states, respectivel
 </html>
 """
 
-PAGE_11 = """
+PAGE_12 = """
 <html>
 <body>
 If you want to share your palettes with others, you can export a selection of your<br>
@@ -215,7 +228,7 @@ to overwrite any unsaved work!
 </html>
 """
 
-PAGE_12 = """
+PAGE_13 = """
 <html>
 <body>
 That should be all you need to know! Happy palette creation!
@@ -238,6 +251,7 @@ TUTORIAL_PAGES = [
     PAGE_10,
     PAGE_11,
     PAGE_12,
+    PAGE_13,
 ]
 
 
@@ -294,6 +308,9 @@ class TutorialDialog(QtWidgets.QDialog):
 
         if action == "FILE_MENU":
             self.main_window.ui.file_menu.popup(QtGui.QCursor().pos())
+
+        elif action == "EDIT_MENU":
+            self.main_window.ui.edit_menu.popup(QtGui.QCursor().pos())
 
         elif action == "CHAR_SELECT":
             self.main_window.sprite_editor.selector.character.showPopup()

@@ -93,7 +93,7 @@
     <addaction name="separator"/>
     <addaction name="about"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="edit_menu">
     <property name="title">
      <string>Edit</string>
     </property>
@@ -105,7 +105,7 @@
     <addaction name="gradient_color"/>
    </widget>
    <addaction name="file_menu"/>
-   <addaction name="menuEdit"/>
+   <addaction name="edit_menu"/>
    <addaction name="game_files_menu"/>
    <addaction name="palettes_menu"/>
    <addaction name="view_menu"/>
