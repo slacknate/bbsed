@@ -296,16 +296,16 @@ class TutorialDialog(QtWidgets.QDialog):
             self.main_window.ui.file_menu.popup(QtGui.QCursor().pos())
 
         elif action == "CHAR_SELECT":
-            self.main_window.sprite_editor.ui.char_select.showPopup()
+            self.main_window.sprite_editor.selector.character.showPopup()
 
         elif action == "PAL_SELECT":
-            self.main_window.sprite_editor.ui.palette_select.showPopup()
+            self.main_window.sprite_editor.selector.palette.showPopup()
 
         elif action == "PAL_MENU":
             self.main_window.ui.palettes_menu.popup(QtGui.QCursor().pos())
 
         elif action == "SLOT_SELECT":
-            self.main_window.sprite_editor.ui.slot_select.showPopup()
+            self.main_window.sprite_editor.selector.slot.showPopup()
 
         elif action == "GAME_FILES_MENU":
             self.main_window.ui.game_files_menu.popup(QtGui.QCursor().pos())
