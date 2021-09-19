@@ -152,8 +152,8 @@ class CharacterState:
 
         if not is_initial:
             for index1, index2 in swap_colors:
-                color1, color2 = self.sprite.get_index_color_range(index1, index2)
-                self.sprite.set_index_color_range((index1, color2), (index2, color1))
+                color1, color2 = self.sprite.get_color_swap(index1, index2)
+                self.sprite.set_color_swap((index1, color2), (index2, color1))
 
     def swap_palettes(self, sprite_item):
         """
@@ -292,7 +292,7 @@ class Sprite:
 
     # TODO: save_sprite
 
-    def get_index_color_range(self, *indices):
+    def get_color_swap(self, *indices):
         """
         Expose color range fetch method from the sprite palette image.
         This is used exclusively by the `CharacterState.swap_colors` method.
@@ -302,7 +302,7 @@ class Sprite:
 
         return self.palette_image.get_index_color_range(*indices)
 
-    def set_index_color_range(self, *index_colors):
+    def set_color_swap(self, *index_colors):
         """
         Expose color range set method from the sprite palette image.
         This is used exclusively by the `CharacterState.swap_colors` method.
@@ -335,6 +335,15 @@ class Sprite:
 
         return self.palette.get_index_color(index)
 
+    def get_index_color_range(self, *indices):
+        """
+        Expose method to fetch palette color range via palette index  range.
+        """
+        if not self.hip_image.is_palette_image():
+            raise TypeError("Loaded image is not a palette image!")
+
+        return self.palette.get_index_color_range(*indices)
+
     def set_index_color(self, index, rgba):
         """
         Expose method to set palette color via palette index.
@@ -345,6 +354,16 @@ class Sprite:
             raise TypeError("Loaded image is not a palette image!")
 
         self.palette.set_index_color(index, rgba)
+
+    def set_index_color_range(self, *index_colors):
+        """
+        Expose method to set palette color via palette index range.
+        Used by the sprite editor to set palette colors from palette dialog tools.
+        """
+        if not self.hip_image.is_palette_image():
+            raise TypeError("Loaded image is not a palette image!")
+
+        self.palette.set_index_color_range(*index_colors)
 
     def load_palette(self, hpl_full_path):
         """
@@ -519,8 +538,9 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # Create editor related dialogs and associate them to their respective View Menu check items.
         self.zoom_dialog = ZoomDialog(self.mainwindow.ui.view_zoom, parent=mainwindow)
-        self.palette_dialog = PaletteDialog(self.mainwindow.ui.view_palette, parent=mainwindow)
+        self.palette_dialog = PaletteDialog(self.sprite, self.mainwindow.ui.view_palette, parent=mainwindow)
         self.palette_dialog.index_selected.connect(self.choose_color_from_index)
+        self.palette_dialog.indices_changed.connect(self.set_colors_from_tools)
 
         # FIXME: Drag select off-by-one issue still present.
         # Set the selection mode and selection callbacks for the sprite file list.
@@ -1157,7 +1177,7 @@ class SpriteEditor(QtWidgets.QWidget):
         # Ensure the graphics view is refreshed so our crosshair colors update.
         self.ui.sprite_preview.viewport().update()
 
-    def _set_color(self, palette_index, color_tuple):
+    def _set_colors(self, *index_colors):
         """
         The color in a palette has been changed by the user.
         Save the changes to disk and update the character visuals live.
@@ -1167,10 +1187,10 @@ class SpriteEditor(QtWidgets.QWidget):
         character = self.selector.character.currentData()
 
         try:
-            self.sprite.set_index_color(palette_index, color_tuple)
+            self.sprite.set_index_color_range(*index_colors)
 
         except Exception:
-            message = f"Failed to change the color for palette index {palette_index}!"
+            message = f"Failed to update palette colors!"
             self.show_error_dialog("Error Updating Palette", message)
             return
 
@@ -1215,6 +1235,13 @@ class SpriteEditor(QtWidgets.QWidget):
 
         return accepted, color_tuple
 
+    def set_colors_from_tools(self, index_colors):
+        """
+        Set a range of index colors from our palette editing tools.
+        The palette dialog has emitted `indices_changed`.
+        """
+        self._set_colors(*index_colors)
+
     def choose_color_from_index(self, palette_index):
         """
         Pick a color for the given palette index.
@@ -1224,7 +1251,7 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         accepted, color_tuple = self._choose_color(palette_index)
         if accepted:
-            self._set_color(palette_index, color_tuple)
+            self._set_colors((palette_index, color_tuple))
 
     def choose_color_from_coord(self, evt):
         """
