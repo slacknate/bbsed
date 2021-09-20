@@ -7,6 +7,13 @@ from .ui.animation_dialog_ui import Ui_Dialog
 # Note that fighting games run at 60 FPS, and a single frame is the standard unit of time for these games.
 FRAME_TIME = 1.0 / 60.0 * 1000.0
 
+# The first chunk is actually an offset into the sprite coordinate system.
+# The second chunk defines a box around the character eyes.
+# The third chunk defines a box around the character mouth.
+CHUNK_OFFSET = 0
+CHUNK_EYES = 1
+CHUNK_MOUTH = 2
+
 
 class AnimationDialog(QtWidgets.QDialog):
     def __init__(self, frames, chunks, hitboxes, hurtboxes, parent=None):
@@ -132,7 +139,7 @@ class AnimationDialog(QtWidgets.QDialog):
         our game data parameters without having to care about popping out
         data that is not pertinent to this item.
         """
-        chunk = self.chunks[self.index][0]  # TODO: is chunk 0 always the correct one?
+        chunk = self.chunks[self.index][CHUNK_OFFSET]
 
         x -= chunk["x"]
         y -= chunk["y"]
