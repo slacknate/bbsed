@@ -122,7 +122,8 @@ PAGE_7 = """
 There are also several palette editing tools found in the <a href="edit_menu">Edit</a> menu and toolbar.<br><br>
 
 These tools are enabled when a palette index selection has been made in the Palette Dialog.<br>
-To make a selection, left click or left-click drag within the Palette Dialog.<br><br>
+To make a selection, left click or left-click drag within the Palette Dialog.<br>
+To remove a selection, right click the Palette Dialog.<br><br>
 
 Try making a selection and using the tools to edit some palette colors!
 </body>
