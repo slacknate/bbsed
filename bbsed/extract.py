@@ -207,7 +207,13 @@ class ExtractThread(WorkThread):
                 for scr_file in os.listdir(temp_dir):
                     scr_src_path = os.path.join(temp_dir, scr_file)
                     scr_dst_path = os.path.join(script_cache_path, scr_file.replace(".bin", ".json"))
-                    parse_script(scr_src_path, scr_dst_path)
+
+                    try:
+                        parse_script(scr_src_path, scr_dst_path)
+
+                    except Exception:
+                        message = f"Failed to parse {scr_file}!"
+                        raise AppException("Error Parsing Script File", message)
 
     def _exctract_collisions(self):
         """
