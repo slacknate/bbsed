@@ -1131,8 +1131,17 @@ class SpriteEditor(QtWidgets.QWidget):
             parent_item = selected_item
 
         frame1 = parent_item.child(0)
+
         palette_id = self.selector.palette.currentText()
-        hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
+        save_name = self.selector.slot.currentText()
+        slot_type = self.selector.slot.currentData()
+
+        if slot_type == PALETTE_SAVE:
+            hpl_file_path = self.paths.get_character_save_path(character, palette_id, save_name)
+
+        else:
+            hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
+
         palette_full_path = os.path.join(hpl_file_path, frame1.hpl_file)
 
         frame_files = []
