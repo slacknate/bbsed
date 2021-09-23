@@ -35,10 +35,8 @@ class Ui_Editor(object):
         self.sprite_preview = QtWidgets.QGraphicsView(Editor)
         self.sprite_preview.setObjectName("sprite_preview")
         self.horizontalLayout.addWidget(self.sprite_preview)
-        self.play_animation = QtWidgets.QAction(Editor)
-        self.play_animation.setObjectName("play_animation")
-        self.detail_img_info = QtWidgets.QAction(Editor)
-        self.detail_img_info.setObjectName("detail_img_info")
+        self.show_animation_info = QtWidgets.QAction(Editor)
+        self.show_animation_info.setObjectName("show_animation_info")
 
         self.retranslateUi(Editor)
         QtCore.QMetaObject.connectSlotsByName(Editor)
@@ -47,5 +45,5 @@ class Ui_Editor(object):
         _translate = QtCore.QCoreApplication.translate
         Editor.setWindowTitle(_translate("Editor", "Form"))
         self.sprite_list.headerItem().setText(0, _translate("Editor", "Animations"))
-        self.play_animation.setText(_translate("Editor", "Play Animation"))
-        self.detail_img_info.setText(_translate("Editor", "Detailed Image Info"))
+        self.show_animation_info.setText(_translate("Editor", "View Animation Details"))
+        self.show_animation_info.setToolTip(_translate("Editor", "View animation game information"))

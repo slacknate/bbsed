@@ -16,23 +16,23 @@ CHUNK_MOUTH = 2
 
 
 class AnimationDialog(QtWidgets.QDialog):
-    def __init__(self, frames, chunks, hitboxes, hurtboxes, parent=None):
+    def __init__(self, anim_prep, parent=None):
         QtWidgets.QDialog.__init__(self, parent, flags=QtCore.Qt.WindowType.WindowTitleHint)
 
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-        self.setWindowTitle("Animation Viewer")
+        self.setWindowTitle("Animation Details")
 
-        self.num_frames = len(frames)
-        self.frames = frames
-        self.chunks = chunks
-        self.hitboxes = hitboxes
-        self.hurtboxes = hurtboxes
+        self.num_frames = len(anim_prep.frames)
+        self.frames = anim_prep.frames
+        self.chunks = anim_prep.chunks
+        self.hitboxes = anim_prep.hitboxes
+        self.hurtboxes = anim_prep.hurtboxes
         self.playing = False
         self.index = 0
 
-        # Set up UI items.
+        # Set up UI controls and relevant signals.
         self.ui.play_button.clicked.connect(self.play)
         self.ui.pause_button.clicked.connect(self.pause)
         self.ui.stop_button.clicked.connect(self.stop)
@@ -41,6 +41,12 @@ class AnimationDialog(QtWidgets.QDialog):
         self.ui.frame_slider.valueChanged.connect(self._slider_changed)
         self.ui.frame_slider.setMaximum(self.num_frames - 1)
         self.ui.frame_slider.setPageStep(1)
+
+        # Set up initial frame-data line edits.
+        self.ui.input_edit.setText(anim_prep.move_input)
+        self.ui.startup_edit.setValue(anim_prep.move_startup)
+        self.ui.active_edit.setValue(anim_prep.move_active)
+        self.ui.recovery_edit.setValue(anim_prep.move_recovery)
 
         # Set up our sprite viewer with a scene.
         # A scene can load a pixmap (i.e. an image like a PNG) from file or bytestring and display it.

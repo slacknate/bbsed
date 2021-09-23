@@ -54,14 +54,12 @@
     <widget class="QGraphicsView" name="sprite_preview"/>
    </item>
   </layout>
-  <action name="play_animation">
+  <action name="show_animation_info">
    <property name="text">
-    <string>Play Animation</string>
+    <string>View Animation Details</string>
    </property>
-  </action>
-  <action name="detail_img_info">
-   <property name="text">
-    <string>Detailed Image Info</string>
+   <property name="toolTip">
+    <string>View animation game information</string>
    </property>
   </action>
  </widget>

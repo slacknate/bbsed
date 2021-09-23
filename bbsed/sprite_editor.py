@@ -543,7 +543,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui.sprite_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.sprite_list.customContextMenuRequested.connect(self.show_image_menu)
         # Set up the callback for playing animations.
-        self.ui.play_animation.triggered.connect(self.show_animation_dialog)
+        self.ui.show_animation_info.triggered.connect(self.show_animation_dialog)
 
         # Ensure that we center the view on our sprite scene.
         self.ui.sprite_preview.setResizeAnchor(QtWidgets.QGraphicsView.ViewportAnchor.AnchorViewCenter)
@@ -1111,13 +1111,8 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         Popup the HIP file list context menu at the cursor.
         """
-        selected_sprite = self.ui.sprite_list.currentItem()
-
         image_menu = QtWidgets.QMenu(parent=self)
-        image_menu.addAction(self.ui.play_animation)
-        if selected_sprite.parent() is not None:
-            image_menu.addAction(self.ui.detail_img_info)
-
+        image_menu.addAction(self.ui.show_animation_info)
         image_menu.popup(QtGui.QCursor().pos())
 
     def _get_animation_files(self, selected_item, character):
@@ -1157,15 +1152,19 @@ class SpriteEditor(QtWidgets.QWidget):
         selected_item = self.ui.sprite_list.currentItem()
         character = self.selector.character.currentData()
 
+        animation_name = selected_item.text(COLUMN_ANIMATIONS)
+        if selected_item.parent() is not None:
+            animation_name = selected_item.parent().text(COLUMN_ANIMATIONS)
+
         palette_full_path, frame_files = self._get_animation_files(selected_item, character)
 
         # Extract prepare data needed to render the animation.
-        thread = AnimationPrepThread(character, self.paths, palette_full_path, frame_files)
+        thread = AnimationPrepThread(character, animation_name, self.paths, palette_full_path, frame_files)
         if not self.mainwindow.run_work_thread(thread, "Animation Prep", "Loading animation data into memory..."):
             # If our preparation procedure did not succeed we return early to avoid problems displaying the animation.
             return
 
-        dialog = AnimationDialog(thread.frames, thread.chunks, thread.hitboxes, thread.hurtboxes, parent=self)
+        dialog = AnimationDialog(thread, parent=self)
         dialog.show()
 
     def mouse_move_event(self, evt):
