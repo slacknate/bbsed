@@ -99,11 +99,11 @@ class AnimationPrepThread(WorkThread):
                         move_data.append(nested_node)
                         within_move = True
 
-                elif within_move:
-                    move_data.append(nested_node)
-
                 elif cmd_id == CMD_MOVE_END_REGISTER and within_move:
                     return move_data
+
+                elif within_move:
+                    move_data.append(nested_node)
 
         return []
 
