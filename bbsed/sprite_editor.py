@@ -541,7 +541,7 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
         # Set up the sprite file list context menu.
         self.ui.sprite_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.ui.sprite_list.customContextMenuRequested.connect(self._show_image_menu)
+        self.ui.sprite_list.customContextMenuRequested.connect(self.show_image_menu)
         # Set up the callback for playing animations.
         self.ui.play_animation.triggered.connect(self.show_animation_dialog)
 
@@ -1107,7 +1107,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         self._refresh()
 
-    def _show_image_menu(self, _):
+    def show_image_menu(self, _):
         """
         Popup the HIP file list context menu at the cursor.
         """
