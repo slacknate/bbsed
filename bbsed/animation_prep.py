@@ -76,11 +76,10 @@ class AnimationPrepThread(WorkThread):
         self.hitboxes.append(collision_data["hitboxes"])
         self.hurtboxes.append(collision_data["hurtboxes"])
 
-    def _get_move_input(self):
+    def _get_move(self):
         """
         Look for a registered move with the same name as our animation.
-        If that move exists, then we fetch the data relevant to determining what
-        player input is required for the move to be performed.
+        Return the script data associated to that move if it exists.
         """
         script_cache_path = self.paths.get_script_cache_path(self.character)
         script_path = os.path.join(script_cache_path, SCR_FILE_FMT.format(self.character))
@@ -88,9 +87,9 @@ class AnimationPrepThread(WorkThread):
         with open(script_path, "r") as ast_fp:
             nodes = json.load(ast_fp)
 
-        move_data = []
         for node in nodes:
             within_move = False
+            move_data = []
 
             for nested_node in node["body"]:
                 cmd_id = nested_node["cmd_id"]
@@ -103,8 +102,19 @@ class AnimationPrepThread(WorkThread):
                 elif within_move:
                     move_data.append(nested_node)
 
-                elif cmd_id == CMD_MOVE_END_REGISTER:
-                    within_move = False
+                elif cmd_id == CMD_MOVE_END_REGISTER and within_move:
+                    return move_data
+
+        return []
+
+    def _get_input(self):
+        """
+        Get the input for the move associated to our animation.
+        If there is no move data then we assume this animation is not the result of player input.
+        If there is move data then we get a human-readable string representation of the
+        player input required for the move to be performed.
+        """
+        move_data = self._get_move()
 
         if move_data:
             move_input_value = move_data[0]["cmd_args"][1]
@@ -133,7 +143,7 @@ class AnimationPrepThread(WorkThread):
             else:
                 self.move_input = get_normal_input_str(move_input_value)
 
-    def _get_move_data(self):
+    def _get_frame_data(self):
         """
         Calculate the frame data that pertains to this animation.
         If this animation is not an animation associated to a player input then we skip
@@ -179,5 +189,5 @@ class AnimationPrepThread(WorkThread):
             self._load_sprite(hip_full_path, sprite_duration)
             self._load_collision(hip_full_path, collision_cache_path)
 
-        self._get_move_input()
-        self._get_move_data()
+        self._get_input()
+        self._get_frame_data()
