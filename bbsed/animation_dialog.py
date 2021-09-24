@@ -172,7 +172,7 @@ class AnimationDialog(QtWidgets.QDialog):
         self.sprite_pixmap = Qt.QPixmap()
         self.sprite_pixmap.loadFromData(frame_bytes, "PNG")
 
-        # Add a transparent rectangle.
+        # Add a transparent rectangle. This defines the sprite coordinate system.
         rect_item = QtWidgets.QGraphicsRectItem(0, 0, *coord_size)
         rect_item.setPen(Qt.QPen(Qt.QColorConstants.Transparent))
         self.sprite_scene.addItem(rect_item)
