@@ -295,7 +295,17 @@
     </layout>
    </item>
    <item>
-    <widget class="QGraphicsView" name="animation_view"/>
+    <widget class="QGraphicsView" name="animation_view">
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="resizeAnchor">
+      <enum>QGraphicsView::AnchorViewCenter</enum>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

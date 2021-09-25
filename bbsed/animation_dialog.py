@@ -44,7 +44,9 @@ class AnimationDialog(QtWidgets.QDialog):
         # A scene can load a pixmap (i.e. an image like a PNG) from file or bytestring and display it.
         self.sprite_scene = QtWidgets.QGraphicsScene()
         self.ui.animation_view.setScene(self.sprite_scene)
-        self.sprite_pixmap = None
+        # Disable scrolling so we do not ever scroll away from the character being displayed.
+        self.ui.animation_view.horizontalScrollBar().setEnabled(False)
+        self.ui.animation_view.verticalScrollBar().setEnabled(False)
 
         self._update_frame()
 
@@ -166,9 +168,9 @@ class AnimationDialog(QtWidgets.QDialog):
         chunk_pos, _, chunk_bytes = chunks[0]
 
         # Add our animation frame to the scene and set its position from the HIP meta data.
-        self.sprite_pixmap = Qt.QPixmap()
-        self.sprite_pixmap.loadFromData(chunk_bytes, "PNG")
-        pixmap_item = self.sprite_scene.addPixmap(self.sprite_pixmap)
+        sprite_pixmap = Qt.QPixmap()
+        sprite_pixmap.loadFromData(chunk_bytes, "PNG")
+        pixmap_item = self.sprite_scene.addPixmap(sprite_pixmap)
         pixmap_item.setPos(*chunk_pos)
 
         # If our Hit/Hurt box checkbox is ticked we should display that information.
@@ -181,6 +183,8 @@ class AnimationDialog(QtWidgets.QDialog):
                 rect_item = self._make_rect_item(color=Qt.QColorConstants.Blue, **hurtbox)
                 self.sprite_scene.addItem(rect_item)
 
+        # Center on sprite pixmap. This is the body of the character and thus should be the center focus.
+        self.ui.animation_view.centerOn(pixmap_item)
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.animation_view.viewport().update()
 
