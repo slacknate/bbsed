@@ -27,44 +27,50 @@ class AnimationPrepThread(WorkThread):
         self.move_startup = NOT_APPLICABLE_NUM
         self.move_active = NOT_APPLICABLE_NUM
         self.move_recovery = NOT_APPLICABLE_NUM
-        self.frames = []
-        self.chunks = []
+        self.sprites = []
         self.hitboxes = []
         self.hurtboxes = []
 
-    def _load_sprite(self, hip_full_path, sprite_duration):
+    def _load_image_data(self, src_chunks, hip_full_path, sprite_duration):
         """
-        Load sprite data for the animation into memory.
+        Load sprite image data for the animation into memory.
+        We get the image data for each chunk defined by the script data.
+        We save the image as a PNG, so it is ready for display in the
+        dialog, as well as the position and layer for each chunk.
         """
         hip_file = os.path.basename(hip_full_path)
-
-        png_bytes = io.BytesIO()
-        frame_bytes = io.BytesIO()
+        chunks = []
 
         try:
             hip_image = HIPImage()
             hip_image.load_hip(hip_full_path)
-            hip_image.save_png(png_bytes)
-            png_bytes.seek(0)
 
         except Exception:
             raise AppException("Error Extracting Sprite", f"Failed to extract PNG image from {hip_file}!")
 
-        try:
-            png_image = PNGPaletteImage()
-            png_image.load_png(png_bytes)
-            png_image.load_hpl(self.palette_full_path)
-            png_image.save_png(frame_bytes)
+        for chunk in src_chunks:
+            chunk_pos, chunk_layer, chunk_png = hip_image.get_chunk(**chunk)
+            chunk_bytes = io.BytesIO()
 
-        except Exception:
-            message = f"Failed to set HPL palette ({self.palette_full_path}) on HIP image {hip_file}!"
-            raise AppException("Error Modifying Image", message)
+            try:
+                png_image = PNGPaletteImage()
+                png_image.load_png(chunk_png)
+                png_image.load_hpl(self.palette_full_path)
+                png_image.save_png(chunk_bytes)
 
-        self.frames.append((sprite_duration, hip_image.coord_size, hip_image.offset, frame_bytes.getvalue()))
+            except Exception:
+                message = f"Failed to set HPL palette ({self.palette_full_path}) on sprite!"
+                raise AppException("Error Modifying Sprite", message)
 
-    def _load_collision(self, hip_full_path, collision_cache_path):
+            chunks.append((chunk_pos, chunk_layer, chunk_bytes.getvalue()))
+
+        self.sprites.append((sprite_duration, hip_image.coord_size, chunks))
+
+    def _load_sprite(self, hip_full_path, collision_cache_path, sprite_duration):
         """
-        Load collision box data into memory.
+        Load sprite image and collision box data into memory.
+        The collision boxes simply require us to read a JSON file and retain some data from those objects.
+        The image data is more complex and is handled in another method.
         """
         collision_file = os.path.basename(hip_full_path).replace(".hip", ".json")
         collision_full_path = os.path.join(collision_cache_path, collision_file)
@@ -72,9 +78,10 @@ class AnimationPrepThread(WorkThread):
         with open(collision_full_path, "r") as col_fp:
             collision_data = json.load(col_fp)
 
-        self.chunks.append(collision_data["chunks"])
         self.hitboxes.append(collision_data["hitboxes"])
         self.hurtboxes.append(collision_data["hurtboxes"])
+
+        self._load_image_data(collision_data["chunks"], hip_full_path, sprite_duration)
 
     def _get_move(self):
         """
@@ -164,12 +171,12 @@ class AnimationPrepThread(WorkThread):
         recovery = 0
 
         for hitboxes, hurtboxes in zip(self.hitboxes, self.hurtboxes):
-            sprite_duration = self.frames[index][0]
+            sprite_duration = self.sprites[index][0]
 
             if not hitboxes and active <= 0:
                 startup += sprite_duration
 
-            # FIXME: This does not take into account moves that hit multiple times separately, like Amane 5A
+            # FIXME: This does not take into account moves that hit multiple times separately (e.g. Amane 5A).
             if hitboxes:
                 active += sprite_duration
 
@@ -186,8 +193,7 @@ class AnimationPrepThread(WorkThread):
         collision_cache_path = self.paths.get_collision_cache_path(self.character)
 
         for hip_full_path, sprite_duration in self.frame_files:
-            self._load_sprite(hip_full_path, sprite_duration)
-            self._load_collision(hip_full_path, collision_cache_path)
+            self._load_sprite(hip_full_path, collision_cache_path, sprite_duration)
 
         self._get_input()
         self._get_frame_data()

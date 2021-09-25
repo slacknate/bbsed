@@ -7,13 +7,6 @@ from .ui.animation_dialog_ui import Ui_Dialog
 # Note that fighting games run at 60 FPS, and a single frame is the standard unit of time for these games.
 FRAME_TIME = 1.0 / 60.0 * 1000.0
 
-# The first chunk is actually an offset into the sprite coordinate system.
-# The second chunk defines a box around the character eyes.
-# The third chunk defines a box around the character mouth.
-CHUNK_OFFSET = 0
-CHUNK_EYES = 1
-CHUNK_MOUTH = 2
-
 
 class AnimationDialog(QtWidgets.QDialog):
     def __init__(self, anim_prep, parent=None):
@@ -24,9 +17,8 @@ class AnimationDialog(QtWidgets.QDialog):
 
         self.setWindowTitle("Animation Details")
 
-        self.num_frames = len(anim_prep.frames)
-        self.frames = anim_prep.frames
-        self.chunks = anim_prep.chunks
+        self.num_sprites = len(anim_prep.sprites)
+        self.sprites = anim_prep.sprites
         self.hitboxes = anim_prep.hitboxes
         self.hurtboxes = anim_prep.hurtboxes
         self.playing = False
@@ -39,7 +31,7 @@ class AnimationDialog(QtWidgets.QDialog):
         self.ui.show_boxes.stateChanged.connect(self._update_frame)
         self.ui.frame_slider.keyPressEvent = self.keyPressEvent
         self.ui.frame_slider.valueChanged.connect(self._slider_changed)
-        self.ui.frame_slider.setMaximum(self.num_frames - 1)
+        self.ui.frame_slider.setMaximum(self.num_sprites - 1)
         self.ui.frame_slider.setPageStep(1)
 
         # Set up initial frame-data line edits.
@@ -124,11 +116,11 @@ class AnimationDialog(QtWidgets.QDialog):
         # Our min value is 0.
         # If the index is less than that we need to wrap around to the max value.
         if self.index < 0:
-            self.index = self.num_frames - 1
+            self.index = self.num_sprites - 1
 
-        # Likewise, our max value is `self.num_frames - 1`.
+        # Likewise, our max value is `self.num_sprites - 1`.
         # If the index is more than that we need to wrap around to the min value.
-        elif self.index >= self.num_frames:
+        elif self.index >= self.num_sprites:
             self.index = 0
 
         # We do not want the slider to emit signals here as `_update_index` is sometimes
@@ -137,7 +129,8 @@ class AnimationDialog(QtWidgets.QDialog):
         with block_signals(self.ui.frame_slider):
             self.ui.frame_slider.setSliderPosition(self.index)
 
-    def _make_rect_item(self, x, y, width, height, color, **_):
+    @staticmethod
+    def _make_rect_item(x, y, width, height, color, **_):
         """
         Create a `QGraphicsRectItem` to represent a collision box.
         This is used for displaying hitboxes and hurtboxes.
@@ -145,14 +138,8 @@ class AnimationDialog(QtWidgets.QDialog):
         our game data parameters without having to care about popping out
         data that is not pertinent to this item.
         """
-        chunk = self.chunks[self.index][CHUNK_OFFSET]
-
-        x -= chunk["x"]
-        y -= chunk["y"]
-
         rect_item = QtWidgets.QGraphicsRectItem(x, y, width, height)
         rect_item.setPen(Qt.QPen(color))
-
         return rect_item
 
     def _update_frame(self, *_, **__):
@@ -165,21 +152,24 @@ class AnimationDialog(QtWidgets.QDialog):
         self.sprite_scene.clear()
 
         # The number of frames (i.e. units of time) and binary image data for the animation.
-        sprite_duration, coord_size, offset, frame_bytes = self.frames[self.index]
+        sprite_duration, coord_size, chunks = self.sprites[self.index]
         hitboxes = self.hitboxes[self.index]
         hurtboxes = self.hurtboxes[self.index]
-
-        self.sprite_pixmap = Qt.QPixmap()
-        self.sprite_pixmap.loadFromData(frame_bytes, "PNG")
 
         # Add a transparent rectangle. This defines the sprite coordinate system.
         rect_item = QtWidgets.QGraphicsRectItem(0, 0, *coord_size)
         rect_item.setPen(Qt.QPen(Qt.QColorConstants.Transparent))
         self.sprite_scene.addItem(rect_item)
 
+        # FIXME: How do we do all the chunks? this is necessary for some animations (e.g. Tager 5C).
+        #        Chunks are also used for the talking/blinking animations though. How do we tell them apart?
+        chunk_pos, _, chunk_bytes = chunks[0]
+
         # Add our animation frame to the scene and set its position from the HIP meta data.
+        self.sprite_pixmap = Qt.QPixmap()
+        self.sprite_pixmap.loadFromData(chunk_bytes, "PNG")
         pixmap_item = self.sprite_scene.addPixmap(self.sprite_pixmap)
-        pixmap_item.setPos(*offset)
+        pixmap_item.setPos(*chunk_pos)
 
         # If our Hit/Hurt box checkbox is ticked we should display that information.
         if self.ui.show_boxes.checkState() == QtCore.Qt.CheckState.Checked:
