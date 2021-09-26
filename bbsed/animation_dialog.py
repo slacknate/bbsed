@@ -54,6 +54,8 @@ class AnimationDialog(QtWidgets.QDialog):
         """
         Sliders are frequently able to be changed via page up and page down buttons.
         Allow for doing this regardless of the focused widget in the dialog.
+        Note that because we implement a custom key event handler that we have to manually
+        implement the logic to close the dialog when the escape key is hit.
         """
         if not self.playing and evt.key() == QtCore.Qt.Key.Key_PageUp:
             self._update_index(1)
@@ -62,6 +64,9 @@ class AnimationDialog(QtWidgets.QDialog):
         if not self.playing and evt.key() == QtCore.Qt.Key.Key_PageDown:
             self._update_index(-1)
             self._update_frame()
+
+        if evt.key() == QtCore.Qt.Key.Key_Escape:
+            self.close()
 
     def _slider_changed(self, index):
         """
