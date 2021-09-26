@@ -515,6 +515,12 @@ class SpriteEditor(QtWidgets.QWidget):
         self.mainwindow = mainwindow
         self.paths = paths
 
+        # When we select a sprite item we maintain a reference to it.
+        # This way if we select a sprite group item (which does not change app state) and
+        # then change a palette color we have an item associated to a palette file we will
+        # use to save color changes.
+        self.selected_item = None
+
         # We need to sort the character info before adding to the selection combo box.
         # This way the combo box index will match the defined character IDs in the char_info module.
         sorted_chars = list(CHARACTER_INFO.items())
@@ -845,7 +851,7 @@ class SpriteEditor(QtWidgets.QWidget):
         slot_name = self.selector.slot.currentText()
         slot_type = self.selector.slot.currentData()
         palette_id = self.selector.palette.currentText()
-        sprite_item = self.ui.sprite_list.currentItem()
+        sprite_item = self.selected_item
 
         # We only need to palette swap if we have an active item.
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
@@ -979,7 +985,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         self._update_sprite_list(palette_num)
 
-        sprite_item = self.ui.sprite_list.currentItem()
+        sprite_item = self.selected_item
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
             self._refresh()
 
@@ -1107,6 +1113,7 @@ class SpriteEditor(QtWidgets.QWidget):
         if isinstance(sprite_item, SpriteGroupItem):
             return
 
+        self.selected_item = sprite_item
         hip_full_path = sprite_item.hip_full_path
         hip_file = sprite_item.hip_file
 
@@ -1207,9 +1214,8 @@ class SpriteEditor(QtWidgets.QWidget):
             self.show_error_dialog("Error Updating Palette", message)
             return
 
-        sprite_item = self.ui.sprite_list.currentItem()
         hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
-        palette_full_path = os.path.join(hpl_file_path, sprite_item.hpl_file)
+        palette_full_path = os.path.join(hpl_file_path, self.selected_item.hpl_file)
 
         try:
             self.sprite.save_palette(palette_full_path)
@@ -1292,7 +1298,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # Check if the palette index associated to the mouse event was swapped from a character
         # state change, and if so get the swap index as that is the index for which we should edit the color.
-        sprite_item = self.ui.sprite_list.currentItem()
+        sprite_item = self.selected_item
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
             swap_index = self.state.get_swap_of(palette_index)
 
@@ -1307,6 +1313,8 @@ class SpriteEditor(QtWidgets.QWidget):
         Resets everything except character selection so we can
         use this method in `select_character`.
         """
+        self.selected_item = None
+
         with block_signals(self.selector.palette):
             self.selector.palette.setCurrentIndex(-1)
 
