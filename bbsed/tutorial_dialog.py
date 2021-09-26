@@ -26,8 +26,11 @@ We can do this by going to the settings dialog from the <a href="file_menu">File
 PAGE_2 = """
 <html>
 <body>
-Now we can select a character that we want to make a custom palette for.<br>
-This can be done via the left-most <a href="char_select">dropdown</a> in the Character + Palette + Slot group.<br>
+Now we can select a character for which we want to make a custom palette.<br><br>
+
+There are three dropdowns found on the left side of the toolbar.<br>
+Selecting a character is done with the left-most <a href="char_select">dropdown</a>.<br><br>
+
 Go ahead, select a character!
 </body>
 </html>
@@ -36,12 +39,9 @@ Go ahead, select a character!
 PAGE_3 = """
 <html>
 <body>
-The sprites for each character are grouped by character action, which is<br>
-typically associated to player input.<br><br>
-
-Expand the first character action group as well as the "Animation" subgroup.<br>
-This will show all sprite files for that character animation.<br>
-Note that some character action groups will have multiple sub-groups of sprite files!
+The sprites for each character are grouped animations which are typically, but not<br>
+always, associated to player input. Expand the first animation group. This will show<br>
+all sprite files for that character animation.
 </body>
 </html>
 """
@@ -49,10 +49,10 @@ Note that some character action groups will have multiple sub-groups of sprite f
 PAGE_4 = """
 <html>
 <body>
-Select the first sprite file in the "Animation" sub-group.<br><br>
+Select the first sprite file in the previously expanded animation group.<br><br>
 
 A character sprite preview, as well as some new dialogs, have appeared!<br>
-These dialogs are provide useful information for editing a character palette.<br><br>
+These dialogs provide useful information for editing a character palette.<br><br>
 
 The Sprite Zoom dialog shows a 2X zoom of the currently displayed<br>
 sprite image centered on the cursor.<br>
@@ -79,8 +79,8 @@ PAGE_5 = """
 <html>
 <body>
 The editor allows for separately editing each color palette, by number, that the game allows<br>
-players to choose in game. This can be done via the middle <a href="pal_select">dropdown</a> in<br>
-the Character + Palette + Slot group. Cycle through the list and see how the displayed<br>
+players to choose in game. This can be done via the middle <a href="pal_select">dropdown</a> found<br>
+on the left side of the toolbar. Cycle through the list and see how the displayed<br>
 palette changes.<br><br>
 
 In this editor, each character palette also features something called "slots".<br>
@@ -107,11 +107,7 @@ color you double-clicked on. Give it a shot!<br><br>
 
 The window title will show an asterisk (*) if the current selected palette has active<br>
 edits that have not been saved. Note that even though these changes are "unsaved" they<br>
-are persistent if the app is closed.<br><br>
-
-To save these changes to a save slot, use the "Save" or "Save As" options found on the<br>
-toolbar or in the <a href="pal_menu">Palettes</a> menu. A save slot can be created whether a palette has active<br>
-edits or is completely unchanged. Let's create a slot and save your active changes!
+are persistent if the app is closed.
 </body>
 </html>
 """
@@ -125,12 +121,28 @@ These tools are enabled when a palette index selection has been made in the Pale
 To make a selection, left click or left-click drag within the Palette Dialog.<br>
 To remove a selection, right click the Palette Dialog.<br><br>
 
-Try making a selection and using the tools to edit some palette colors!
+The Cut, Copy, Paste, and Fill tools function as would be expected.<br>
+The Swap tool requires a second selection be made after activating the tool to pick the color to swap.<br>
+The Gradient tool will create a color gradient that shifts between the first and last colors selected.<br>
+Note that the "direction" of the gradient is determined by the order of the selection.<br>
+The initial palette index selected is the start, the end is the palette index last click-dragged upon.<br><br>
+
+Try making selection(s) and using the tools to edit some palette colors!
 </body>
 </html>
 """
 
 PAGE_8 = """
+<html>
+<body>
+To save active changes to a save slot, use the "Save" or "Save As" options found on the<br>
+toolbar or in the <a href="pal_menu">Palettes</a> menu. A save slot can be created whether a palette has active<br>
+edits or is completely unchanged. Let's create a slot and save your active changes!
+</body>
+</html>
+"""
+
+PAGE_9 = """
 <html>
 <body>
 Your changes have been saved as the name you chose for this palette slot when prompted.<br>
@@ -147,10 +159,10 @@ A save slot must be actively selected for the "Delete" option to be enabled.
 </html>
 """
 
-PAGE_9 = """
+PAGE_10 = """
 <html>
 <body>
-Note that there are also "Copy", "Paste", and "Discard" options<br>
+Note that there are also "Copy Palette", "Paste Palette", and "Discard Changes" options<br>
 found in the <a href="pal_menu">Palettes</a> menu and toolbar.<br><br>
 
 When "Copy" is activated the tool will copy the current selected palette<br>
@@ -168,7 +180,7 @@ option to be enabled.
 </html>
 """
 
-PAGE_10 = """
+PAGE_11 = """
 <html>
 <body>
 To get your custom palettes into the game, you must apply your palettes to the game files.<br>
@@ -188,7 +200,7 @@ re-selected each time you want to add new creations to your palette selections.
 </html>
 """
 
-PAGE_11 = """
+PAGE_12 = """
 <html>
 <body>
 With palettes now applied to the game files, you can launch the game and expect to see<br>
@@ -207,7 +219,7 @@ currently selected character palette files to their original states, respectivel
 </html>
 """
 
-PAGE_12 = """
+PAGE_13 = """
 <html>
 <body>
 If you want to share your palettes with others, you can export a selection of your<br>
@@ -229,7 +241,7 @@ to overwrite any unsaved work!
 </html>
 """
 
-PAGE_13 = """
+PAGE_14 = """
 <html>
 <body>
 That should be all you need to know! Happy palette creation!
@@ -253,6 +265,7 @@ TUTORIAL_PAGES = [
     PAGE_11,
     PAGE_12,
     PAGE_13,
+    PAGE_14,
 ]
 
 
