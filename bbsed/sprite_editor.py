@@ -523,6 +523,9 @@ class SpriteEditor(QtWidgets.QWidget):
         for _, (character_name, character) in sorted_chars:
             self.selector.character.addItem(character_name, character)
 
+        for palette_id, palette_num in iter_palettes():
+            self.selector.palette.addItem(palette_id, palette_num)
+
         # Set up character, palette, and save slot UI callbacks.
         # By default no character is selected.
         self.selector.character.setCurrentIndex(-1)
@@ -720,9 +723,6 @@ class SpriteEditor(QtWidgets.QWidget):
         # We do not want to try to select a palette before a sprite is selected, and
         # at the very least we do not want to spam the signals in a loop regardless.
         with block_signals(self.selector.palette):
-            for palette_id, palette_num in iter_palettes():
-                self.selector.palette.addItem(palette_id, palette_num)
-
             # Automatically select the first palette.
             # We intentionally select this in the block_signals block so we do not try to set
             # palette data before a sprite is selected.
