@@ -96,7 +96,16 @@ class ColorSelection:
         """
         Helper to get an indices changed list we can pass to the PaletteDialog signal.
         """
-        return list(zip(dst_range, self.color_selection))
+        selection_order = zip(self.index_selection, self.color_selection)
+
+        # Ensure our color selection is sorted least to greatest by selection index and that
+        # the destination range is also sorted least to greatest by selection index. This ensures
+        # that when we paste the color selection that the colors will be inserted in least to
+        # greatest order as well, which is intuitively how a user would expect paste to function.
+        color_selection = [_item[1] for _item in sorted(selection_order, key=lambda __item: __item[0])]
+        dst_range = sorted(dst_range)
+
+        return list(zip(dst_range, color_selection))
 
 
 class PaletteDialog(QtWidgets.QDialog):
