@@ -26,6 +26,7 @@ they are hidden/shown
 * If the user drag-selects a sprite in the HIP image list, there is an off-by-one error and the wrong sprite 
 may be displayed under certain circumstances
 * Animation dialog cannot currently show effects (it is completely unimplemented)
+* Animation dialog frame data display currently does not take into account moves that can be held or hit multiple times
 * Palette dialog gradient tool needs some improvements (in terms of gradient generation math)
 
 # Shoutouts
