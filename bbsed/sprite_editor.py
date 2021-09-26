@@ -529,6 +529,7 @@ class SpriteEditor(QtWidgets.QWidget):
         # Set up character, palette, and save slot UI callbacks.
         # By default no character is selected.
         self.selector.character.setCurrentIndex(-1)
+        self.selector.palette.setCurrentIndex(-1)
         self.selector.character.currentIndexChanged.connect(self.select_character)
         self.selector.palette.currentIndexChanged.connect(self.select_palette)
         self.selector.slot.currentIndexChanged.connect(self.select_palette_slot)
