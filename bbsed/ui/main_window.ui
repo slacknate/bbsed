@@ -49,7 +49,7 @@
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <addaction name="view_palette"/>
     <addaction name="view_zoom"/>
@@ -59,7 +59,7 @@
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Palettes</string>
+     <string>&amp;Palettes</string>
     </property>
     <addaction name="import_palettes"/>
     <addaction name="export_palettes"/>
@@ -78,7 +78,7 @@
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Game Files</string>
+     <string>&amp;Game Files</string>
     </property>
     <addaction name="apply_palettes"/>
     <addaction name="separator"/>
@@ -87,7 +87,7 @@
    </widget>
    <widget class="QMenu" name="help_menu">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="tutorial"/>
     <addaction name="separator"/>
@@ -95,7 +95,7 @@
    </widget>
    <widget class="QMenu" name="edit_menu">
     <property name="title">
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <addaction name="cut_color"/>
     <addaction name="copy_color"/>
@@ -158,6 +158,9 @@
    <property name="text">
     <string>&amp;Exit</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="apply_palettes">
    <property name="icon">
@@ -165,10 +168,16 @@
      <normaloff>:/images/images/apply.ico</normaloff>:/images/images/apply.ico</iconset>
    </property>
    <property name="text">
-    <string>Apply Palettes</string>
+    <string>&amp;Apply Palettes</string>
    </property>
    <property name="toolTip">
     <string>Apply all palettes to BBCF game data</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="discard_palette">
@@ -177,10 +186,16 @@
      <normaloff>:/images/images/cancel.ico</normaloff>:/images/images/cancel.ico</iconset>
    </property>
    <property name="text">
-    <string>Discard Changes</string>
+    <string>&amp;Discard Changes</string>
    </property>
    <property name="toolTip">
     <string>Discard selected palette changes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="restore_all">
@@ -189,10 +204,16 @@
      <normaloff>:/images/images/undo.ico</normaloff>:/images/images/undo.ico</iconset>
    </property>
    <property name="text">
-    <string>Restore All</string>
+    <string>&amp;Restore All</string>
    </property>
    <property name="toolTip">
     <string>Restore game data for all palettes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="restore_character">
@@ -201,10 +222,16 @@
      <normaloff>:/images/images/undo.ico</normaloff>:/images/images/undo.ico</iconset>
    </property>
    <property name="text">
-    <string>Restore Character</string>
+    <string>Restore &amp;Character</string>
    </property>
    <property name="toolTip">
     <string>Restore game data for selected character palettes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="launch_bbcf">
@@ -218,6 +245,12 @@
    <property name="toolTip">
     <string>Launch BBCF</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="view_palette">
    <property name="checkable">
@@ -227,7 +260,13 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Palette Dialog</string>
+    <string>&amp;Palette Dialog</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="view_zoom">
@@ -235,7 +274,13 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Zoom Dialog</string>
+    <string>&amp;Zoom Dialog</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+J</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="import_palettes">
@@ -244,7 +289,13 @@
      <normaloff>:/images/images/import.ico</normaloff>:/images/images/import.ico</iconset>
    </property>
    <property name="text">
-    <string>Import</string>
+    <string>&amp;Import</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="export_palettes">
@@ -253,10 +304,16 @@
      <normaloff>:/images/images/export.ico</normaloff>:/images/images/export.ico</iconset>
    </property>
    <property name="text">
-    <string>Export</string>
+    <string>&amp;Export</string>
    </property>
    <property name="toolTip">
     <string>Export saved palettes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="settings">
@@ -265,10 +322,16 @@
      <normaloff>:/images/images/settings.ico</normaloff>:/images/images/settings.ico</iconset>
    </property>
    <property name="text">
-    <string>Settings</string>
+    <string>&amp;Settings</string>
    </property>
    <property name="toolTip">
     <string>Edit settings</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="copy_palette">
@@ -277,10 +340,16 @@
      <normaloff>:/images/images/copy.ico</normaloff>:/images/images/copy.ico</iconset>
    </property>
    <property name="text">
-    <string>Copy</string>
+    <string>&amp;Copy</string>
    </property>
    <property name="toolTip">
     <string>Copy current palette</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="paste_palette">
@@ -289,10 +358,16 @@
      <normaloff>:/images/images/paste.ico</normaloff>:/images/images/paste.ico</iconset>
    </property>
    <property name="text">
-    <string>Paste</string>
+    <string>&amp;Paste</string>
    </property>
    <property name="toolTip">
     <string>Paste copied palette</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="save_palette">
@@ -301,10 +376,16 @@
      <normaloff>:/images/images/save.ico</normaloff>:/images/images/save.ico</iconset>
    </property>
    <property name="text">
-    <string>Save</string>
+    <string>&amp;Save</string>
    </property>
    <property name="toolTip">
     <string>Save current palette</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="delete_palette">
@@ -313,10 +394,16 @@
      <normaloff>:/images/images/delete.ico</normaloff>:/images/images/delete.ico</iconset>
    </property>
    <property name="text">
-    <string>Delete</string>
+    <string>D&amp;elete</string>
    </property>
    <property name="toolTip">
     <string>Delete selected saved palette</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="save_palette_as">
@@ -325,10 +412,13 @@
      <normaloff>:/images/images/save.ico</normaloff>:/images/images/save.ico</iconset>
    </property>
    <property name="text">
-    <string>Save As</string>
+    <string>Save &amp;As</string>
    </property>
    <property name="toolTip">
     <string>Save current palette as</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="tutorial">
@@ -337,10 +427,13 @@
      <normaloff>:/images/images/info.ico</normaloff>:/images/images/info.ico</iconset>
    </property>
    <property name="text">
-    <string>Tutorial</string>
+    <string>&amp;Tutorial</string>
    </property>
    <property name="toolTip">
     <string>Show tutorial dialog</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="about">
@@ -349,7 +442,10 @@
      <normaloff>:/images/images/question.ico</normaloff>:/images/images/question.ico</iconset>
    </property>
    <property name="text">
-    <string>About</string>
+    <string>&amp;About</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="cut_color">
@@ -358,10 +454,16 @@
      <normaloff>:/images/images/cut.ico</normaloff>:/images/images/cut.ico</iconset>
    </property>
    <property name="text">
-    <string>Cut</string>
+    <string>C&amp;ut</string>
    </property>
    <property name="toolTip">
     <string>Cut current selected color</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="copy_color">
@@ -370,10 +472,16 @@
      <normaloff>:/images/images/copy.ico</normaloff>:/images/images/copy.ico</iconset>
    </property>
    <property name="text">
-    <string>Copy</string>
+    <string>&amp;Copy</string>
    </property>
    <property name="toolTip">
     <string>Copy current selected color</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="paste_color">
@@ -382,10 +490,16 @@
      <normaloff>:/images/images/paste.ico</normaloff>:/images/images/paste.ico</iconset>
    </property>
    <property name="text">
-    <string>Paste</string>
+    <string>&amp;Paste</string>
    </property>
    <property name="toolTip">
     <string>Paste color</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="fill_color">
@@ -394,10 +508,16 @@
      <normaloff>:/images/images/fill.ico</normaloff>:/images/images/fill.ico</iconset>
    </property>
    <property name="text">
-    <string>Fill</string>
+    <string>&amp;Fill</string>
    </property>
    <property name="toolTip">
     <string>Fill color selection</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="swap_color">
@@ -406,10 +526,16 @@
      <normaloff>:/images/images/swap.ico</normaloff>:/images/images/swap.ico</iconset>
    </property>
    <property name="text">
-    <string>Swap</string>
+    <string>&amp;Swap</string>
    </property>
    <property name="toolTip">
     <string>Swap colors</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="gradient_color">
@@ -418,10 +544,16 @@
      <normaloff>:/images/images/gradient.ico</normaloff>:/images/images/gradient.ico</iconset>
    </property>
    <property name="text">
-    <string>Gradient</string>
+    <string>&amp;Gradient</string>
    </property>
    <property name="toolTip">
     <string>Generate a color gradient</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
  </widget>
