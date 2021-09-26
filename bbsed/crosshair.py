@@ -1,6 +1,7 @@
 from PyQt5 import Qt, QtWidgets
 
 COLOR_MAX = 255
+QRGBA_MAX = Qt.QColor(COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX).rgba()
 
 
 def inverse_color(qrgba):
@@ -17,11 +18,8 @@ class Crosshair(QtWidgets.QGraphicsItem):
     A QGraphicsItem subclass we can add to a QGraphicsScene to draw a crosshair at a position.
     The crosshair will be drawn with colors inverse of the pixels it is "covering".
     """
-    def __init__(self, cross_size, sprite_present, sprite_width, sprite_height):
+    def __init__(self, cross_size):
         QtWidgets.QGraphicsItem.__init__(self)
-        self.sprite_present = sprite_present
-        self.sprite_height = sprite_height
-        self.sprite_width = sprite_width
         self.cross_size = cross_size
 
         # Number of pixels to draw for each line.
@@ -53,8 +51,10 @@ class Crosshair(QtWidgets.QGraphicsItem):
         The default background of a QGraphicsView seems to be white so a black
         cursor when we have no sprite seems appropriate.
         """
-        if self.sprite_present:
-            qimage = self.parentItem().pixmap().toImage()
+        item = self.parentItem()
+
+        if item is not None:
+            qimage = item.pixmap().toImage()
 
             position = self.pos()
 
@@ -65,7 +65,7 @@ class Crosshair(QtWidgets.QGraphicsItem):
             y_colors = [qimage.pixel(x_pos, y + y_pos) for y in self.cross_pixel_range()]
 
         else:
-            x_colors = y_colors = [(COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX)] * self.line_len
+            x_colors = y_colors = [QRGBA_MAX] * self.line_len
 
         return x_colors, y_colors
 

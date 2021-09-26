@@ -509,7 +509,8 @@ class SpriteEditor(QtWidgets.QWidget):
         # change a character state (Gain Art) that in turn changes the colors displayed on the character.
         self.state = CharacterState(self.sprite, self)
 
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, False, 0, 0)
+        # Crosshair drawn on the sprite preview with which the user can select palette colors.
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE)
 
         self.mainwindow = mainwindow
         self.paths = paths
@@ -562,6 +563,9 @@ class SpriteEditor(QtWidgets.QWidget):
         # A scene can load a pixmap (i.e. an image like a PNG) from file or bytestring and display it.
         self.sprite_scene = QtWidgets.QGraphicsScene()
         self.ui.sprite_preview.setScene(self.sprite_scene)
+        # Disable scrolling so we do not ever scroll away from the character being displayed.
+        self.ui.sprite_preview.horizontalScrollBar().setEnabled(False)
+        self.ui.sprite_preview.verticalScrollBar().setEnabled(False)
 
     def get_character(self):
         """
@@ -820,12 +824,12 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         Reset all graphics views to be blank.
         """
-        # Clear our image data.
+        # Clear our image data. We have to remove the crosshair item or the C++ object it wraps will
+        # be deleted by the scene clear operation.
+        self.sprite_scene.removeItem(self.crosshair)
         self.sprite_scene.clear()
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
-        # Reset our crosshair.
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, False, 0, 0)
         # Clear palette data.
         self.palette_dialog.reset()
         # Clear zoom view.
@@ -889,6 +893,8 @@ class SpriteEditor(QtWidgets.QWidget):
             if self.palette_dialog.isVisible():
                 self.palette_dialog.hide()
 
+        viewport = self.ui.sprite_preview.viewport()
+
         # Get the raw PNG data of our palette visualization so we can pass it to the palette dialog.
         palette_image = self.sprite.get_palette_visualization()
         # Get the raw PNG of our sprite so we can load it into the sprite preview as a pixmap.
@@ -899,21 +905,26 @@ class SpriteEditor(QtWidgets.QWidget):
         png_pixmap = Qt.QPixmap()
         png_pixmap.loadFromData(sprite_image, "PNG")
 
-        # We need a new crosshair every time we clear the scene.
-        # We have updated the sprite data anyway so it makes sense to recreate it.
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, True, png_pixmap.width(), png_pixmap.height())
-
-        # Clear our image date and load in the updates image data.
+        # Clear our image date and load in the updates image data. We have to remove the crosshair item
+        # or the C++ object it wraps will be deleted by the scene clear operation.
+        self.sprite_scene.removeItem(self.crosshair)
         self.sprite_scene.clear()
-        pixmap_item = self.sprite_scene.addPixmap(png_pixmap)
-        self.sprite_scene.addItem(self.crosshair)
 
+        # Set a static rectangle, matching the viewport rectangle, for the scene.
+        # This will prevent auto-scrolling around when we move the crosshair.
+        scene_rect = Qt.QRectF(viewport.geometry())
+        self.sprite_scene.setSceneRect(scene_rect)
+
+        # Add our sprite to the scene. Hang onto the graphics item the pixmap addition creates
+        # as we need to use this with the crosshair.
+        pixmap_item = self.sprite_scene.addPixmap(png_pixmap)
         # Set the parent item of the crosshair to the added png pixmap so the crosshair can
         # determine what color it should be drawn using the pixmap as a reference.
+        # Per Qt-5 documentation, setting the parent item adds the crosshair to the scene of the parent.
         self.crosshair.setParentItem(pixmap_item)
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
-        self.ui.sprite_preview.viewport().update()
+        viewport.update()
 
         # Update the dialog palette data since we may have switched palettes.
         self.palette_dialog.set_palette(palette_image)

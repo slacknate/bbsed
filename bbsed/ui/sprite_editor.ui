@@ -51,7 +51,17 @@
     </widget>
    </item>
    <item>
-    <widget class="QGraphicsView" name="sprite_preview"/>
+    <widget class="QGraphicsView" name="sprite_preview">
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="resizeAnchor">
+      <enum>QGraphicsView::AnchorViewCenter</enum>
+     </property>
+    </widget>
    </item>
   </layout>
   <action name="show_animation_info">

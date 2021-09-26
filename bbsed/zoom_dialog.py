@@ -28,7 +28,7 @@ class ZoomDialog(QtWidgets.QDialog):
         self.current_sprite = io.BytesIO()
 
         self.current_position = Qt.QPoint(0, 0)
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, False, 0, 0)
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE)
 
         self.zoom_scene = QtWidgets.QGraphicsScene()
         self.ui.png_view.setScene(self.zoom_scene)
@@ -63,8 +63,10 @@ class ZoomDialog(QtWidgets.QDialog):
         """
         Reset the zoom view to be blank.
         """
-        # Clear our image data.
+        # Clear our image data. We have to remove the crosshair item or the C++ object it wraps will
+        # be deleted by the scene clear operation.
         self.current_sprite = io.BytesIO()
+        self.zoom_scene.removeItem(self.crosshair)
         self.zoom_scene.clear()
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.png_view.viewport().update()
@@ -85,17 +87,16 @@ class ZoomDialog(QtWidgets.QDialog):
         png_pixmap = Qt.QPixmap()
         png_pixmap.loadFromData(self.current_sprite.getvalue(), "PNG")
 
-        # We need a new crosshair every time we clear the scene.
-        # We have updated the sprite data anyway so it makes sense to recreate it.
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE, True, png_pixmap.width(), png_pixmap.height())
-
-        # Clear our image date and load in the updates image data.
+        # Clear our image date and load in the updates image data.  We have to remove the crosshair item
+        # or the C++ object it wraps will be deleted by the scene clear operation.
+        self.zoom_scene.removeItem(self.crosshair)
         self.zoom_scene.clear()
+
         pixmap_item = self.zoom_scene.addPixmap(png_pixmap)
-        self.zoom_scene.addItem(self.crosshair)
 
         # Set the parent item of the crosshair to the added png pixmap so the crosshair can
         # determine what color it should be drawn using the pixmap as a reference.
+        # Per Qt-5 documentation, setting the parent item adds the crosshair to the scene of the parent.
         self.crosshair.setParentItem(pixmap_item)
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
