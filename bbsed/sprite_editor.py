@@ -562,6 +562,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # Set up the sprite preview mouse events so we can update various app visuals.
         self.ui.sprite_preview.setMouseTracking(True)
+        self.ui.sprite_preview.resizeEvent = self.resize_preview
         self.ui.sprite_preview.mouseDoubleClickEvent = self.choose_color_from_coord
         self.ui.sprite_preview.mouseMoveEvent = self.mouse_move_event
         # Do not show a cursor as we are going to be manually drawing a cursor. Why?
@@ -826,6 +827,21 @@ class SpriteEditor(QtWidgets.QWidget):
         self.refresh()
 
         self.palette_slot_changed.emit(slot_name, slot_type)
+
+    def resize_preview(self, _):
+        """
+        When we change the size of the sprite preview from something like resizing
+        the entire app window, we want to ensure we keep a static scene rect based on the viewport.
+        """
+        viewport = self.ui.sprite_preview.viewport()
+
+        # Set a static rectangle, matching the viewport rectangle, for the scene.
+        # This will prevent auto-scrolling around when we move the crosshair.
+        scene_rect = Qt.QRectF(viewport.geometry())
+        self.sprite_scene.setSceneRect(scene_rect)
+
+        # Ensure the graphics view is refreshed so our changes are visible to the user.
+        viewport.update()
 
     def _clear_sprite_data(self):
         """
