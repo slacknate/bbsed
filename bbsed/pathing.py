@@ -114,25 +114,6 @@ class Paths:
         sprite_cache_path = self._get_sprite_cache_path(character)
         return self._get_image_cache(sprite_cache_path)
 
-    def _get_effect_cache_path(self, character):
-        """
-        Ensure all cached effects the app manages are located in the same top-level directory.
-        """
-        return os.path.join(self.data_dir, "effects", character)
-
-    def get_effect_cache_path(self, character):
-        """
-        Get the path where we should cache sprites for the given character.
-        """
-        return self._get_effect_cache_path(character)
-
-    def get_effect_cache(self, character):
-        """
-        Return a list of all cached effects for this character.
-        """
-        effect_cache_path = self._get_effect_cache_path(character)
-        return self._get_image_cache(effect_cache_path)
-
     def _get_collision_cache_path(self, character):
         """
         Ensure all cached collision box datas the app manages are located in the same top-level directory.

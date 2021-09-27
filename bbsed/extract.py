@@ -162,13 +162,7 @@ class ExtractThread(WorkThread):
         """
         sprite_cache_path = self.paths.get_sprite_cache_path(self.character)
         self._extract_images(sprite_cache_path, GAME_SPRITE_FILE_FMT)
-
-    def _extract_effects(self):
-        """
-        Helper to extract effect HIP image files and dump them to the cache path for the selected character.
-        """
-        effect_cache_path = self.paths.get_effect_cache_path(self.character)
-        self._extract_images(effect_cache_path, GAME_EFFECT_FILE_FMT)
+        self._extract_images(sprite_cache_path, GAME_EFFECT_FILE_FMT)
 
     def _extract_scripts(self):
         """
@@ -257,6 +251,5 @@ class ExtractThread(WorkThread):
     def work(self):
         self._extract_palettes()
         self._extract_sprites()
-        self._extract_effects()
         self._extract_scripts()
         self._exctract_collisions()
