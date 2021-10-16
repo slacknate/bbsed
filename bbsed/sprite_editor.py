@@ -481,6 +481,8 @@ class ExtraControls:
         self.callback = callback
 
 
+# TODO: implement editing for all relevant HPL files.
+#       probably also want unique edit slot files (for saved vs non-saved) palettes too.
 class SpriteEditor(QtWidgets.QWidget):
 
     image_data_changed = QtCore.pyqtSignal()
