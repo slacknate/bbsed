@@ -42,6 +42,67 @@ def get_other(two_tuple, item):
     return two_tuple[other_index]
 
 
+class StateControls:
+    """
+    Wrapper object to manage extra character control widgets.
+    Right now this is used for changing Izayoi Gain Art and Izanami Time Stop.
+    """
+    def __init__(self, toolbar):
+        self.state_name = QtWidgets.QLabel()
+        self.state_choices = QtWidgets.QComboBox()
+
+        self.separator = toolbar.addSeparator()
+        self.name_action = toolbar.addWidget(self.state_name)
+        self.choice_action = toolbar.addWidget(self.state_choices)
+
+        self.callback = None
+
+    def get_visibility(self):
+        """
+        Get the visibulity of extra controls actions.
+        """
+        return self.separator.isVisible()
+
+    def set_visibility(self, state):
+        """
+        Set the visibulity of extra controls actions.
+        """
+        self.separator.setVisible(state)
+        self.name_action.setVisible(state)
+        self.choice_action.setVisible(state)
+
+    def set_name(self, name):
+        """
+        Set the name of this character state selector.
+        """
+        self.state_name.setText(name)
+
+    def set_choices(self, choices):
+        """
+        Set the valid choices for the character state selector.
+        We clear any previously added choices first.
+        """
+        self.state_choices.clear()
+        self.state_choices.addItems(choices)
+
+    def get_state(self):
+        """
+        Get the current selected character state.
+        """
+        return self.state_choices.currentText()
+
+    def set_callback(self, callback):
+        """
+        Set the callback for character state change.
+        If a callback has been set previously we remove it before adding the new callback.
+        """
+        if self.callback is not None:
+            self.state_choices.currentTextChanged.disconnect(self.callback)
+
+        self.state_choices.currentTextChanged.connect(callback)
+        self.callback = callback
+
+
 class CharacterState:
     """
     An object to manage character state and reflect that state in the UI.
@@ -433,67 +494,6 @@ class EditorSelector:
         toolbar.insertWidget(before_widget, self.palette)
         toolbar.insertWidget(before_widget, self.slot)
         toolbar.insertSeparator(before_widget)
-
-
-class StateControls:
-    """
-    Wrapper object to manage extra character control widgets.
-    Right now this is used for changing Izayoi Gain Art and Izanami Time Stop.
-    """
-    def __init__(self, toolbar):
-        self.state_name = QtWidgets.QLabel()
-        self.state_choices = QtWidgets.QComboBox()
-
-        self.separator = toolbar.addSeparator()
-        self.name_action = toolbar.addWidget(self.state_name)
-        self.choice_action = toolbar.addWidget(self.state_choices)
-
-        self.callback = None
-
-    def get_visibility(self):
-        """
-        Get the visibulity of extra controls actions.
-        """
-        return self.separator.isVisible()
-
-    def set_visibility(self, state):
-        """
-        Set the visibulity of extra controls actions.
-        """
-        self.separator.setVisible(state)
-        self.name_action.setVisible(state)
-        self.choice_action.setVisible(state)
-
-    def set_name(self, name):
-        """
-        Set the name of this character state selector.
-        """
-        self.state_name.setText(name)
-
-    def set_choices(self, choices):
-        """
-        Set the valid choices for the character state selector.
-        We clear any previously added choices first.
-        """
-        self.state_choices.clear()
-        self.state_choices.addItems(choices)
-
-    def get_state(self):
-        """
-        Get the current selected character state.
-        """
-        return self.state_choices.currentText()
-
-    def set_callback(self, callback):
-        """
-        Set the callback for character state change.
-        If a callback has been set previously we remove it before adding the new callback.
-        """
-        if self.callback is not None:
-            self.state_choices.currentTextChanged.disconnect(self.callback)
-
-        self.state_choices.currentTextChanged.connect(callback)
-        self.callback = callback
 
 
 # TODO: implement editing for all relevant HPL files.
