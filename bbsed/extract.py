@@ -73,7 +73,7 @@ class ExtractThread(WorkThread):
         # Get the file name for the palette PAC file associated to the given character.
         # We look for the backup file first as we want to extract data from the original source
         # and not from files the tool itself has modified.
-        backup_file_name = palette_file_name.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
+        backup_file_name = palette_file_name.replace(GAME_PALETTE_EXT, BACKUP_GAME_PALETTE_EXT)
         backup_file_path = os.path.join(self.paths.bbcf_data_dir, backup_file_name)
 
         # If the backup file does not exist we assume the game files are unmodified by the tool.
@@ -100,7 +100,7 @@ class ExtractThread(WorkThread):
             with temp_directory() as temp_dir:
                 try:
                     self.message.emit("Extracting HPL palette files...")
-                    extract_pac(palette_file_path, temp_dir, extract_filter=hpl_file_filter)
+                    extract_pac(palette_backup_path, temp_dir, extract_filter=hpl_file_filter)
 
                 except Exception:
                     message = f"Failed to extract HPL files from {palette_file_name}!"
