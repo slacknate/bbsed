@@ -543,7 +543,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pac_palette_name = GAME_PALETTE_FILE_FMT.format(character)
         pac_palette_path = os.path.join(self.paths.bbcf_data_dir, pac_palette_name)
 
-        backup_palette_name = pac_palette_name.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
+        backup_palette_name = pac_palette_name.replace(GAME_PALETTE_EXT, BACKUP_GAME_PALETTE_EXT)
         backup_palette_path = os.path.join(self.paths.bbcf_data_dir, backup_palette_name)
 
         # If a backup does not exist then we should not attempt restore as we legitimately can't do it.
