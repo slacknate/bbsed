@@ -757,9 +757,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 hpl_dst_path = os.path.join(edit_palette_path, hpl_file)
                 shutil.copyfile(hpl_src_path, hpl_dst_path)
 
-            self.ui.paste_palette.setEnabled(False)
-            self.clipboard = None
-
             # We are applying changes to a palette. Make sure the UI is updated accordingly.
             self.update_ui_for_palette()
             self.sprite_editor.refresh()
