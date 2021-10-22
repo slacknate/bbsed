@@ -239,11 +239,9 @@ class SelectDialog(QtWidgets.QDialog):
         # Only update the preview if we have a valid selection.
         if select_name:
             character = self.ui.character_select.currentData()
-            sprite_cache = self.paths.get_sprite_cache(character)
+            self._update_sprite_preview(character, palette_id, select_name)
 
-            self._update_sprite_preview(sprite_cache, character, palette_id, select_name)
-
-    def _update_sprite_preview(self, sprite_cache, character, palette_id, select_name):
+    def _update_sprite_preview(self, character, palette_id, select_name):
         """
         A character selection or palette selection was made and
         we need to update the UI to show the most relevant preview.
@@ -253,9 +251,27 @@ class SelectDialog(QtWidgets.QDialog):
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
 
-        # Get the first sprite from our cache to show as a preview.
-        # We don't really need to provide options here as this is a quick preview.
-        hip_full_path = sprite_cache[0]
+        # Get the cached sprites for this character.
+        sprite_cache = self.paths.get_sprite_cache(character)
+        hip_full_path = None
+
+        # Get the first sprite from our cache that is an image of to show as a preview the selected character.
+        # We don't really need to provide preview options here as this is a quick preview.
+        # We look for the first file starting with the selected character prefix because some extracted character data
+        # contains sprites for other characters. I assume this is for special intros and such.
+        for _hip_full_path in sprite_cache:
+            _hip_file = os.path.basename(_hip_full_path)
+
+            if _hip_file.startswith(character):
+                hip_full_path = _hip_full_path
+                break
+
+        # If there are no cached sprites we can't show a preview to the user.
+        if hip_full_path is None:
+            character_name = self.ui.character_select.currentText()
+            message = f"No Sprites for {character_name} have been extracted or edited!"
+            self.parent().show_message_dialog("No Preview Available", message)
+            return
 
         try:
             hip_image = HIPImage()
@@ -372,9 +388,7 @@ class SelectDialog(QtWidgets.QDialog):
         and the sprite preview so checking the box of an edit slow on dialog load shows a sprite.
         """
         index = select_combo.currentIndex()
-
         character = self.ui.character_select.currentData()
-        sprite_cache = self.paths.get_sprite_cache(character)
 
         is_checked = (check_state == QtCore.Qt.CheckState.Checked)
         select_combo.setItemData(index, is_checked, ROLE_CHECK_STATE)
@@ -382,7 +396,7 @@ class SelectDialog(QtWidgets.QDialog):
         select_name = select_combo.itemText(index)
 
         self._mark_palette_selected(character, palette_id, select_name, select_check, is_checked)
-        self._update_sprite_preview(sprite_cache, character, palette_id, select_name)
+        self._update_sprite_preview(character, palette_id, select_name)
 
     def _deselect_previous(self, character, palette_id):
         """
@@ -404,7 +418,6 @@ class SelectDialog(QtWidgets.QDialog):
         is_checked = select_combo.currentData(ROLE_CHECK_STATE)
 
         character = self.ui.character_select.currentData()
-        sprite_cache = self.paths.get_sprite_cache(character)
 
         # In multi-select mode we need to set the check state for each selection choice.
         if self.multi_select:
@@ -416,16 +429,8 @@ class SelectDialog(QtWidgets.QDialog):
         else:
             self._deselect_previous(character, palette_id)
 
-        # If there are no cached sprites we can't show a preview to the user.
-        if not sprite_cache:
-            character_name = self.ui.character_select.currentText()
-            message = f"No Sprites for {character_name} have been extracted or edited!"
-            self.parent().show_message_dialog("No Preview Available", message)
-            return
-
         self._mark_palette_selected(character, palette_id, select_name, select_check, is_checked)
-
-        self._update_sprite_preview(sprite_cache, character, palette_id, select_name)
+        self._update_sprite_preview(character, palette_id, select_name)
 
     def get_selected_palettes(self):
         """
