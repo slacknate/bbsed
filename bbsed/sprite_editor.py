@@ -43,22 +43,28 @@ def get_other(two_tuple, item):
 
 
 class CharacterState:
-    def __init__(self, sprite, sprite_editor):
+    """
+    An object to manage character state and reflect that state in the UI.
+    Currently this only applies to characters that are "stateful", i.e. Izayoi
+    due to her Gain Art and Izanami due to her Time Stop.
+    """
+    def __init__(self, toolbar, sprite, sprite_editor):
+        # Create our state controls widget and add it to the toolbar.
+        # Hide the state controls by default as there are no controls to display when no character is selected.
+        self.controls = StateControls(toolbar)
+        self.controls.set_visibility(False)
+
         self.sprite = sprite
         self.sprite_editor = sprite_editor
-        self.state_visible = sprite_editor.extra_controls.get_visibility
-        self.set_state_visibility = sprite_editor.extra_controls.set_visibility
-        self.get_state_name = None
-        self.get_state = None
         self.palette_id = "INVALID"
         self.character_id = "INVALID"
         self.initial = None
         self.current = None
 
-    def _show_states(self, state_name, state_choices):
+    def _load_states(self, state_name, state_choices):
         """
-        Create and display a dialog for the given character that displays a character
-        state (e.g. Izayoi Gain Art) and choices for the state.
+        Update our UI controls to the given state name and choices.
+        We also make the UI controls visible so the user may interact with them.
         """
         def _make_state_callback():
             """
@@ -67,14 +73,11 @@ class CharacterState:
             """
             return lambda _state_value: self.sprite_editor.character_state_change(state_name, _state_value)
 
-        self.sprite_editor.extra_controls.set_name(state_name)
-        self.sprite_editor.extra_controls.set_choices(state_choices)
-        self.sprite_editor.extra_controls.set_callback(_make_state_callback())
+        self.controls.set_name(state_name)
+        self.controls.set_choices(state_choices)
+        self.controls.set_callback(_make_state_callback())
 
-        self.get_state_name = lambda: state_name
-        self.get_state = self.sprite_editor.extra_controls.get_state
-
-        self.set_state_visibility(True)
+        self.controls.set_visibility(True)
 
     def set_palette_id(self, palette_id):
         """
@@ -96,8 +99,8 @@ class CharacterState:
         self.character_id = character_id
         self.current = None
 
-        if self.state_visible():
-            self.set_state_visibility(False)
+        if self.controls.get_visibility():
+            self.controls.set_visibility(False)
 
         character_name, _ = CHARACTER_INFO[character_id]
         ext_info = CHARACTER_INFO_EXT.get(character_id, {})
@@ -108,10 +111,10 @@ class CharacterState:
         if char_states:
             self.current = self.initial = char_states[STATE_INITIAL]
             state_name, state_choices = char_states[STATE_DEFINITION]
-            self._show_states(state_name, state_choices)
+            self._load_states(state_name, state_choices)
 
         else:
-            self.set_state_visibility(False)
+            self.controls.set_visibility(False)
 
     def _update_state(self):
         """
@@ -124,8 +127,8 @@ class CharacterState:
         is_initial = True
 
         # Only attempt to fetch the character state if there is a state to be fetched!
-        if self.state_visible():
-            state = self.get_state()
+        if self.controls.get_visibility():
+            state = self.controls.get_state()
             is_initial = (state == self.initial)
             self.current = state
 
@@ -260,6 +263,10 @@ class SpriteFileItem(QtWidgets.QTreeWidgetItem):
 
 
 class Sprite:
+    """
+    An object to manage image and palette data and help keep all displayed image and
+    palette data in sync for all relevant graphics display widgets.
+    """
     def __init__(self):
         # If our loaded sprite is a raw RGBA image then this is object is used to manipulate said sprite.
         self.hip_image = HIPImage()
@@ -428,9 +435,9 @@ class EditorSelector:
         toolbar.insertSeparator(before_widget)
 
 
-class ExtraControls:
+class StateControls:
     """
-    Wrapper object to manage extra character controls.
+    Wrapper object to manage extra character control widgets.
     Right now this is used for changing Izayoi Gain Art and Izanami Time Stop.
     """
     def __init__(self, toolbar):
@@ -504,11 +511,6 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui = Ui_Editor()
         self.ui.setupUi(self)
 
-        # Create our extra controls widget and add it to the toolbar.
-        # Hide the extra controls by default as there are no controls to display when no character is selected.
-        self.extra_controls = ExtraControls(mainwindow.ui.toolbar)
-        self.extra_controls.set_visibility(False)
-
         # Create our character/palette/slot selector widget and add it to the toolbar.
         self.selector = EditorSelector(mainwindow.ui.toolbar, mainwindow.ui.cut_color)
 
@@ -516,8 +518,8 @@ class SpriteEditor(QtWidgets.QWidget):
         self.sprite = Sprite()
         # An object to manage the display of stateful characters.
         # A stateful character is a character like Izayoi where a user action can
-        # change a character state (Gain Art) that in turn changes the colors displayed on the character.
-        self.state = CharacterState(self.sprite, self)
+        # change a character state (e.g. Gain Art) that in turn changes the colors displayed on the character.
+        self.state = CharacterState(mainwindow.ui.toolbar, self.sprite, self)
 
         # Crosshair drawn on the sprite preview with which the user can select palette colors.
         self.crosshair = Crosshair(CROSS_HAIR_SIZE)
