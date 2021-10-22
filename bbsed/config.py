@@ -78,3 +78,13 @@ class Configuration:
         Get section object.
         """
         return self.settings[section]
+
+    def __iter__(self):
+        """
+        Iterate all settings in the config.
+        """
+        for section, settings in self.SETTINGS.items():
+            for setting, _ in settings.items():
+                value = self.settings[section][setting]
+
+                yield section, setting, value

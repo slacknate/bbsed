@@ -105,6 +105,18 @@ class SelectDialog(QtWidgets.QDialog):
             # We also want to be able to easily change palette preview by clicking a palette group box.
             palette_group.mousePressEvent = _show_sprite_callback(palette_id, select_check, select_combo)
 
+        if self.config is not None:
+            self._load_config()
+
+    def _load_config(self):
+        """
+        Set the initial state of the dialog from the saved config.
+        This will only occur if the config exists.
+        """
+        for character, palette_id, _ in self.config:
+            __, select_check, select_combo = self._get_widgets(palette_id)
+            self._update_ui_for_config(character, palette_id, select_check, select_combo)
+
     def accept(self):
         QtWidgets.QDialog.accept(self)
 
@@ -114,18 +126,23 @@ class SelectDialog(QtWidgets.QDialog):
 
         self.selection_made.emit(self)
 
+    def _get_widgets(self, palette_id):
+        """
+        The attribute names of these widgets are explicitly defined in Qt Designer.
+        These attributes will in fact exist and we get at them this way to avoid writing a giant block of
+        code that would manually call out these widgets `GAME_MAX_PALETTES` times.
+        """
+        palette_group = getattr(self.ui, PALETTE_GROUP_PREFIX.format(palette_id))
+        select_check = getattr(self.ui, SELECT_CHECK_PREFIX.format(palette_id))
+        select_combo = getattr(self.ui, SELECT_COMBOBOX_PREFIX.format(palette_id))
+        return palette_group, select_check, select_combo
+
     def iter_widgets(self):
         """
         Helper to iterate our palette selection widgets.
         """
-        for palette_id, palette_num in iter_palettes():
-            # The attribute names of these widgets are explicitly defined in Qt Designer.
-            # These attributes will in fact exist and we get at them this way to avoid writing a giant block of
-            # code that would manually call out these widgets `GAME_MAX_PALETTES` times.
-            palette_group = getattr(self.ui, PALETTE_GROUP_PREFIX.format(palette_id))
-            select_check = getattr(self.ui, SELECT_CHECK_PREFIX.format(palette_id))
-            select_combo = getattr(self.ui, SELECT_COMBOBOX_PREFIX.format(palette_id))
-
+        for palette_id, _ in iter_palettes():
+            palette_group, select_check, select_combo = self._get_widgets(palette_id)
             yield palette_id, palette_group, select_check, select_combo
 
     def _update_ui_for_config(self, character, palette_id, select_check, select_combo):
