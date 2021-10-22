@@ -162,7 +162,7 @@ class SelectDialog(QtWidgets.QDialog):
 
                 selections.append((select_name, is_checked))
 
-        # If aren't in multi-select mode then we only have one selection for this character/palette ID combo.
+        # If we aren't in multi-select mode then we only have one selection for this character/palette ID combo.
         # We still create an `is_checked` value just even though it will be unused as it will be set on the
         # combobox user data regardless.
         else:
