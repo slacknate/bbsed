@@ -954,7 +954,7 @@ class SpriteEditor(QtWidgets.QWidget):
         png_pixmap = Qt.QPixmap()
         png_pixmap.loadFromData(sprite_image, "PNG")
 
-        # Clear our image date and load in the updates image data. We have to remove the crosshair item
+        # Clear our image data and load in the updated image data. We have to remove the crosshair item
         # or the C++ object it wraps will be deleted by the scene clear operation.
         self.sprite_scene.removeItem(self.crosshair)
         self.sprite_scene.clear()
