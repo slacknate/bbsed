@@ -413,6 +413,10 @@ class Sprite:
 
 
 class EditorSelector:
+    """
+    Wrapper object to contain the character/palette/slot selection comboboxes.
+    This also automatically adds the widgets to the toolbar in the correct position.
+    """
     def __init__(self, toolbar, before_widget):
         self.character = QtWidgets.QComboBox()
         self.palette = QtWidgets.QComboBox()
@@ -425,6 +429,10 @@ class EditorSelector:
 
 
 class ExtraControls:
+    """
+    Wrapper object to manage extra character controls.
+    Right now this is used for changing Izayoi Gain Art and Izanami Time Stop.
+    """
     def __init__(self, toolbar):
         self.state_name = QtWidgets.QLabel()
         self.state_choices = QtWidgets.QComboBox()
