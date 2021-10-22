@@ -160,16 +160,15 @@ Note that there are also "Copy Palette", "Paste Palette", and "Discard Changes" 
 found in the <a href="pal_menu">Palettes</a> menu and toolbar.<br><br>
 
 When "Copy" is activated the tool will copy the current selected palette<br>
-slot. This occurs whether or not there are active changes. Both save slots<br>
-and the "Edit" slot can be copied.<br><br>
+slot. This occurs whether or not there are active changes. Palettes can be copied<br>
+regardless of presence of unsaved changes.<br><br>
 
 When "Paste" is activated the tool will overwrite the current selected<br>
 palette slot with a previously been copied palette.<br>
 This will clear the palette clipboard.<br><br>
 
-The "Discard" option will remove any active changes present in the "Edit" slot.<br>
-An "Edit" slot must be actively selected and have active changes for the "Discard"<br>
-option to be enabled.
+The "Discard" option will remove any unsaved changes present for the current slot.<br>
+Unsaved changes must be for the "Discard" option to be enabled.
 </body>
 </html>
 """
@@ -184,9 +183,8 @@ This can be done via the "Apply Palettes" option found on the toolbar or in the
 This will show the Select Palettes dialog. This dialog features a character selection and sprite<br>
 preview of its own. The remaining UI elements are for selecting palettes to apply to the game files.<br><br>
 
-If the "None" option is selected then the game version of that palette will not be replaced.<br>
-Otherwise, the palette will be replaced with one created in the editor. Note that the "Edit" slot<br>
-is available for choosing so you can view your changes in game before saving them if you so desire.<br><br>
+If a selection is a game-version slot then game version of that palette will not be replaced.<br>
+Otherwise, the palette will be replaced with one created in the editor.<br><br>
 
 The state of this dialog is saved when accepted, so palettes previously applied need not be<br>
 re-selected each time you want to add new creations to your palette selections.
@@ -228,9 +226,7 @@ individual palette files. This is allowed so any pre-existing manually created p
 can be imported into the tool.<br><br>
 
 When individual palette files are imported, the tool will prompt you to pick a save<br>
-slot name for those files. Note that if an imported palette is marked as being exported<br>
-from an "Edit" slot that it will be applied to the "Edit" slot on import. Be sure not<br>
-to overwrite any unsaved work!
+slot name for those files.
 </body>
 </html>
 """
