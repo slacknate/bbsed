@@ -13,18 +13,22 @@ __all__ = [
     "EFFECT_IMG_PREFIX",
     "BACKUP_GAME_PALETTE_EXT",
     "GAME_PALETTE_EXT",
-    "BACKUP_PALETTE_EXT",
+    "SLOT_PALETTE_EXT_FMT",
     "PALETTE_EXT",
     "PNG_EXT",
-    "HASH_EXT",
-    "PALETTE_EDIT_MARKER",
     "PALETTE_SAVE_MARKER",
-    "EDIT_INTERNAL_NAME",
-    "SLOT_NAME_NONE",
-    "SLOT_NAME_EDIT",
-    "PALETTE_NONE",
-    "PALETTE_EDIT",
+    "SLOT_NAME_BBCF",
+    "SLOT_NAME_BBCP",
+    "SLOT_NAME_BBCS",
+    "SLOT_NAME_BBCT",
+    "PALETTE_BBCF",
+    "PALETTE_BBCP",
+    "PALETTE_BBCS",
+    "PALETTE_BBCT",
+    "SLOT_UNTITLED",
+    "GAME_SLOT_NAMES",
     "PALETTE_SAVE",
+    "GAME_PALETTES",
     "CHAR_ABBR_LEN",
     "PALETTE_ID_LEN",
     "GAME_MAX_PALETTES",
@@ -34,8 +38,6 @@ __all__ = [
     "temp_directory",
     "iter_palettes",
     "palette_number_to_id",
-    "get_hash_path",
-    "hash_file",
     "steam_running",
     "create_lock",
     "delete_lock",
@@ -45,7 +47,6 @@ __all__ = [
 
 import os
 import shutil
-import hashlib
 import tempfile
 import contextlib
 
@@ -70,23 +71,29 @@ EFFECT_IMG_PREFIX = "vr{}ef"
 BACKUP_GAME_PALETTE_EXT = ".orig.pac"
 GAME_PALETTE_EXT = ".pac"
 
-BACKUP_PALETTE_EXT = ".orig.hpl"
+SLOT_PALETTE_EXT_FMT = ".{}.hpl"
 PALETTE_EXT = ".hpl"
 
 PNG_EXT = ".png"
 
-HASH_EXT = ".sha256"
-
-PALETTE_EDIT_MARKER = ".edit"
 PALETTE_SAVE_MARKER = ".save-"
 
-EDIT_INTERNAL_NAME = "==EDIT=="
+SLOT_NAME_BBCF = "BBCF"
+SLOT_NAME_BBCP = "BBCP"
+SLOT_NAME_BBCS = "BBCS"
+SLOT_NAME_BBCT = "BBCT"
 
-SLOT_NAME_NONE = "None"
-SLOT_NAME_EDIT = "Edit"
-PALETTE_NONE = 0
-PALETTE_EDIT = 1
-PALETTE_SAVE = 2
+SLOT_UNTITLED = "Untitled"
+
+GAME_SLOT_NAMES = (SLOT_NAME_BBCF, SLOT_NAME_BBCP, SLOT_NAME_BBCS, SLOT_NAME_BBCT)
+
+PALETTE_BBCF = 0
+PALETTE_BBCP = 1
+PALETTE_BBCS = 2
+PALETTE_BBCT = 3
+PALETTE_SAVE = 4
+
+GAME_PALETTES = (PALETTE_BBCF, PALETTE_BBCP, PALETTE_BBCS, PALETTE_BBCT)
 
 CHAR_ABBR_LEN = 2
 PALETTE_ID_LEN = 2
@@ -145,27 +152,6 @@ def palette_number_to_id(palette_number):
     return PALETTE_ID_FMT.format(palette_num_in_game)
 
 
-def hash_file(full_path):
-    """
-    Return the SHA-256 hash of the given file.
-    """
-    hpl_hash = hashlib.sha256()
-
-    with open(full_path, "rb") as hpl_fp:
-        hpl_hash.update(hpl_fp.read())
-
-    return hpl_hash.hexdigest()
-
-
-def get_hash_path(full_path):
-    """
-    Get the hash path for the given file.
-    We just stick our defined hash extension on the end of the path.
-    This way we also maintain compatibility with our pathing module.
-    """
-    return full_path + HASH_EXT
-
-
 def steam_running():
     """
     Helper to check if Steam is running.
@@ -191,6 +177,10 @@ def create_lock(lock_file):
     We simply write the pid of this process to the lock file
     so other BBCF Sprite Editor instances can determine the owner of the lock.
     """
+    lock_dir = os.path.dirname(lock_file)
+    if not os.path.exists(lock_dir):
+        os.makedirs(lock_dir)
+
     with open(lock_file, "w") as lock_fp:
         lock_fp.write(str(os.getpid()))
 

@@ -27,12 +27,9 @@ class ExportThread(WorkThread):
                     for hpl_src_path in hpl_file_list:
                         hpl_file = os.path.basename(hpl_src_path)
 
-                        if export_name == SLOT_NAME_EDIT:
-                            export_file_suffix = PALETTE_EDIT_MARKER + PALETTE_EXT
-                        else:
-                            export_file_suffix = PALETTE_SAVE_MARKER + export_name + PALETTE_EXT
-
+                        export_file_suffix = PALETTE_SAVE_MARKER + export_name + PALETTE_EXT
                         hpl_pac_name = hpl_file.replace(PALETTE_EXT, export_file_suffix)
+
                         export_list.append((hpl_src_path, hpl_pac_name))
 
         return export_list

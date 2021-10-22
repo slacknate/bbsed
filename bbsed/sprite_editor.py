@@ -482,7 +482,6 @@ class ExtraControls:
 
 
 # TODO: implement editing for all relevant HPL files.
-#       probably also want unique edit slot files (for saved vs non-saved) palettes too.
 #       color shift would be a nice feature to have.
 class SpriteEditor(QtWidgets.QWidget):
 
@@ -646,10 +645,13 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         save_index = self.selector.slot.findText(save_name)
 
+        # Remove the given index and de-select the slot.
         with block_signals(self.selector.slot):
             self.selector.slot.removeItem(save_index)
+            self.selector.slot.setCurrentIndex(-1)
 
-        # Re-select the edit slot after we delete a palette.
+        # Reset to the BBCF palette after we delete a save slot.
+        # Because we de-selected all slots while signals were blocked, setting the index here will trigger a refresh.
         self.selector.slot.setCurrentIndex(0)
 
     def import_palette_data(self, character, palette_id, hpl_to_import, pac_to_import):
@@ -694,15 +696,19 @@ class SpriteEditor(QtWidgets.QWidget):
         We need to update the available slots presented in the UI.
         """
         with block_signals(self.selector.slot):
-            # Clearing the save select and re-adding items will auto-select the first item
-            # which will always be a non-saved palette.
             self.selector.slot.clear()
-            self.selector.slot.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
+
+            # TODO: BBCP, BBCS, BBCT
+            self.selector.slot.addItem(SLOT_NAME_BBCF, PALETTE_BBCF)
 
             # Set the save select enable state based on the presence of files on disk.
             self.selector.slot.setEnabled(bool(character_saves))
             for save_name in character_saves:
-                self.selector.slot.addItem(save_name, PALETTE_SAVE)
+                if save_name not in GAME_SLOT_NAMES:
+                    self.selector.slot.addItem(save_name, PALETTE_SAVE)
+
+            # Set the selected slot to the BBCF game slot.
+            self.selector.slot.setCurrentIndex(0)
 
     def character_state_change(self, _, __):
         """
@@ -743,8 +749,8 @@ class SpriteEditor(QtWidgets.QWidget):
         palette_id = self.selector.palette.currentText()
 
         # Update the UI to show any save slots for the first palette.
-        character_saves = self.paths.get_character_saves(character, palette_id)
-        self._update_save_slots(character_saves)
+        palette_saves = self.paths.get_palette_saves(character, palette_id)
+        self._update_save_slots(palette_saves)
 
         # Load up the newly selected character information into our state manager.
         self.state.load_character(character_id)
@@ -812,8 +818,8 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # When we select a palette ID we need to look for existing saved palettes associated to it.
         # Based on the presence of these files we also need to update the state of the UI.
-        character_saves = self.paths.get_character_saves(character, palette_id)
-        self._update_save_slots(character_saves)
+        palette_saves = self.paths.get_palette_saves(character, palette_id)
+        self._update_save_slots(palette_saves)
 
         self.refresh()
 
@@ -861,6 +867,23 @@ class SpriteEditor(QtWidgets.QWidget):
         # Clear zoom view.
         self.zoom_dialog.reset()
 
+    def _choose_hpl(self, hpl_file, character, palette_id, slot_name):
+        """
+        Helper to get the full path of the HPL palette file to apply to a displayed sprite.
+        We prioritize any active edits and if no edit files exist we fall back to palette saves.
+        The save fallback includes the game version of the given palette.
+        """
+        slot_hpl_file = hpl_file.replace(PALETTE_EXT, SLOT_PALETTE_EXT_FMT.format(slot_name))
+
+        hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
+        palette_full_path = os.path.join(hpl_file_path, slot_hpl_file)
+
+        if not os.path.exists(palette_full_path):
+            hpl_file_path = self.paths.get_palette_save_path(character, palette_id, slot_name)
+            palette_full_path = os.path.join(hpl_file_path, hpl_file)
+
+        return palette_full_path
+
     def _refresh_palette(self):
         """
         Refresh our sprite palette. Reload the palette file, apply it to the sprite, and
@@ -868,7 +891,6 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         character = self.selector.character.currentData()
         slot_name = self.selector.slot.currentText()
-        slot_type = self.selector.slot.currentData()
         palette_id = self.selector.palette.currentText()
         sprite_item = self.selected_item
 
@@ -876,16 +898,7 @@ class SpriteEditor(QtWidgets.QWidget):
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
             self.state.swap_palettes(sprite_item)
 
-        # If we have a saved palette selected we should display that palette.
-        if slot_type == PALETTE_SAVE:
-            save_name = slot_name
-            hpl_file_path = self.paths.get_character_save_path(character, palette_id, save_name)
-
-        # Otherwise display the edit slot data.
-        else:
-            hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
-
-        hpl_full_path = os.path.join(hpl_file_path, sprite_item.hpl_file)
+        hpl_full_path = self._choose_hpl(self.selected_item.hpl_file, character, palette_id, slot_name)
 
         try:
             self.sprite.load_palette(hpl_full_path)
@@ -1166,16 +1179,9 @@ class SpriteEditor(QtWidgets.QWidget):
         frame1 = parent_item.child(0)
 
         palette_id = self.selector.palette.currentText()
-        save_name = self.selector.slot.currentText()
-        slot_type = self.selector.slot.currentData()
+        slot_name = self.selector.slot.currentText()
 
-        if slot_type == PALETTE_SAVE:
-            hpl_file_path = self.paths.get_character_save_path(character, palette_id, save_name)
-
-        else:
-            hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
-
-        palette_full_path = os.path.join(hpl_file_path, frame1.hpl_file)
+        palette_full_path = self._choose_hpl(frame1.hpl_file, character, palette_id, slot_name)
 
         frame_files = []
         for frame_item in self._iterate_sprite_files(parent_item, recurse=False):
@@ -1224,6 +1230,7 @@ class SpriteEditor(QtWidgets.QWidget):
         palette_id = self.selector.palette.currentText()
         character_name = self.selector.character.currentText()
         character = self.selector.character.currentData()
+        slot_name = self.selector.slot.currentText()
 
         try:
             self.sprite.set_index_color_range(*index_colors)
@@ -1233,8 +1240,9 @@ class SpriteEditor(QtWidgets.QWidget):
             self.show_error_dialog("Error Updating Palette", message)
             return
 
+        hpl_file = self.selected_item.hpl_file.replace(PALETTE_EXT, SLOT_PALETTE_EXT_FMT.format(slot_name))
         hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
-        palette_full_path = os.path.join(hpl_file_path, self.selected_item.hpl_file)
+        palette_full_path = os.path.join(hpl_file_path, hpl_file)
 
         try:
             self.sprite.save_palette(palette_full_path)
@@ -1340,7 +1348,6 @@ class SpriteEditor(QtWidgets.QWidget):
         with block_signals(self.selector.slot):
             self.selector.slot.setEnabled(False)
             self.selector.slot.clear()
-            self.selector.slot.addItem(SLOT_NAME_EDIT, PALETTE_EDIT)
 
         with block_signals(self.ui.sprite_list):
             self.ui.sprite_list.clear()

@@ -43,14 +43,6 @@ class ApplyThread(WorkThread):
             temp_hpl_file = os.path.basename(hpl_full_path)
             shutil.copyfile(hpl_full_path, os.path.join(temp_dir, temp_hpl_file))
 
-        # Copy game-version-palettes to the temp directory as necessary.
-        for palette_id, palette_num in iter_palettes():
-            # Only include game-version palettes if the user did not make a selection for this palette ID.
-            if palette_id not in palette_info:
-                for hpl_full_path in self.paths.get_game_palette(character, palette_id):
-                    temp_hpl_file = os.path.basename(hpl_full_path).replace(BACKUP_PALETTE_EXT, PALETTE_EXT)
-                    shutil.copyfile(hpl_full_path, os.path.join(temp_dir, temp_hpl_file))
-
         try:
             # Create a PAC file with the temp directory as the source.
             self.message.emit(f"Creating {pac_file_name}...")

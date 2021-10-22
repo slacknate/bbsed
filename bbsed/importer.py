@@ -19,22 +19,15 @@ class ImportThread(WorkThread):
         Helper method to process any meta data present in the source HPL file name.
         This method returns the destination file path to which this HPL file should be copied.
         """
-        if save_name == EDIT_INTERNAL_NAME:
-            character_edit_path = self.paths.get_edit_palette_path(character, palette_id)
+        character_save_path = self.paths.get_palette_save_path(character, palette_id, save_name)
 
-            hpl_dst_path = os.path.join(character_edit_path, hpl_file)
-            hpl_dst_path = hpl_dst_path.replace(PALETTE_EDIT_MARKER, "")
+        hpl_dst_path = os.path.join(character_save_path, hpl_file)
+        hpl_dst_path = hpl_dst_path.split(PALETTE_SAVE_MARKER)[0]
 
-        else:
-            character_save_path = self.paths.get_character_save_path(character, palette_id, save_name)
-
-            hpl_dst_path = os.path.join(character_save_path, hpl_file)
-            hpl_dst_path = hpl_dst_path.split(PALETTE_SAVE_MARKER)[0]
-
-            # If our HPL file to import features a save marker then string the split above removes the file extension.
-            # We should add it back if it does not exist in our destination path.
-            if not hpl_dst_path.endswith(PALETTE_EXT):
-                hpl_dst_path += PALETTE_EXT
+        # If our HPL file to import features a save marker then the string split above removes the file extension.
+        # We should add it back if it does not exist in our destination path.
+        if not hpl_dst_path.endswith(PALETTE_EXT):
+            hpl_dst_path += PALETTE_EXT
 
         return hpl_dst_path
 

@@ -139,18 +139,21 @@ class Paths:
         return self._get_script_cache_path(character)
 
     @staticmethod
-    def _get_path_pcs(*pcs):
+    def _get_path_pcs(*pcs, specifier=None):
         """
         Get the path pieces of a save or edit path.
         Save and edit paths both conform to the following structure:
 
         - <top level>
             - <character>
-                - pal
-                    - <palette ID>
+                - <specifier>
+                    - <specifier value>
 
         Note that a save path can have one further layer for the saved palette name.
         """
+        if specifier is None:
+            raise ValueError("Must provide a path specifier!")
+
         path_pcs = []
 
         # If we have at least one piece we were given a character.
@@ -158,11 +161,13 @@ class Paths:
             character = pcs[0]
             path_pcs.append(character)
 
-        # If we have at least two pieces then we were also given a palette ID.
+        # If we have at least two pieces then we were also given a specifier and associated value.
+        # This allows us to manage meta data directories for multiple different things.
+        # The intent is for something like "pal" and a palette ID to be the specifier and associated value.
         if len(pcs) >= 2:
-            palette_id = pcs[1]
-            path_pcs.append("pal")
-            path_pcs.append(palette_id)
+            specifier_value = pcs[1]
+            path_pcs.append(specifier)
+            path_pcs.append(specifier_value)
 
         # We will only get here for save paths.
         # If we have at least three pieces then we were given a palette save name.
@@ -172,137 +177,95 @@ class Paths:
 
         return path_pcs
 
-    def _get_edit_path(self, *pcs):
+    def _get_palette_edit_path(self, *pcs):
         """
         Ensure all the files the app can edit are located in the same top-level directory.
         For now we assume all edit paths are for palettes.
         """
-        edit_path_pcs = self._get_path_pcs(*pcs)
+        edit_path_pcs = self._get_path_pcs(*pcs, specifier="pal")
         return os.path.join(self.data_dir, "edit", *edit_path_pcs)
 
     def get_edit_palette_path(self, character, palette_id):
         """
         Get the path of a characters palette cache subdirectory.
         """
-        return self._get_edit_path(character, palette_id)
+        return self._get_palette_edit_path(character, palette_id)
 
     def get_edit_lock_path(self, character, palette_id):
         """
         Get the path of a palette lock file.
         """
-        edit_path = self._get_edit_path(character, palette_id)
+        edit_path = self._get_palette_edit_path(character, palette_id)
         return os.path.join(edit_path, LOCK_FILE_EXT)
 
-    def get_game_palette(self, character, palette_id):
+    def get_edit_palette(self, character, palette_id, slot_name):
         """
-        Get a list of HPL game-version palette files for the given character and palette ID.
+        Get a list of HPL palette files in the given slot for the given character and palette ID.
         """
-        character_edit_path = self._get_edit_path(character, palette_id)
+        character_edit_path = self._get_palette_edit_path(character, palette_id)
         hpl_files_list = []
 
         for hpl_file in listdir_safe(character_edit_path):
             hpl_full_path = os.path.join(character_edit_path, hpl_file)
 
-            # We explicitly want the backup HPL file.
-            if hpl_file.endswith(BACKUP_PALETTE_EXT):
+            if hpl_file.endswith(SLOT_PALETTE_EXT_FMT.format(slot_name)):
                 hpl_files_list.append(hpl_full_path)
 
         return hpl_files_list
 
-    def get_edit_slot_meta(self, character, palette_id):
-        """
-        Get the meta data file used to describe the slot name for a given palette edit.
-        Used if and only if edits are being made to an existing saved palette.
-        """
-        character_edit_path = self._get_edit_path(character, palette_id)
-        return os.path.join(character_edit_path, "slot.txt")
-
-    def get_edit_palette(self, character, palette_id):
-        """
-        Get a list of HPL palette files in the edit slot for the given character and palette ID.
-        """
-        character_edit_path = self._get_edit_path(character, palette_id)
-        hpl_files_list = []
-
-        for hpl_file in listdir_safe(character_edit_path):
-            hpl_full_path = os.path.join(character_edit_path, hpl_file)
-
-            is_hpl = hpl_file.endswith(PALETTE_EXT)
-            backup = hpl_file.endswith(BACKUP_PALETTE_EXT)
-
-            # We ignore backup HPL files.
-            if is_hpl and not backup:
-                hpl_files_list.append(hpl_full_path)
-
-        return hpl_files_list
-
-    def get_edit_palette_hashes(self, character, palette_id):
-        """
-        Get a list of edit palette files combined with their current and original hashes.
-        """
-        hpl_files_list = self.get_edit_palette(character, palette_id)
-        palette_hashes_list = []
-
-        for hpl_full_path in hpl_files_list:
-            edit_hash = hash_file(hpl_full_path)
-
-            with open(get_hash_path(hpl_full_path), "r") as hash_fp:
-                orig_hash = hash_fp.read()
-
-            palette_hashes_list.append((hpl_full_path, edit_hash, orig_hash))
-
-        return palette_hashes_list
-
-    def walk_edit(self, *characters):
+    def walk_palette_edit(self, *characters, slot_name=None):
         """
         Iterate our top level cache directory.
         """
+        if slot_name is None:
+            raise ValueError("Must provide a slot name!")
+
         if not characters:
-            characters = os.listdir(self._get_edit_path())
+            characters = os.listdir(self._get_palette_edit_path())
 
         for character in characters:
-            for palette_id, palette_num in iter_palettes():
-                hpl_files_list = self.get_edit_palette(character, palette_id)
+            for palette_id, _ in iter_palettes():
+                hpl_files_list = self.get_edit_palette(character, palette_id, slot_name)
 
                 if hpl_files_list:
                     yield character, palette_id, hpl_files_list
 
-    def _get_save_path(self, *pcs):
+    def _get_palette_save_path(self, *pcs):
         """
         Ensure all the files the app separately saves as user data are located in the same top-level directory.
         For now we assume all save paths are for palettes.
         """
-        save_path_pcs = self._get_path_pcs(*pcs)
+        save_path_pcs = self._get_path_pcs(*pcs, specifier="pal")
         return os.path.join(self.data_dir, "save", *save_path_pcs)
 
-    def get_character_save_path(self, character, palette_id, save_name):
+    def get_palette_save_path(self, character, palette_id, save_name):
         """
         Get the palette save path for a palette. A palette is associated to a character and palette ID.
         """
-        return self._get_save_path(character, palette_id, save_name)
+        return self._get_palette_save_path(character, palette_id, save_name)
 
-    def get_character_saves(self, character, palette_id):
+    def get_palette_saves(self, character, palette_id):
         """
         Get a list of saved palettes for the given character and palette ID.
         """
-        character_save_path = self._get_save_path(character, palette_id)
+        character_save_path = self._get_palette_save_path(character, palette_id)
         return listdir_safe(character_save_path)
 
     def get_saved_palette(self, character, palette_id, save_name):
         """
         Get a list of HPL palette files saved as `save_name` for the given character and palette ID.
         """
-        character_save_path = self._get_save_path(character, palette_id, save_name)
+        character_save_path = self._get_palette_save_path(character, palette_id, save_name)
         return [os.path.join(character_save_path, hpl_file) for hpl_file in os.listdir(character_save_path)]
 
-    def walk_save(self, *characters):
+    def walk_palette_save(self, *characters):
         """
-        Walk our top level save directory.
+        Walk our top level palette save directory.
         """
         if not characters:
-            characters = os.listdir(self._get_save_path())
+            characters = os.listdir(self._get_palette_save_path())
 
         for character in characters:
             for palette_id, palette_num in iter_palettes():
-                for save_name in self.get_character_saves(character, palette_id):
+                for save_name in self.get_palette_saves(character, palette_id):
                     yield character, palette_id, save_name

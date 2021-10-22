@@ -33,12 +33,15 @@ WINDOW_TITLE_EXTRA = " - {} - {}"
 WINDOW_TITLE_SLOT = " - {}"
 WINDOW_TITLE_EDIT_MARK = "*"
 
-HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})(" + PALETTE_EDIT_MARKER +
-                              r"|(" + PALETTE_SAVE_MARKER + r"\w+))?" + PALETTE_EXT)
+HPL_IMPORT_REGEX = re.compile(r"([a-z]{2})(\d{2})_(\d{2})(" + PALETTE_SAVE_MARKER + r"\w+)?" + PALETTE_EXT)
 HPL_SAVE_REGEX = re.compile(PALETTE_SAVE_MARKER + r"(\w+)" + PALETTE_EXT)
-HPL_EDIT_REGEX = re.compile(PALETTE_EDIT_MARKER + PALETTE_EXT)
+
+PALETTE_NUM_REGEX = re.compile(r"(\w{2})(\d{2})_(\d{2})")
+SLOT_NAME_REGEX = re.compile(r".\w+.hpl")
 
 NON_ALPHANUM_REGEX = re.compile(r"[^\w]")
+
+PALETTE_NUM_REPL = r"\g<1>{}_\g<3>"
 
 HPL_MAX_PALETTES = GAME_MAX_PALETTES - 1
 HPL_MAX_FILES_PER_PALETTE = 7
@@ -57,7 +60,7 @@ def generate_apply_settings():
         settings[character] = {}
 
         for palette_id, palette_num in iter_palettes():
-            settings[character][palette_id] = SLOT_NAME_NONE
+            settings[character][palette_id] = SLOT_NAME_BBCF
 
     return settings
 
@@ -236,8 +239,7 @@ class MainWindow(QtWidgets.QMainWindow):
         palette_id = palette_number_to_id(palette_num)
         palette_name_key = (character, palette_id)
 
-        is_nameless = PALETTE_EDIT_MARKER not in hpl_file and PALETTE_SAVE_MARKER not in hpl_file
-        is_edit = PALETTE_EDIT_MARKER in hpl_file
+        is_nameless = PALETTE_SAVE_MARKER not in hpl_file
         is_save = PALETTE_SAVE_MARKER in hpl_file
 
         # We have found an unnamed palette. Choose a name for it!
@@ -258,9 +260,6 @@ class MainWindow(QtWidgets.QMainWindow):
             # If we have a save marker then we can use that to get the palette name.
             save_match = HPL_SAVE_REGEX.search(hpl_file)
             palette_name = save_match.group(1)
-
-        elif is_edit:
-            palette_name = EDIT_INTERNAL_NAME
 
         else:
             # We should never get here, but it makes IDEs and PyLint not complain
@@ -502,39 +501,21 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         character_name, character = self.sprite_editor.get_character()
         palette_id, _ = self.sprite_editor.get_palette()
+        slot_name, _ = self.sprite_editor.get_slot()
 
         message = f"Do you wish to discard edits for {character_name} palette {palette_id}?"
         discard = self.show_confirm_dialog("Discard Edited Palette", message)
 
         if discard:
-            hpl_hash_list = self.paths.get_edit_palette_hashes(character, palette_id)
+            edit_file_list = self.paths.get_edit_palette(character, palette_id, slot_name)
 
-            for hpl_full_path, edit_hash, orig_hash in hpl_hash_list:
-                is_dirty = (edit_hash != orig_hash)
-
-                # If the hashes don't match then the file was edited.
-                # In this case where we are discarding changes we then remove
-                # the palette file and copy the backup in place of it.
-                if is_dirty:
-                    os.remove(hpl_full_path)
-                    backup_full_path = hpl_full_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
-                    shutil.copyfile(backup_full_path, hpl_full_path)
-
-            # Check for the presence of edit slot meta data and remove it if necessary.
-            slot_name = self._get_edit_meta(character, palette_id)
-            self._remove_edit_meta(character, palette_id)
+            for hpl_full_path in edit_file_list:
+                os.remove(hpl_full_path)
 
             self._set_window_title(character_name, palette_id, slot_name=slot_name)
             self.ui.discard_palette.setEnabled(False)
 
-            # If we did indeed have an associated slot name then we should re-select that
-            # slot. This will cause a sprite preview update.
-            if slot_name is not None:
-                self.sprite_editor.set_slot(slot_name=slot_name)
-
-            # Otherwise we need to trigger the sprite preview update manually.
-            else:
-                self.sprite_editor.refresh()
+            self.sprite_editor.refresh()
 
     def _restore_character_palettes(self, character):
         """
@@ -576,6 +557,19 @@ class MainWindow(QtWidgets.QMainWindow):
         if restore:
             self._restore_character_palettes(character)
 
+    def _get_palette_files(self, character, palette_id, slot_name):
+        """
+        Get a list of files that we either want to save, copy, or paste.
+        We prioritize any active edits and if no edit files exist we fall back to palette saves.
+        The save fallback includes the game version of the given palette.
+        """
+        hpl_files_list = self.paths.get_edit_palette(character, palette_id, slot_name)
+
+        if not hpl_files_list:
+            hpl_files_list = self.paths.get_saved_palette(character, palette_id, slot_name)
+
+        return hpl_files_list
+
     def _save_palette(self, save_name):
         """
         Save the current palette with the given name.
@@ -583,33 +577,29 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         character_name, character = self.sprite_editor.get_character()
         palette_id, _ = self.sprite_editor.get_palette()
-        slot_name, slot_type = self.sprite_editor.get_slot()
+        slot_name, _ = self.sprite_editor.get_slot()
 
-        save_dst_path = self.paths.get_character_save_path(character, palette_id, save_name)
+        save_dst_path = self.paths.get_palette_save_path(character, palette_id, save_name)
         if not os.path.exists(save_dst_path):
             os.makedirs(save_dst_path)
 
-        # The source of our save files is different depending on the slot slot type.
-        if slot_type == PALETTE_EDIT:
-            files_to_save = self.paths.get_edit_palette(character, palette_id)
-        else:
-            files_to_save = self.paths.get_saved_palette(character, palette_id, slot_name)
+        files_to_save = self._get_palette_files(character, palette_id, slot_name)
 
         for hpl_src_path in files_to_save:
-            hpl_file = os.path.basename(hpl_src_path)
+            hpl_dst_file = os.path.basename(hpl_src_path)
 
-            hpl_dst_path = os.path.join(save_dst_path, hpl_file)
+            # If our source file was an active edit HPL file then it will contain the slot name in the file name.
+            # When we move this file to the save directory we should remove the slot name as the slot name is
+            # included in the save directory path.
+            if hpl_dst_file.count(".") > 1:
+                hpl_dst_file = SLOT_NAME_REGEX.sub(PALETTE_EXT, hpl_dst_file)
+
+            hpl_dst_path = os.path.join(save_dst_path, hpl_dst_file)
             shutil.copyfile(hpl_src_path, hpl_dst_path)
 
-            # If we are saving an already saved palette under a new name we should not delete the source files.
-            if slot_type == PALETTE_EDIT:
-                os.remove(hpl_src_path)
-                backup_full_path = hpl_src_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT)
-                shutil.copyfile(backup_full_path, hpl_src_path)
-
-        # We should remove any associated edit slot meta data when we save these changes.
-        # The meta data is for describing active edits only.
-        self._remove_edit_meta(character, palette_id)
+            # Remove any edit files if they exist.
+            for edit_hpl_file in self.paths.get_edit_palette(character, palette_id, slot_name):
+                os.remove(edit_hpl_file)
 
         self._set_window_title(character_name, palette_id, slot_name=save_name)
 
@@ -632,7 +622,7 @@ class MainWindow(QtWidgets.QMainWindow):
         We provide *args for previous palette name choices as in certain scenarios we
         may need to choose a name multiple time during a single operation (like import).
         """
-        existing_saves = self.paths.get_character_saves(character, palette_id)
+        existing_saves = self.paths.get_palette_saves(character, palette_id)
         character_name, _ = self.sprite_editor.find_character(character=character)
 
         while True:
@@ -644,6 +634,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # However if the dialog is not accepted we ignore this restriction as we will be discarding this data.
             if NON_ALPHANUM_REGEX.search(palette_name) is not None and accepted:
                 message = "Palette names may only contain alpha-numeric characters and underscores!"
+                self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
+
+            # We explicitly disallow certain names (i.e. the abbreviation of installments to the series)
+            # so we can use those slots as the game-data versions of the palettes.
+            elif palette_name in GAME_SLOT_NAMES and accepted:
+                message = "Palette name may not be any of: {}".format(", ".join(GAME_SLOT_NAMES))
                 self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
 
             # If the palette name already exists and the dialog was accepted we should
@@ -672,15 +668,8 @@ class MainWindow(QtWidgets.QMainWindow):
         _, character = self.sprite_editor.get_character()
         palette_id, _ = self.sprite_editor.get_palette()
 
-        # Look for the presence of edit slot meta data.
-        # If it exists then that is what provides our palette save name.
-        edit_meta = self._get_edit_meta(character, palette_id)
-        if edit_meta is not None:
-            self._remove_edit_meta(character, palette_id)
-            save_name = edit_meta
-
         # If we have a saved palette selected we keep the name previously chosen.
-        elif slot_type == PALETTE_SAVE:
+        if slot_type == PALETTE_SAVE:
             save_name = slot_name
 
         # If we have the edit slot selected then we prompt the user to choose a name.
@@ -720,7 +709,7 @@ class MainWindow(QtWidgets.QMainWindow):
         delete = self.show_confirm_dialog("Delete Palette", message)
 
         if delete:
-            save_dst_path = self.paths.get_character_save_path(character, palette_id, save_name)
+            save_dst_path = self.paths.get_palette_save_path(character, palette_id, save_name)
             shutil.rmtree(save_dst_path)
 
             self.sprite_editor.delete_slot(save_name)
@@ -736,13 +725,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         _, character = self.sprite_editor.get_character()
         palette_id, _ = self.sprite_editor.get_palette()
-        slot_name, slot_type = self.sprite_editor.get_slot()
+        slot_name, _ = self.sprite_editor.get_slot()
 
-        if slot_type == PALETTE_EDIT:
-            self.clipboard = self.paths.get_edit_palette(character, palette_id)
-
-        else:
-            self.clipboard = self.paths.get_saved_palette(character, palette_id, slot_name)
+        self.clipboard = self._get_palette_files(character, palette_id, slot_name)
 
         self.ui.paste_palette.setEnabled(True)
 
@@ -758,13 +743,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if confirmed:
             _, character = self.sprite_editor.get_character()
-            palette_id, _ = self.sprite_editor.get_palette()
-            _, slot_type = self.sprite_editor.get_slot()
+            palette_id, palette_num = self.sprite_editor.get_palette()
+            slot_name, _ = self.sprite_editor.get_slot()
 
-            dst_hpl_files = self.paths.get_edit_palette(character, palette_id)
+            edit_palette_path = self.paths.get_edit_palette_path(character, palette_id)
 
-            for hpl_src_path, hpl_dst_path in zip(self.clipboard, dst_hpl_files):
-                os.remove(hpl_dst_path)
+            for hpl_src_path in self.clipboard:
+                hpl_file = os.path.basename(hpl_src_path)
+
+                hpl_file = PALETTE_NUM_REGEX.sub(PALETTE_NUM_REPL.format(palette_num), hpl_file)
+                hpl_file = hpl_file.replace(PALETTE_EXT, SLOT_PALETTE_EXT_FMT.format(slot_name))
+
+                hpl_dst_path = os.path.join(edit_palette_path, hpl_file)
                 shutil.copyfile(hpl_src_path, hpl_dst_path)
 
             self.ui.paste_palette.setEnabled(False)
@@ -772,31 +762,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # We are applying changes to a palette. Make sure the UI is updated accordingly.
             self.update_ui_for_palette()
+            self.sprite_editor.refresh()
 
-            # If we don't have the edit slot selected when we paste then we need to switch to it.
-            # This will trigger a sprite preview update.
-            if slot_type != PALETTE_EDIT:
-                self.sprite_editor.set_slot(slot_type=PALETTE_EDIT)
-
-            # Otherwise we need to update the sprite preview manually.
-            else:
-                self.sprite_editor.refresh()
-
-    def _update_edit_state(self, character, palette_id):
+    def _update_edit_state(self, character, palette_id, slot_name):
         """
         Helper to update the window title based on presence of active changes from the user.
         """
         self.ui.discard_palette.setEnabled(False)
-        is_dirty = False
 
         # Look for any palette files with active changes.
-        for _, edit_hash, orig_hash in self.paths.get_edit_palette_hashes(character, palette_id):
-            is_dirty = (edit_hash != orig_hash)
+        is_dirty = bool(self.paths.get_edit_palette(character, palette_id, slot_name))
 
-            # If the loaded character/palette has active changes our new window title should include the edit marker.
-            if is_dirty:
-                self.ui.discard_palette.setEnabled(True)
-                break
+        # If the loaded character/palette has active changes our new window title should include the edit marker.
+        if is_dirty:
+            self.ui.discard_palette.setEnabled(True)
 
         return is_dirty
 
@@ -817,6 +796,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if extras_len:
             window_title += WINDOW_TITLE_EXTRA.format(*pcs)
 
+        if slot_name in GAME_SLOT_NAMES:
+            slot_name = SLOT_UNTITLED if show_edit_mark else None
+
         if slot_name is not None:
             window_title += WINDOW_TITLE_SLOT.format(slot_name)
 
@@ -827,7 +809,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_ui_for_palette(self):
         """
-        Callback for when the sprite editor emits `data_changed`.
+        Callback for when the sprite editor emits `image_data_changed`.
         Also invoked when we paste a palette from the palette clipboard.
         We have UI elements that should be updated when palette data is modified.
         """
@@ -836,21 +818,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Get the type of slot upon which we just made changes.
         slot_name, slot_type = self.sprite_editor.get_slot()
-
-        # If we are working on a save slot then we need to switch to the edit slot to see our active changes.
-        # Setting the slot select index will trigger a preview update.
-        if slot_type == PALETTE_SAVE:
-            edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
-
-            # Write the slot name into the file.
-            with open(edit_meta_path, "w") as edit_fp:
-                edit_fp.write(slot_name)
-
-            self.sprite_editor.set_slot(slot_type=PALETTE_EDIT)
-
-        # If we have the edit slot selected then there is no name to include in the window title.
-        else:
-            slot_name = None
 
         # Add a marker to the window that indicates the user has active changes.
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=True)
@@ -862,6 +829,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         _, character = self.sprite_editor.get_character()
         palette_id, _ = self.sprite_editor.get_palette()
+        slot_name, _ = self.sprite_editor.get_slot()
 
         self.ui.delete_palette.setEnabled(False)
         self.ui.discard_palette.setEnabled(False)
@@ -884,8 +852,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Check for active changes and meta data associated to them for the palette we
         # we choose (i.e. 01) when we select a new character.
-        is_dirty = self._update_edit_state(character, palette_id)
-        slot_name = self._get_edit_meta(character, palette_id)
+        is_dirty = self._update_edit_state(character, palette_id, slot_name)
 
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
         self.sprite_editor.refresh()
@@ -896,8 +863,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         character_name, character = self.sprite_editor.get_character()
 
-        is_dirty = self._update_edit_state(character, palette_id)
-        slot_name = self._get_edit_meta(character, palette_id)
+        is_dirty = self._update_edit_state(character, palette_id, None)
+        slot_name, _ = self.sprite_editor.get_slot()
 
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
 
@@ -911,39 +878,13 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         character_name, character = self.sprite_editor.get_character()
         palette_id, _ = self.sprite_editor.get_palette()
-        is_dirty = False
 
         can_delete = (slot_type == PALETTE_SAVE)
         self.ui.delete_palette.setEnabled(can_delete)
 
-        if slot_type == PALETTE_EDIT:
-            slot_name = self._get_edit_meta(character, palette_id)
-            is_dirty = self._update_edit_state(character, palette_id)
+        is_dirty = self._update_edit_state(character, palette_id, slot_name)
 
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
-
-    def _get_edit_meta(self, character, palette_id):
-        """
-        Helper to get the edit slot meta value if it exists.
-        We return `None` in the case when the file does not exist.
-        """
-        slot_name = None
-        edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
-
-        if os.path.exists(edit_meta_path):
-            with open(edit_meta_path, "r") as edit_fp:
-                slot_name = edit_fp.read()
-
-        return slot_name
-
-    def _remove_edit_meta(self, character, palette_id):
-        """
-        Helper to remove the edit slot meta data if it exists.
-        Used when palette changes are saved or discarded.
-        """
-        edit_meta_path = self.paths.get_edit_slot_meta(character, palette_id)
-        if os.path.exists(edit_meta_path):
-            os.remove(edit_meta_path)
 
     def show_tutorial(self):
         """

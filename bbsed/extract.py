@@ -64,7 +64,7 @@ class ExtractThread(WorkThread):
         Helper to extract HPL palette files and dump them to `palette_edit_path`.
         """
         existing_hpl_files = []
-        for _, __, hpl_files_list in self.paths.walk_edit(self.character):
+        for _, __, hpl_files_list in self.paths.walk_palette_edit(self.character, slot_name=SLOT_NAME_BBCF):
             existing_hpl_files.extend([os.path.basename(hpl_full_path) for hpl_full_path in hpl_files_list])
 
         palette_file_name = GAME_PALETTE_FILE_FMT.format(self.character)
@@ -113,21 +113,16 @@ class ExtractThread(WorkThread):
                     palette_num = hpl_file[CHAR_ABBR_LEN:CHAR_ABBR_LEN+PALETTE_ID_LEN]
                     palette_id = palette_number_to_id(palette_num)
 
-                    palette_edit_path = self.paths.get_edit_palette_path(self.character, palette_id)
+                    # We want to store the extracted palette as the "BBCF" slot.
+                    palette_save_path = self.paths.get_palette_save_path(self.character, palette_id, SLOT_NAME_BBCF)
 
-                    # If our edit path doesnt exist yet we should make it..
-                    if not os.path.exists(palette_edit_path):
-                        os.makedirs(palette_edit_path)
+                    # If our edit path doesnt exist yet we should make it.
+                    if not os.path.exists(palette_save_path):
+                        os.makedirs(palette_save_path)
 
-                    # On extract of a palette we create a backup/original version at the same time
-                    # we create the file which we expose to the user for editing.
-                    hpl_dst_path = os.path.join(palette_edit_path, hpl_file)
-                    shutil.copyfile(hpl_src_path, hpl_dst_path.replace(PALETTE_EXT, BACKUP_PALETTE_EXT))
+                    # Copy the extracted HPL palette from the temp directory to the app meta data save directory.
+                    hpl_dst_path = os.path.join(palette_save_path, hpl_file)
                     shutil.copyfile(hpl_src_path, hpl_dst_path)
-
-                    # Additionally we save a hash of the backup/original version of the palette.
-                    with open(get_hash_path(hpl_dst_path), "w") as hash_fp:
-                        hash_fp.write(hash_file(hpl_src_path))
 
     def _extract_images(self, cache_path, file_fmt):
         """
