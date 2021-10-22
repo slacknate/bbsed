@@ -1214,7 +1214,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # Extract prepare data needed to render the animation.
         thread = AnimationPrepThread(character, animation_name, self.paths, palette_full_path, frame_files)
-        if not self.mainwindow.run_work_thread(thread, "Animation Prep", "Loading animation data into memory..."):
+        if not self.mainwindow.run_work_thread(thread, "Animation Prep", "Loading animation data..."):
             # If our preparation procedure did not succeed we return early to avoid problems displaying the animation.
             return
 
