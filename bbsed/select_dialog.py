@@ -260,7 +260,8 @@ class SelectDialog(QtWidgets.QDialog):
             self.sprite.save_png(updated_sprite)
 
         except Exception:
-            self.show_error_dialog("Error Updating Palette", f"Failed to replace the palette of the current sprite!")
+            message = f"Failed to replace the palette of the current sprite!"
+            self.parent().show_error_dialog("Error Updating Palette", message)
             return
 
         png_pixmap = Qt.QPixmap()
