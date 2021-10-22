@@ -862,9 +862,9 @@ class MainWindow(QtWidgets.QMainWindow):
         Callback for the sprite editor telling the mainwindow that we changed palettes.
         """
         character_name, character = self.sprite_editor.get_character()
-
-        is_dirty = self._update_edit_state(character, palette_id, None)
         slot_name, _ = self.sprite_editor.get_slot()
+
+        is_dirty = self._update_edit_state(character, palette_id, slot_name)
 
         self._set_window_title(character_name, palette_id, slot_name=slot_name, show_edit_mark=is_dirty)
 
