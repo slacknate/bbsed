@@ -698,7 +698,7 @@ class SpriteEditor(QtWidgets.QWidget):
         with block_signals(self.selector.slot):
             self.selector.slot.clear()
 
-            # TODO: BBCP, BBCS, BBCT
+            # TODO: BBTAG, BBCP, BBCS, BBCT
             self.selector.slot.addItem(SLOT_NAME_BBCF, PALETTE_BBCF)
 
             # Set the save select enable state based on the presence of files on disk.

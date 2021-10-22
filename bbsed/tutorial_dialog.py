@@ -84,14 +84,8 @@ on the left side of the toolbar. Cycle through the list and see how the displaye
 palette changes.<br><br>
 
 In this editor, each character palette also features something called "slots".<br>
-A slot is just a save name for a custom palette. There exists a slot for every palette<br>
-called "Edit". This slot is used when editing the current selected palette. This applies to<br>
-both palettes that have yet to be saved as a slot, and palettes that have been created and<br>
-saved previously.<br><br>
-
-Note that if you have multiple save slots created for a single palette that the "Edit" slot<br>
-will still be used when making changes for any of these saves. Be sure to save your work before<br>
-working on a new palette!
+A slot is what we call the save name for a custom palette. Every character features a slot<br>
+for each entry in the BlazBlue series in which that character appears.
 </body>
 </html>
 """

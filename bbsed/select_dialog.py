@@ -187,7 +187,7 @@ class SelectDialog(QtWidgets.QDialog):
                 # Note that if we are in multi-select mode we do not add this slot.
                 # In multi-select mode the game-slot equivalent is not setting the check for any slots.
                 if not self.multi_select:
-                    # TODO: BBCP, BBCS, BBCT
+                    # TODO: BBTAG, BBCP, BBCS, BBCT
                     select_combo.addItem(SLOT_NAME_BBCF, PALETTE_BBCF)
                     select_combo.setItemData(0, False, ROLE_CHECK_STATE)
 
