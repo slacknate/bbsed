@@ -115,7 +115,12 @@ class SelectDialog(QtWidgets.QDialog):
         """
         for character, palette_id, _ in self.config:
             __, select_check, select_combo = self._get_widgets(palette_id)
-            self._update_ui_for_config(character, palette_id, select_check, select_combo)
+
+            # We block signals for these widgets so that we do not trigger any callbacks when setting the initial
+            # dialog state. We currently have no character selected and no palette slots added and as such if we
+            # trigger a callback here we will definitely encounter an error condition.
+            with block_signals(select_check, select_combo):
+                self._update_ui_for_config(character, palette_id, select_check, select_combo)
 
     def accept(self):
         QtWidgets.QDialog.accept(self)

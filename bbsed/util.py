@@ -101,18 +101,23 @@ GAME_MAX_PALETTES = 24
 
 
 @contextlib.contextmanager
-def block_signals(widget):
+def block_signals(*widgets):
     """
-    Context manager to temporarily block signals on a widget.
+    Context manager to temporarily block signals on one or more widgets.
     Useful for resetting widgets without emitting signals that would otherwise cause error conditions.
     """
-    widget.blockSignals(True)
+    if not widgets:
+        raise ValueError("Must provide at least one widget to block_signals!")
+
+    for widget in widgets:
+        widget.blockSignals(True)
 
     try:
         yield
 
     finally:
-        widget.blockSignals(False)
+        for widget in widgets:
+            widget.blockSignals(False)
 
 
 @contextlib.contextmanager
