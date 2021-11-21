@@ -62,11 +62,18 @@ class Paths:
         return os.path.join(self.data_dir, "app.conf")
 
     @property
-    def apply_config_file(self):
+    def select_config_file(self):
         """
-        Helper property to get the applied sprites config file path.
+        Helper property to get the selected palettes config file path.
         """
-        return os.path.join(self.data_dir, "apply.conf")
+        return os.path.join(self.data_dir, "select.conf")
+
+    @property
+    def applied_config_file(self):
+        """
+        Helper property to get the applied palettes config file path.
+        """
+        return os.path.join(self.data_dir, "applied.conf")
 
     @property
     def steam_exe(self):

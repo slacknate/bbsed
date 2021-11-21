@@ -49,7 +49,7 @@ HPL_MAX_FILES_PER_PALETTE = 7
 MAX_UNHANDLED_DIALOGS = 1
 
 
-def generate_apply_settings():
+def generate_palette_settings():
     """
     Generate the settings definition of ApplyConfig
     programmatically to save codespace.
@@ -65,12 +65,20 @@ def generate_apply_settings():
     return settings
 
 
-class ApplyConfig(Configuration):
+class SelectConfig(Configuration):
 
-    SETTINGS = generate_apply_settings()
+    SETTINGS = generate_palette_settings()
 
     def __init__(self, paths):
-        Configuration.__init__(self, paths.apply_config_file)
+        Configuration.__init__(self, paths.select_config_file)
+
+
+class AppliedConfig(Configuration):
+
+    SETTINGS = generate_palette_settings()
+
+    def __init__(self, paths):
+        Configuration.__init__(self, paths.applied_config_file)
 
 
 class AppConfig(Configuration):
@@ -84,8 +92,6 @@ class AppConfig(Configuration):
         paths.set_app_config(self)
 
 
-# FIXME: When we reset palettes to game version, to re-apply them we will have to undo our palette selections
-#        and then re-do those same selections... this is an annoying behavior and also not intuitive.
 class MainWindow(QtWidgets.QMainWindow):
 
     unhandled_exc = QtCore.pyqtSignal(tuple)
@@ -101,7 +107,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.paths = Paths()
         self.app_config = AppConfig(self.paths)
-        self.apply_config = ApplyConfig(self.paths)
+        self.select_config = SelectConfig(self.paths)
+        self.applied_config = AppliedConfig(self.paths)
 
         self.clipboard = None
 
@@ -481,7 +488,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for the Apply All action. Apply all palettes to the BBCF game data.
         """
-        dialog = SelectDialog(self.paths, config=self.apply_config, parent=self)
+        applied_diff = self.applied_config.copy()
+        dialog = SelectDialog(self.paths, config=self.select_config, diff_config=applied_diff, parent=self)
         dialog.selection_made.connect(self._apply_palettes)
         dialog.show()
 
@@ -495,7 +503,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if confirmed:
             thread = ApplyThread(files_to_apply, self.paths)
-            self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
+            success = self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
+
+            # If the palette application succeeds we should update our applied palettes saved config
+            # to match that of the palette selections config.
+            if success:
+                self.applied_config.load_from(self.select_config)
+                self.applied_config.save()
 
     def discard_palette(self, _):
         """
@@ -539,6 +553,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def restore_all(self, _):
         """
         Restore all character palettes from the backed up game data in the BBCF install directory.
+        We also reset the applied saved config values for all characters.
         """
         message = "Do you wish to restore all game files to the original versions?"
         restore = self.show_confirm_dialog("Restore Game Files", message)
@@ -547,9 +562,13 @@ class MainWindow(QtWidgets.QMainWindow):
             for character in VALID_CHARACTERS:
                 self._restore_character_palettes(character)
 
+            for section, setting, _ in self.applied_config:
+                self.applied_config[section][setting] = SLOT_NAME_BBCF
+
     def restore_character(self, _):
         """
         Restore the selected character palettes from the backed up game data in the BBCF install directory.
+        We also reset the applied saved config values for the restored character.
         """
         character_name, character = self.sprite_editor.get_character()
 
@@ -558,6 +577,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if restore:
             self._restore_character_palettes(character)
+
+            for section, setting, _ in self.applied_config:
+                if section == character:
+                    self.applied_config[section][setting] = SLOT_NAME_BBCF
 
     def _get_palette_files(self, character, palette_id, slot_name):
         """

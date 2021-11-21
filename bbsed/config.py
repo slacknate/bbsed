@@ -58,6 +58,13 @@ class Configuration:
                 for setting, _ in settings.items():
                     self.settings[section][setting] = parser.get(section, setting)
 
+    def load_from(self, other):
+        """
+        Load config from another config that features the same settings.
+        """
+        for section, setting, value in other:
+            self.settings[section][setting] = value
+
     def save(self):
         """
         Save config to disk.

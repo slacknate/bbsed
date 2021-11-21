@@ -36,7 +36,7 @@ class SelectDialog(QtWidgets.QDialog):
 
     selection_made = QtCore.pyqtSignal(dict)
 
-    def __init__(self, paths, config=None, multi_select=False, parent=None):
+    def __init__(self, paths, config=None, diff_config=None, multi_select=False, parent=None):
         QtWidgets.QDialog.__init__(self, parent, flags=QtCore.Qt.WindowType.WindowTitleHint)
 
         self.ui = Ui_Dialog()
@@ -44,6 +44,7 @@ class SelectDialog(QtWidgets.QDialog):
 
         self.paths = paths
         self.config = config
+        self.diff_config = diff_config
         self.initial = None
 
         self.selected = set()
@@ -197,7 +198,17 @@ class SelectDialog(QtWidgets.QDialog):
                 initial_name = self.initial[character][palette_id]
                 current_name = self.config[character][palette_id]
 
-                should_remove = (initial_name == current_name)
+                # If there is no diff config then there is not a diff to be had.
+                diff_name = None
+                if self.diff_config is not None:
+                    diff_name = self.diff_config[character][palette_id]
+
+                # Check if the selection has changed.
+                same_selection = (initial_name == current_name)
+                # Check if the diff config does not match the selection.
+                no_diff = (diff_name is None or diff_name == current_name)
+
+                should_remove = same_selection and no_diff
                 remove_list.append(should_remove)
 
             if all(remove_list):
