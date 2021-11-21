@@ -21,9 +21,20 @@ SELECT_COMBOBOX_PREFIX = "select_{}"
 SELECT_CHECK_PREFIX = "check_{}"
 
 
+def iter_selection(selected_palettes):
+    """
+    Iterate selected palettes and yield the selection info.
+    Used to verify that when we are in single-select that we have not
+    somehow managed to make multiple selections.
+    """
+    for character, palette_info in selected_palettes.items():
+        for palette_id, select_info in palette_info.items():
+            yield select_info
+
+
 class SelectDialog(QtWidgets.QDialog):
 
-    selection_made = QtCore.pyqtSignal(QtWidgets.QDialog)
+    selection_made = QtCore.pyqtSignal(dict)
 
     def __init__(self, paths, config=None, multi_select=False, parent=None):
         QtWidgets.QDialog.__init__(self, parent, flags=QtCore.Qt.WindowType.WindowTitleHint)
@@ -33,10 +44,11 @@ class SelectDialog(QtWidgets.QDialog):
 
         self.paths = paths
         self.config = config
-        self.multi_select = multi_select
+        self.initial = None
 
         self.selected = set()
         self.unselected = set()
+        self.multi_select = multi_select
 
         self.setWindowTitle("Select Palettes")
 
@@ -102,6 +114,8 @@ class SelectDialog(QtWidgets.QDialog):
         Set the initial state of the dialog from the saved config.
         This will only occur if the config exists.
         """
+        self.initial = self.config.copy()
+
         for character, palette_id, config_value in self.config:
             _, select_check, select_combo = self._get_widgets(palette_id)
 
@@ -171,6 +185,58 @@ class SelectDialog(QtWidgets.QDialog):
 
         self.config.save()
 
+    def _remove_unchanged(self, selected_palettes):
+        """
+        Filter out any palette selections that have not changed since dialog creation.
+        This allows for applying palettes to the game files to have as short a duration as possible.
+        """
+        for character, palette_info in list(selected_palettes.items()):
+            remove_list = []
+
+            for palette_id, _ in palette_info.items():
+                initial_name = self.initial[character][palette_id]
+                current_name = self.config[character][palette_id]
+
+                should_remove = (initial_name == current_name)
+                remove_list.append(should_remove)
+
+            if all(remove_list):
+                selected_palettes.pop(character)
+
+    def _get_selection_ui(self):
+        """
+        Get the current selection from the state of the UI.
+        """
+        selected_palettes = defaultdict(lambda: defaultdict(dict))
+
+        for character, palette_id, select_name in self.selected:
+            hpl_files = self.paths.get_saved_palette(character, palette_id, select_name)
+            selected_palettes[character][palette_id][select_name] = hpl_files
+
+        return selected_palettes
+
+    def _get_selection(self):
+        """
+        Get the current selected palettes.
+
+        If this selection is config saved then we check the diff between the configuration as it existed at dialog
+        creation vs as it currently exists after a selection has been made. We do this to save time during the
+        procedures to export or apply palettes.
+
+        Otherwise we just get the current selection as directly reflected by the state of the UI.
+        """
+        selected_palettes = self._get_selection_ui()
+
+        if self.config is not None:
+            self._remove_unchanged(selected_palettes)
+
+        if not self.multi_select:
+            for select_info in iter_selection(selected_palettes):
+                if len(select_info) > 1:
+                    raise AppError("Invalid Palette Selection!", "Cannot select multiple slots per palette!")
+
+        return selected_palettes
+
     def accept(self):
         QtWidgets.QDialog.accept(self)
 
@@ -178,7 +244,8 @@ class SelectDialog(QtWidgets.QDialog):
         if self.config is not None:
             self._save_config()
 
-        self.selection_made.emit(self)
+        selection = self._get_selection()
+        self.selection_made.emit(selection)
 
     def _get_widgets(self, palette_id):
         """
@@ -235,9 +302,8 @@ class SelectDialog(QtWidgets.QDialog):
 
         check_state = QtCore.Qt.CheckState.Checked if first_selected else QtCore.Qt.CheckState.Unchecked
 
-        with block_signals(select_check, select_combo):
-            select_check.setCheckState(check_state)
-            select_combo.setCurrentIndex(first_index)
+        select_check.setCheckState(check_state)
+        select_combo.setCurrentIndex(first_index)
 
     def select_character(self):
         """
@@ -251,7 +317,7 @@ class SelectDialog(QtWidgets.QDialog):
         character = self.ui.character_select.currentData()
 
         for palette_id, _, select_check, select_combo in self.iter_widgets():
-            with block_signals(select_combo):
+            with block_signals(select_check, select_combo):
                 # Clear the combo box before re-populating it.
                 select_combo.clear()
 
@@ -449,20 +515,3 @@ class SelectDialog(QtWidgets.QDialog):
             self._mark_palette_selected(character, palette_id, select_name, select_check, is_selected)
 
         self._update_sprite_preview(character, palette_id, select_name)
-
-    def get_selected_palettes(self):
-        """
-        Helper method to create a dict of files to apply to the game that we can pass to ApplyThread.
-        """
-        selected_palettes = defaultdict(lambda: defaultdict(dict))
-
-        for character, palette_id, select_name in self.selected:
-            hpl_files = self.paths.get_saved_palette(character, palette_id, select_name)
-            selected_palettes[character][palette_id][select_name] = hpl_files
-
-        if not self.multi_select:
-            for character, palette_id, select_name in self.selected:
-                if len(selected_palettes[character][palette_id]) > 1:
-                    raise AppError("Invalid Palette Selection!", "Cannot select multiple slots per palette!")
-
-        return selected_palettes

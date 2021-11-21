@@ -2,25 +2,26 @@ import os
 import configparser
 
 
-class Section:
+class ConfigCopy:
     """
-    Simple config section definition.
+    Object to wrap a copy of a Configuration that is iterable in the same way.
     """
-    def __init__(self, save):
-        self.data = {}
-        self.save = save
+    def __init__(self, settings):
+        self.settings = settings
 
-    def __getitem__(self, setting):
+    def __getitem__(self, section):
         """
-        Get setting value.
+        Get section.
         """
-        return self.data[setting]
+        return self.settings[section]
 
-    def __setitem__(self, setting, value):
+    def __iter__(self):
         """
-        Set setting value.
+        Yield the same tuple that a real Configuration does.
         """
-        self.data[setting] = value
+        for section, settings in self.settings.items():
+            for setting, value in settings.items():
+                yield section, setting, value
 
 
 class Configuration:
@@ -36,7 +37,7 @@ class Configuration:
 
         # Initialize all settings with their default values.
         for section, settings in self.SETTINGS.items():
-            self.settings[section] = Section(self.save)
+            self.settings[section] = {}
 
             for setting, initial in settings.items():
                 self.settings[section][setting] = initial
@@ -73,9 +74,23 @@ class Configuration:
         with open(self.cfg_path, "w") as cfg_fp:
             parser.write(cfg_fp)
 
+    def copy(self):
+        """
+        Return a copy of the settings dict.
+        """
+        settings_copy = {}
+
+        for section, settings in self.settings.items():
+            settings_copy[section] = {}
+
+            for setting, value in settings.items():
+                settings_copy[section][setting] = value
+
+        return ConfigCopy(settings_copy)
+
     def __getitem__(self, section):
         """
-        Get section object.
+        Get section.
         """
         return self.settings[section]
 
@@ -83,8 +98,6 @@ class Configuration:
         """
         Iterate all settings in the config.
         """
-        for section, settings in self.SETTINGS.items():
-            for setting, _ in settings.items():
-                value = self.settings[section][setting]
-
+        for section, settings in self.settings.items():
+            for setting, value in settings.items():
                 yield section, setting, value

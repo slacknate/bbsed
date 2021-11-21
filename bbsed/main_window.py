@@ -84,6 +84,8 @@ class AppConfig(Configuration):
         paths.set_app_config(self)
 
 
+# FIXME: When we reset palettes to game version, to re-apply them we will have to undo our palette selections
+#        and then re-do those same selections... this is an annoying behavior and also not intuitive.
 class MainWindow(QtWidgets.QMainWindow):
 
     unhandled_exc = QtCore.pyqtSignal(tuple)
@@ -461,7 +463,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog.selection_made.connect(self._export_palettes)
         dialog.show()
 
-    def _export_palettes(self, dialog):
+    def _export_palettes(self, files_to_export):
         """
         Callback for when the SelectDialog is accepted.
         Necessary for running this dialog non-modal.
@@ -469,7 +471,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pac_path = self._choose_export_pac()
 
         if pac_path:
-            thread = ExportThread(pac_path, dialog.get_selected_palettes(), self.paths)
+            thread = ExportThread(pac_path, files_to_export, self.paths)
             self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
 
         else:
@@ -483,7 +485,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog.selection_made.connect(self._apply_palettes)
         dialog.show()
 
-    def _apply_palettes(self, dialog):
+    def _apply_palettes(self, files_to_apply):
         """
         Callback for when the SelectDialog is accepted.
         Necessary for running this dialog non-modal.
@@ -492,7 +494,7 @@ class MainWindow(QtWidgets.QMainWindow):
         confirmed = self.show_confirm_dialog("Apply Palette Confirmation", message)
 
         if confirmed:
-            thread = ApplyThread(dialog.get_selected_palettes(), self.paths)
+            thread = ApplyThread(files_to_apply, self.paths)
             self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
     def discard_palette(self, _):
