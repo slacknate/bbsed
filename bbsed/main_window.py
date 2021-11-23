@@ -411,6 +411,24 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return hpl_file_list, pac_file_list
 
+    def _show_import_summary(self, hpl_to_import, pac_to_import):
+        """
+        Generate and display a summary of the palettes being imported.
+        """
+        import_list = set(hpl_to_import.keys())
+        for _, pac_contents in pac_to_import.items():
+            import_list |= set(pac_contents.keys())
+
+        summary = []
+        import_list = list(sorted(import_list))
+
+        for char, pal, name in import_list:
+            index = self.sprite_editor.selector.character.findData(char)
+            char_name = self.sprite_editor.selector.character.itemText(index)
+            summary.append(f"{char_name} - {pal} - {name}")
+
+        self.show_message_dialog("Import Summary", "\n".join(summary))
+
     def import_palettes(self, _):
         """
         Callback for the palette import action. Allow the user to import palettes they may have
@@ -436,6 +454,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Don't run any thread's if we do not need to.
         if hpl_to_import or pac_to_import:
+            self._show_import_summary(hpl_to_import, pac_to_import)
+
             thread = ImportThread(hpl_to_import, pac_to_import, self.paths)
             success = self.run_work_thread(thread, "Palette Importer", "Validating palette files...")
 
