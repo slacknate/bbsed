@@ -20,7 +20,7 @@ from .util import *
 
 CROSS_HAIR_SIZE = 20
 
-HIP_FILE_ROLE = QtCore.Qt.ItemDataRole.UserRole
+SPRITE_ITEM_ROLE = QtCore.Qt.ItemDataRole.UserRole
 
 COLUMN_ANIMATIONS = 0
 
@@ -267,38 +267,95 @@ class CharacterState:
         return swap_index
 
 
-class SpriteGroupItem(QtWidgets.QTreeWidgetItem):
+class SpriteFilterModel(Qt.QSortFilterProxyModel):
+    def __init__(self):
+        Qt.QSortFilterProxyModel.__init__(self)
+        self.setFilterRole(QtCore.Qt.ItemDataRole.DisplayRole)
+        self.setFilterKeyColumn(COLUMN_ANIMATIONS)
+        self.setRecursiveFilteringEnabled(True)
+
+    def filterAcceptsRow(self, row, parent):
+        """
+        Override this method so we can call out child items as matching the filter when their parent is a match.
+        """
+        accepts = Qt.QSortFilterProxyModel.filterAcceptsRow(self, row, parent)
+
+        # If this item has a parent that matches our filter, then we also want to match this item.
+        # Note that we do not also have to manually implement checking for when a parent item has a matched
+        # child item as the constructor enables this via `self.setRecursiveFilteringEnabled(True)`.
+        if not accepts and parent.isValid():
+            accepts = Qt.QSortFilterProxyModel.filterAcceptsRow(self, parent.row(), parent.parent())
+
+        return accepts
+
+
+class SpriteListModel(Qt.QStandardItemModel):
+    """
+    A basic model to house our sprite image items.
+    """
+    def flags(self, index):
+        """
+        Only set the enabled and selectable flags on our items. We do not want anything to be editable.
+        """
+        return QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsSelectable
+
+    def add_animation(self, name):
+        """
+        Add a top level item to our sprite list view.
+        """
+        root_node = self.invisibleRootItem()
+
+        item = SpriteGroupItem(name)
+        root_node.appendRow(item)
+
+        return item
+
+
+class SpriteGroupItem(Qt.QStandardItem):
     """
     Top level item in the sprite list to represent a group of HIP images that share an HPL palette file.
     """
     def __init__(self, name):
-        QtWidgets.QTreeWidgetItem.__init__(self)
+        Qt.QStandardItem.__init__(self)
         self.name = name
 
-    def data(self, column, role):
-        if column == COLUMN_ANIMATIONS and role == QtCore.Qt.ItemDataRole.DisplayRole:
-            return self.name
+    def add_sprite(self, *args):
+        """
+        Add a sprite file item as a child to a top level item.
+        """
+        item = SpriteFileItem(*args)
+        self.appendRow(item)
+        return item
+
+    def data(self, role=None):
+        """
+        Qt method to fetch the data of this item for a given role.
+        We only have two roles, the DisplayRole which sets what the user sees in the UI and
+        a user role to fetch this item.
+        """
+        _data = None
+
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            _data = self.name
+
+        if role == SPRITE_ITEM_ROLE:
+            _data = self
+
+        return _data
 
 
-class SpriteFileItem(QtWidgets.QTreeWidgetItem):
+class SpriteFileItem(Qt.QStandardItem):
     """
     Child item in the sprite list to represent a HIP image associated to the current selected character.
     """
     def __init__(self, hip_full_path, sprite_duration, hip_file, hpl_fmt):
-        QtWidgets.QTreeWidgetItem.__init__(self)
+        Qt.QStandardItem.__init__(self)
         self.hip_full_path = hip_full_path
         self.sprite_duration = sprite_duration
         self.hip_file = hip_file
         self.swap_hpl_fmt = None
         self.hpl_fmt = hpl_fmt
         self.palette_num = ""
-
-    @property
-    def name(self):
-        """
-        TODO: remove this when we no longer rely on it.
-        """
-        return self.hip_file
 
     @property
     def hpl_file(self):
@@ -318,9 +375,21 @@ class SpriteFileItem(QtWidgets.QTreeWidgetItem):
 
         return _hpl_file
 
-    def data(self, column, role):
-        if column == COLUMN_ANIMATIONS and role == QtCore.Qt.ItemDataRole.DisplayRole:
-            return self.hip_file
+    def data(self, role=None):
+        """
+        Qt method to fetch the data of this item for a given role.
+        We only have two roles, the DisplayRole which sets what the user sees in the UI and
+        a user role to fetch this item.
+        """
+        _data = None
+
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            _data = self.hip_file
+
+        if role == SPRITE_ITEM_ROLE:
+            _data = self
+
+        return _data
 
 
 class Sprite:
@@ -558,10 +627,20 @@ class SpriteEditor(QtWidgets.QWidget):
         self.palette_dialog.index_selected.connect(self.choose_color_from_index)
         self.palette_dialog.indices_changed.connect(self.set_colors_from_tools)
 
+        # Create our files list model and set up the filter model to proxy it to the UI.
+        self.sprite_list_model = SpriteListModel()
+        self.sprite_filter_model = SpriteFilterModel()
+        self.sprite_filter_model.setSourceModel(self.sprite_list_model)
+        self.ui.sprite_list.setModel(self.sprite_filter_model)
+
+        # Connect the sprite search text changed signal to the regular expression setter on the filter model.
+        # This drives the filtering of the sprite list.
+        self.ui.sprite_search.textChanged.connect(self.sprite_filter_model.setFilterRegExp)
+
         # FIXME: Drag select off-by-one issue still present.
         # Set the selection mode and selection callbacks for the sprite file list.
         self.ui.sprite_list.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
-        self.ui.sprite_list.itemSelectionChanged.connect(self.select_sprite)
+        self.ui.sprite_list.selectionModel().selectionChanged.connect(self.select_sprite)
         # Set up the sprite file list context menu.
         self.ui.sprite_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.sprite_list.customContextMenuRequested.connect(self.show_image_menu)
@@ -1000,7 +1079,7 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         If we don't have any top level items then our sprite list is empty.
         """
-        return self.ui.sprite_list.topLevelItem(0) is None
+        return self.sprite_list_model.rowCount() <= 0
 
     def refresh(self):
         """
@@ -1039,9 +1118,11 @@ class SpriteEditor(QtWidgets.QWidget):
 
         while True:
             if parent_item is not None:
-                item = parent_item.child(item_index)
+                item = parent_item.child(item_index, COLUMN_ANIMATIONS)
+
             else:
-                item = self.ui.sprite_list.topLevelItem(item_index)
+                model_index = self.sprite_list_model.index(item_index, COLUMN_ANIMATIONS)
+                item = self.sprite_list_model.data(model_index, role=SPRITE_ITEM_ROLE)
 
             if item is None:
                 break
@@ -1070,29 +1151,21 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         for hip_full_path, sprite_duration in hip_file_list:
             hip_file = os.path.basename(hip_full_path)
-            parent_item.addChild(SpriteFileItem(hip_full_path, sprite_duration, hip_file, hpl_fmt))
+            parent_item.add_sprite(hip_full_path, sprite_duration, hip_file, hpl_fmt)
 
-    def _get_or_create_group(self, name, parent_item=None):
+    def _get_or_create_group(self, name):
         """
-        Get a group item by name. If a parent item is provided we look for
-        children of that item to match. If we cannot find an item with the
-        given name we create one.
+        Get a group item by name. If we cannot find an item with the given name we create one.
         """
         item_index = 0
 
         while True:
-            if parent_item is not None:
-                item = parent_item.child(item_index)
+            model_index = self.sprite_list_model.index(item_index, COLUMN_ANIMATIONS)
+
+            if not model_index.isValid():
+                item = self.sprite_list_model.add_animation(name)
             else:
-                item = self.ui.sprite_list.topLevelItem(item_index)
-
-            if item is None:
-                item = SpriteGroupItem(name)
-
-                if parent_item is not None:
-                    parent_item.addChild(item)
-                else:
-                    self.ui.sprite_list.addTopLevelItem(item)
+                item = self.sprite_list_model.data(model_index, role=SPRITE_ITEM_ROLE)
 
             if item.name == name:
                 return item
@@ -1150,7 +1223,9 @@ class SpriteEditor(QtWidgets.QWidget):
         A new sprite has been selected.
         Update our image preview with the new sprite.
         """
-        sprite_item = self.ui.sprite_list.currentItem()
+        selection = self.ui.sprite_list.selectionModel().selection()
+        index = selection.indexes()[0]
+        sprite_item = index.data(role=SPRITE_ITEM_ROLE)
 
         if isinstance(sprite_item, SpriteGroupItem):
             return
@@ -1203,12 +1278,14 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         Show the animation dialog so we can play an animation as we would see it in game.
         """
-        selected_item = self.ui.sprite_list.currentItem()
+        selection = self.ui.sprite_list.selectionModel().selection()
+        index = selection.indexes()[0]
+        selected_item = index.data(role=SPRITE_ITEM_ROLE)
         character = self.selector.character.currentData()
 
-        animation_name = selected_item.text(COLUMN_ANIMATIONS)
+        animation_name = selected_item.text()
         if selected_item.parent() is not None:
-            animation_name = selected_item.parent().text(COLUMN_ANIMATIONS)
+            animation_name = selected_item.parent().text()
 
         palette_full_path, frame_files = self._get_animation_files(selected_item, character)
 
@@ -1360,7 +1437,7 @@ class SpriteEditor(QtWidgets.QWidget):
             self.selector.slot.clear()
 
         with block_signals(self.ui.sprite_list):
-            self.ui.sprite_list.clear()
+            self.sprite_list_model.clear()
 
         self._clear_sprite_data()
 
