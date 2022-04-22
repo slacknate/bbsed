@@ -1233,6 +1233,7 @@ class SpriteEditor(QtWidgets.QWidget):
         index = sprite_indices[0]
         sprite_item = index.data(role=SPRITE_ITEM_ROLE)
 
+        # SpriteGroupItem's do not have any associated image to display.
         if isinstance(sprite_item, SpriteGroupItem):
             return
 
