@@ -1224,7 +1224,13 @@ class SpriteEditor(QtWidgets.QWidget):
         Update our image preview with the new sprite.
         """
         selection = self.ui.sprite_list.selectionModel().selection()
-        index = selection.indexes()[0]
+        sprite_indices = selection.indexes()
+
+        # If our selection has been cleared then we do not have any data to load.
+        if not sprite_indices:
+            return
+
+        index = sprite_indices[0]
         sprite_item = index.data(role=SPRITE_ITEM_ROLE)
 
         if isinstance(sprite_item, SpriteGroupItem):
