@@ -1495,7 +1495,7 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         Wrapper for `MainWindow.show_message_dialog()` solely to save line length.
         """
-        return self.mainwindow.show_message_dialog(*args, **kwargs)
+        self.mainwindow.show_message_dialog(*args, **kwargs)
 
     def show_error_dialog(self, *args, **kwargs):
         """
