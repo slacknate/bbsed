@@ -34,5 +34,9 @@ may be displayed under certain circumstances
 Huge thanks to Dantarion and contributors for the repo [bbtools](https://github.com/dantarion/bbtools). 
 Without it this project would not be possible. 
 
-Also a huge thanks to Labreezy for the repo [bb-collision-editor](https://github.com/Labreezy/bb-collision-editor).
+Another huge thanks to Labreezy for the repo [bb-collision-editor](https://github.com/Labreezy/bb-collision-editor).
 It was invaluable for learning how sprite coordinate systems are calculated using the game data.
+
+A third huge thanks to Super-continent for the repo [arcsys](https://github.com/super-continent/arcsys).
+This was absolutely necessary for parsing the DFASFPAC file format, introduced in the BBCF rollback patch, which
+allows the BBSED to function as was originally designed; to use the data from the game files directly.
