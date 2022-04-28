@@ -39,4 +39,4 @@ It was invaluable for learning how sprite coordinate systems are calculated usin
 
 A third huge thanks to Super-continent for the repo [arcsys](https://github.com/super-continent/arcsys).
 This was absolutely necessary for parsing the DFASFPAC file format, introduced in the BBCF rollback patch, which
-allows the BBSED to function as was originally designed; to use the data from the game files directly.
+allows BBSED to function as was originally designed; to use the data from the game files directly.
