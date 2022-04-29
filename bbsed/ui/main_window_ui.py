@@ -274,6 +274,7 @@ class Ui_MainWindow(object):
         self.view_zoom.setText(_translate("MainWindow", "&Zoom Dialog"))
         self.view_zoom.setShortcut(_translate("MainWindow", "Ctrl+J"))
         self.import_palettes.setText(_translate("MainWindow", "&Import"))
+        self.import_palettes.setToolTip(_translate("MainWindow", "Import new palettes"))
         self.import_palettes.setShortcut(_translate("MainWindow", "Ctrl+I"))
         self.export_palettes.setText(_translate("MainWindow", "&Export"))
         self.export_palettes.setToolTip(_translate("MainWindow", "Export saved palettes"))

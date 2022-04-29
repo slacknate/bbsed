@@ -291,6 +291,9 @@
    <property name="text">
     <string>&amp;Import</string>
    </property>
+   <property name="toolTip">
+    <string>Import new palettes</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
    </property>
