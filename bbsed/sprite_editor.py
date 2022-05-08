@@ -271,6 +271,7 @@ class SpriteFilterModel(Qt.QSortFilterProxyModel):
     def __init__(self):
         Qt.QSortFilterProxyModel.__init__(self)
         self.setFilterRole(QtCore.Qt.ItemDataRole.DisplayRole)
+        self.setFilterCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterKeyColumn(COLUMN_ANIMATIONS)
         self.setRecursiveFilteringEnabled(True)
 
