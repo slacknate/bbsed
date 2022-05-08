@@ -239,7 +239,13 @@ def check_lock(lock_file):
     # If the lock file is PID is an existing process and that process
     # is our app name then it is a valid lock file and should be left alone.
     if psutil.pid_exists(pid):
-        proc = psutil.Process(pid)
+        try:
+            proc = psutil.Process(pid)
+
+        # Unsure how this can happen, but it seems like it can?
+        # My guess is something like the Windows equivalent of a zombie process?
+        except psutil.NoSuchProcess:
+            return valid
 
         try:
             if proc.name() in (APP_PROCESS_NAME, SOURCE_PROCESS_NAME):
