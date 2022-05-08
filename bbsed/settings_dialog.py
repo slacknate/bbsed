@@ -12,14 +12,33 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.setWindowTitle("BBCF Sprite Editor Settings")
 
-        self.ui.select.clicked.connect(self.select_steam_install)
+        self.ui.select_bbcf.clicked.connect(self.select_bbcf_install)
+        self.ui.select_steam.clicked.connect(self.select_steam_install)
 
         self.app_config = app_config
 
-        # Set our previously used Steam install path if it exists.
-        existing_install = self.app_config["bbsed"]["steam_install"]
-        if existing_install:
-            self.ui.steam_install.setText(existing_install)
+        # Set our previously used install paths if they exist.
+        bbcf_install = self.app_config["bbsed"]["bbcf_install"]
+        if bbcf_install:
+            self.ui.bbcf_install.setText(bbcf_install)
+
+        steam_install = self.app_config["bbsed"]["steam_install"]
+        if steam_install:
+            self.ui.steam_install.setText(steam_install)
+
+    def select_bbcf_install(self):
+        """
+        Select the BBCF installation location to be used by the app.
+        """
+        bbcf_install = QtWidgets.QFileDialog.getExistingDirectory(
+
+            parent=self,
+            caption="Select Directory Containing BBCF.exe",
+        )
+
+        # If we cancelled the dialog we do not want to save anything.
+        if bbcf_install:
+            self.ui.bbcf_install.setText(bbcf_install)
 
     def select_steam_install(self):
         """
@@ -28,7 +47,7 @@ class SettingsDialog(QtWidgets.QDialog):
         steam_install = QtWidgets.QFileDialog.getExistingDirectory(
 
             parent=self,
-            caption="Select Steam installation location",
+            caption="Select Directory Containing steam.exe",
         )
 
         # If we cancelled the dialog we do not want to save anything.
@@ -41,9 +60,14 @@ class SettingsDialog(QtWidgets.QDialog):
         installation and if we have we update the config.
         """
         steam_install = self.ui.steam_install.text()
+        bbcf_install = self.ui.bbcf_install.text()
 
-        if steam_install:
+        if steam_install and bbcf_install:
             self.app_config["bbsed"]["steam_install"] = steam_install
+            self.app_config["bbsed"]["bbcf_install"] = bbcf_install
             self.app_config.save()
+            QtWidgets.QDialog.accept(self)
 
-        QtWidgets.QDialog.accept(self)
+        else:
+            message = "Must select both Steam and BBCF install paths!"
+            self.parent().show_message_dialog("Missing Settings", message, "error")

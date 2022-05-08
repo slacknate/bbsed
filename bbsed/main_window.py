@@ -83,7 +83,7 @@ class AppliedConfig(Configuration):
 
 class AppConfig(Configuration):
 
-    SETTINGS = {"bbsed": {"steam_install": ""}}
+    SETTINGS = {"bbsed": {"bbcf_install": "", "steam_install": ""}}
 
     def __init__(self, paths):
         Configuration.__init__(self, paths.app_config_file)

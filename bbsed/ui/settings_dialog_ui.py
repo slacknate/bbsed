@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'bbsed\ui\settingsdialog.ui'
+# Form implementation generated from reading ui file 'bbsed\ui\settings_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(400, 105)
+        Dialog.resize(501, 167)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -23,14 +23,26 @@ class Ui_Dialog(object):
         self.steam_group.setObjectName("steam_group")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.steam_group)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.select = QtWidgets.QPushButton(self.steam_group)
-        self.select.setObjectName("select")
-        self.horizontalLayout.addWidget(self.select)
+        self.select_steam = QtWidgets.QPushButton(self.steam_group)
+        self.select_steam.setObjectName("select_steam")
+        self.horizontalLayout.addWidget(self.select_steam)
         self.steam_install = QtWidgets.QLineEdit(self.steam_group)
         self.steam_install.setEnabled(False)
         self.steam_install.setObjectName("steam_install")
         self.horizontalLayout.addWidget(self.steam_install)
         self.verticalLayout.addWidget(self.steam_group)
+        self.bbcf_group = QtWidgets.QGroupBox(Dialog)
+        self.bbcf_group.setObjectName("bbcf_group")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.bbcf_group)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.select_bbcf = QtWidgets.QPushButton(self.bbcf_group)
+        self.select_bbcf.setObjectName("select_bbcf")
+        self.horizontalLayout_2.addWidget(self.select_bbcf)
+        self.bbcf_install = QtWidgets.QLineEdit(self.bbcf_group)
+        self.bbcf_install.setEnabled(False)
+        self.bbcf_install.setObjectName("bbcf_install")
+        self.horizontalLayout_2.addWidget(self.bbcf_install)
+        self.verticalLayout.addWidget(self.bbcf_group)
         self.verticalLayout_2.addLayout(self.verticalLayout)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -47,4 +59,6 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.steam_group.setTitle(_translate("Dialog", "Steam Install"))
-        self.select.setText(_translate("Dialog", "Select"))
+        self.select_steam.setText(_translate("Dialog", "Select"))
+        self.bbcf_group.setTitle(_translate("Dialog", "BBCF Install"))
+        self.select_bbcf.setText(_translate("Dialog", "Select"))

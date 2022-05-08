@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>105</height>
+    <width>501</width>
+    <height>167</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="select">
+         <widget class="QPushButton" name="select_steam">
           <property name="text">
            <string>Select</string>
           </property>
@@ -31,6 +31,29 @@
         </item>
         <item>
          <widget class="QLineEdit" name="steam_install">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="bbcf_group">
+       <property name="title">
+        <string>BBCF Install</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QPushButton" name="select_bbcf">
+          <property name="text">
+           <string>Select</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="bbcf_install">
           <property name="enabled">
            <bool>false</bool>
           </property>

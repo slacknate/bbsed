@@ -3,7 +3,7 @@ import platform
 
 from .util import *
 
-BBCF_PATH_COMPONENTS = ("steamapps", "common", "BlazBlue Centralfiction", "data", "Char")
+BBCF_PATH_COMPONENTS = ("data", "Char")
 
 
 def get_data_dir():
@@ -87,7 +87,7 @@ class Paths:
         """
         Helper property to get our BBCF install location based on our configured Steam install location.
         """
-        return os.path.join(self.app_config["bbsed"]["steam_install"], *BBCF_PATH_COMPONENTS)
+        return os.path.join(self.app_config["bbsed"]["bbcf_install"], *BBCF_PATH_COMPONENTS)
 
     @staticmethod
     def _get_image_cache(cache_path):
