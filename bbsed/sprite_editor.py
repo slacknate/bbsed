@@ -637,6 +637,11 @@ class SpriteEditor(QtWidgets.QWidget):
         # This drives the filtering of the sprite list.
         self.ui.sprite_search.textChanged.connect(self.sprite_filter_model.setFilterRegExp)
 
+        # Set up our sprite list related button callbacks
+        self.ui.collapse_all_button.clicked.connect(self.collapse_all_sprites)
+        self.ui.expand_all_button.clicked.connect(self.expand_all_sprites)
+        self.ui.clear_search_button.clicked.connect(self.clear_sprite_search)
+
         # FIXME: Drag select off-by-one issue still present.
         # Set the selection mode and selection callbacks for the sprite file list.
         self.ui.sprite_list.setSelectionMode(QtWidgets.QTreeWidget.SelectionMode.SingleSelection)
@@ -925,6 +930,24 @@ class SpriteEditor(QtWidgets.QWidget):
         self.refresh()
 
         self.palette_slot_changed.emit(slot_name, slot_type)
+
+    def expand_all_sprites(self, _):
+        """
+        Show all sprites in the sprite list.
+        """
+        self.ui.sprite_list.expandAll()
+
+    def collapse_all_sprites(self, _):
+        """
+        Hide all sprites in the sprite list.
+        """
+        self.ui.sprite_list.collapseAll()
+
+    def clear_sprite_search(self, _):
+        """
+        Reset our sprite search to be empty.
+        """
+        self.ui.sprite_search.setText("")
 
     def resize_preview(self, _):
         """
