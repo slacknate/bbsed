@@ -98,7 +98,7 @@ CHARACTER_INFO_EXT = {
 
         CHARACTER_STATES: {
 
-            # This will result in a Inactive being the first displayed choice.
+            # This will result in Inactive being the first displayed choice.
             STATE_DEFINITION: ("Time Stop", ("Inactive", "Active")),
             STATE_INITIAL: "Inactive",
             STATE_CHANGE: {
@@ -114,7 +114,7 @@ CHARACTER_INFO_EXT = {
 
         CHARACTER_STATES: {
 
-            # This will result in a Inactive being the first displayed choice.
+            # This will result in Inactive being the first displayed choice.
             STATE_DEFINITION: ("Gain Art", ("Inactive", "Active")),
             STATE_INITIAL: "Inactive",
             STATE_CHANGE: {
