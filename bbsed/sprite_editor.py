@@ -1223,13 +1223,10 @@ class SpriteEditor(QtWidgets.QWidget):
         Populate the sprite list with our character sprite files.
         """
         character_name, character = CHARACTER_INFO[character_id]
+        ext_info = CHARACTER_INFO_EXT.get(character_id, {})
+        character = ext_info.get(FILE_OVERRIDE, character)
 
-        # Lambda uses the same character abbreviation in the sprite files (but not script files?) because reasons.
-        file_character = character
-        if character == "rm":
-            file_character = "ny"
-
-        default_palette_fmt = DEFAULT_PALETTE_FMT.format(file_character)
+        default_palette_fmt = DEFAULT_PALETTE_FMT.format(character)
 
         sprite_cache_path = self.paths.get_sprite_cache_path(character)
         script_cache_path = self.paths.get_script_cache_path(character)
