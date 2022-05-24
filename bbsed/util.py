@@ -31,6 +31,7 @@ __all__ = [
     "CHAR_ABBR_LEN",
     "PALETTE_ID_LEN",
     "GAME_MAX_PALETTES",
+    "FILES_PER_PALETTE",
 
     # Functions
     "block_signals",
@@ -95,6 +96,7 @@ GAME_PALETTES = (PALETTE_BBCF, PALETTE_BBCP, PALETTE_BBCS, PALETTE_BBCT)
 CHAR_ABBR_LEN = 2
 PALETTE_ID_LEN = 2
 GAME_MAX_PALETTES = 24
+FILES_PER_PALETTE = 8
 
 
 @contextlib.contextmanager

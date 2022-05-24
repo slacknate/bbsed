@@ -610,8 +610,15 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         hpl_files_list = self.paths.get_edit_palette(character, palette_id, slot_name)
 
-        if not hpl_files_list:
-            hpl_files_list = self.paths.get_saved_palette(character, palette_id, slot_name)
+        # If we have only edited some of the required files we should grab the remaining files from the
+        # save path so nowhere along the line do we have an "incomplete" palette.
+        if len(hpl_files_list) < FILES_PER_PALETTE:
+            edit_files_set = set(os.path.basename(hpl_path) for hpl_path in hpl_files_list)
+            save_files_list = self.paths.get_saved_palette(character, palette_id, slot_name)
+
+            for hpl_save_path in save_files_list:
+                if os.path.basename(hpl_save_path) not in edit_files_set:
+                    hpl_files_list.append(hpl_save_path)
 
         return hpl_files_list
 
