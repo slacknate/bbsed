@@ -2,6 +2,7 @@ import os
 import platform
 
 from .util import *
+from .char_info import CHARACTER_INFO
 
 BBCF_PATH_COMPONENTS = ("data", "Char")
 
@@ -228,7 +229,7 @@ class Paths:
             raise ValueError("Must provide a slot name!")
 
         if not characters:
-            characters = os.listdir(self._get_palette_edit_path())
+            characters = [character_id for _, character_id in CHARACTER_INFO.values()]
 
         for character in characters:
             for palette_id, _ in iter_palettes():
@@ -270,7 +271,7 @@ class Paths:
         Walk our top level palette save directory.
         """
         if not characters:
-            characters = os.listdir(self._get_palette_save_path())
+            characters = [character_id for _, character_id in CHARACTER_INFO.values()]
 
         for character in characters:
             for palette_id, palette_num in iter_palettes():
