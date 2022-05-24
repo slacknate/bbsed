@@ -17,7 +17,7 @@ in the following pages, be sure to click it!
 PAGE_1 = """
 <html>
 <body>
-To begin, first we need to set the Steam installation directory.<br>
+To begin, first we need to set the Steam and BBCF installation directories.<br>
 We can do this by going to the settings dialog from the <a href="file_menu">File</a> menu.
 </body>
 </html>
