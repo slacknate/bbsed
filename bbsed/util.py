@@ -3,7 +3,7 @@ __all__ = [
     # Constants
     "BBCF_STEAM_APP_ID",
     "STEAM_PROCESS_NAME",
-    "LOCK_FILE_EXT",
+    "LOCK_FILE_NAME",
     "GAME_SPRITE_FILE_FMT",
     "GAME_PALETTE_FILE_FMT",
     "GAME_EFFECT_FILE_FMT",
@@ -13,7 +13,6 @@ __all__ = [
     "EFFECT_IMG_PREFIX",
     "BACKUP_GAME_PALETTE_EXT",
     "GAME_PALETTE_EXT",
-    "SLOT_PALETTE_EXT_FMT",
     "PALETTE_EXT",
     "PNG_EXT",
     "PALETTE_SAVE_MARKER",
@@ -57,7 +56,7 @@ STEAM_PROCESS_NAME = "steam.exe"
 APP_PROCESS_NAME = "bbsed.exe"
 SOURCE_PROCESS_NAME = "python.exe"
 
-LOCK_FILE_EXT = ".lock"
+LOCK_FILE_NAME = ".lock"
 
 GAME_SPRITE_FILE_FMT = "char_{}_img.pac"
 GAME_PALETTE_FILE_FMT = "char_{}_pal.pac"
@@ -70,8 +69,6 @@ EFFECT_IMG_PREFIX = "vr{}ef"
 
 BACKUP_GAME_PALETTE_EXT = ".orig.pac"
 GAME_PALETTE_EXT = ".pac"
-
-SLOT_PALETTE_EXT_FMT = ".{}.hpl"
 PALETTE_EXT = ".hpl"
 
 PNG_EXT = ".png"

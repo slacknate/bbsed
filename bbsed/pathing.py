@@ -193,33 +193,27 @@ class Paths:
         edit_path_pcs = self._get_path_pcs(*pcs, specifier="pal")
         return os.path.join(self.data_dir, "edit", *edit_path_pcs)
 
-    def get_edit_palette_path(self, character, palette_id):
+    def get_edit_palette_path(self, character, palette_id, slot_name):
         """
         Get the path of a characters palette cache subdirectory.
         """
-        return self._get_palette_edit_path(character, palette_id)
+        return self._get_palette_edit_path(character, palette_id, slot_name)
 
-    def get_edit_lock_path(self, character, palette_id):
+    def get_edit_lock_path(self, character, palette_id, slot_name):
         """
         Get the path of a palette lock file.
         """
-        edit_path = self._get_palette_edit_path(character, palette_id)
-        return os.path.join(edit_path, LOCK_FILE_EXT)
+        edit_path = self._get_palette_edit_path(character, palette_id, slot_name)
+        return os.path.join(edit_path, LOCK_FILE_NAME)
 
     def get_edit_palette(self, character, palette_id, slot_name):
         """
         Get a list of HPL palette files in the given slot for the given character and palette ID.
+        We specifically exclude any lock files found in this directory as we only care about palette files.
         """
-        character_edit_path = self._get_palette_edit_path(character, palette_id)
-        hpl_files_list = []
-
-        for hpl_file in listdir_safe(character_edit_path):
-            hpl_full_path = os.path.join(character_edit_path, hpl_file)
-
-            if hpl_file.endswith(SLOT_PALETTE_EXT_FMT.format(slot_name)):
-                hpl_files_list.append(hpl_full_path)
-
-        return hpl_files_list
+        character_edit_path = self._get_palette_edit_path(character, palette_id, slot_name)
+        edit_dir_listing = filter(lambda _hpl_file: _hpl_file != LOCK_FILE_NAME, listdir_safe(character_edit_path))
+        return [os.path.join(character_edit_path, hpl_file) for hpl_file in edit_dir_listing]
 
     def walk_palette_edit(self, *characters, slot_name=None):
         """

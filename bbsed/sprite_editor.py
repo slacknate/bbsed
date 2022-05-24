@@ -584,6 +584,16 @@ class SpriteEditor(QtWidgets.QWidget):
         # Create our character/palette/slot selector widget and add it to the toolbar.
         self.selector = EditorSelector(mainwindow.ui.toolbar, mainwindow.ui.cut_color)
 
+        # Maintain the previous character, palette, and slot.
+        # We need this to delete old palette locks when the new selections are made in the UI.
+        self.prev_character = None
+        self.prev_palette = None
+        self.prev_slot = None
+
+        # Maintain the current active palette lock. This allows us to check easily and quickly
+        # if we already have the current palette locked.
+        self.palette_lock = None
+
         # The sprite we are currently editing.
         self.sprite = Sprite()
         # An object to manage the display of stateful characters.
@@ -745,6 +755,11 @@ class SpriteEditor(QtWidgets.QWidget):
             self.selector.slot.removeItem(save_index)
             self.selector.slot.setCurrentIndex(-1)
 
+        # When we delete a slot we need to reset the palette lock.
+        # This way when we check for old locks and attempt a new re-lock we are not
+        # using out of date tracking information.
+        self.palette_lock = None
+
         # Reset to the BBCF palette after we delete a save slot.
         # Because we de-selected all slots while signals were blocked, setting the index here will trigger a refresh.
         self.selector.slot.setCurrentIndex(0)
@@ -763,9 +778,11 @@ class SpriteEditor(QtWidgets.QWidget):
                     if save_char == character and save_pal_id == palette_id:
                         self.selector.slot.addItem(save_name, PALETTE_SAVE)
 
-    def add_save_slot(self, slot_name):
+    def update_saved_palette(self, slot_name):
         """
         We have saved a palette. Add the slot name to the UI if necessary and select the slot.
+        Ensure we lock the palette after the UI is updated, as we may have created a new slot
+        which will not have been already locked.
         """
         # We may be saving changes made to a palette that already has a save name.
         save_index = self.selector.slot.findText(slot_name)
@@ -784,6 +801,18 @@ class SpriteEditor(QtWidgets.QWidget):
         # the save select combobox.
         if not self.selector.slot.isEnabled():
             self.selector.slot.setEnabled(True)
+
+        character = self.selector.character.currentData()
+        character_name = self.selector.character.currentText()
+        palette_id = self.selector.palette.currentText()
+
+        # There should never exist a scenario where another BBCF Sprite Editor instance holds a lock for this.
+        self._lock_palette(character, character_name, palette_id)
+
+        # After we update our lock we need to ensure we update the previous palette and slot data.
+        # This way if we delete the palette before selecting a new slot we do not leak a lock file.
+        self.prev_palette = palette_id
+        self.prev_slot = slot_name
 
     def _update_save_slots(self, character_saves):
         """
@@ -804,6 +833,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
             # Set the selected slot to the BBCF game slot.
             self.selector.slot.setCurrentIndex(0)
+            self.prev_slot = SLOT_NAME_BBCF
 
     def character_state_change(self, _, __):
         """
@@ -839,6 +869,7 @@ class SpriteEditor(QtWidgets.QWidget):
             # We intentionally select this in the block_signals block so we do not try to set
             # palette data before a sprite is selected.
             self.selector.palette.setCurrentIndex(0)
+            self.prev_palette = palette_number_to_id(0)
 
         # Get the palette ID from the widget for the sake of consistency.
         palette_id = self.selector.palette.currentText()
@@ -854,21 +885,28 @@ class SpriteEditor(QtWidgets.QWidget):
         self.set_selection_enable(True)
 
         self.character_changed.emit(character_name, character)
+        self.prev_character = character
 
     def _lock_palette(self, character, character_name, palette_id):
         """
-        Lock the given palette for editing. This prevents BBCF Sprite Editor
-        instances from stepping on each others toes and otherwise corrupting or change palette data
-        in undesirable ways.
+        Lock the given palette for editing. This prevents BBCF Sprite Editor instances from
+        stepping on each others toes and otherwise corrupting or change palette data in undesirable ways.
+        We also automatically remove any previously held lock if it exists.
+        It is only valid to hold a single lock on a given (character, palette, slot) per instance of the app.
         """
-        prev_palette_id = self.state.get_palette_id()
-        old_lock_file = self.paths.get_edit_lock_path(character, prev_palette_id)
-
         edit_palette = True
-        lock_file = self.paths.get_edit_lock_path(character, palette_id)
+        slot_name = self.selector.slot.currentText()
+        lock_file = self.paths.get_edit_lock_path(character, palette_id, slot_name)
 
-        if owns_lock(old_lock_file):
-            delete_lock(old_lock_file)
+        # If we already have this palette locked do not go through the whole check/prompt process.
+        if lock_file == self.palette_lock:
+            return edit_palette
+
+        # Only attempt to remove an old lock we had a valid previous selection.
+        if self.prev_character is not None and self.prev_palette is not None and self.prev_slot is not None:
+            old_lock_file = self.paths.get_edit_lock_path(self.prev_character, self.prev_palette, self.prev_slot)
+            if owns_lock(old_lock_file):
+                delete_lock(old_lock_file)
 
         if check_lock(lock_file):
             message = (f"{character_name} palette {palette_id} is locked by another BBCF Sprite Editor process. "
@@ -880,19 +918,22 @@ class SpriteEditor(QtWidgets.QWidget):
                 # If the user has chosen not to edit the palette we select the previous palette.
                 # This may in fact de-select a palette all together.
                 with block_signals(self.selector.palette):
-                    palette_index = self.selector.palette.findText(prev_palette_id)
+                    palette_index = self.selector.palette.findText(self.prev_palette)
                     self.selector.palette.setCurrentIndex(palette_index)
+                    self.prev_palette = self.selector.palette.itemText(palette_index)
 
                 # We also need to update our slot selection. If we are selected a valid previous
                 # palette then we select the edit slow. Otherwise we also de-select all slots.
                 with block_signals(self.selector.slot):
                     slot_index = 0 if palette_index >= 0 else -1
                     self.selector.slot.setCurrentIndex(slot_index)
+                    self.prev_slot = self.selector.slot.itemText(slot_index)
 
         # We are for sure selecting this palette. Create the lock and update our state!
         if edit_palette:
             create_lock(lock_file)
             self.state.set_palette_id(palette_id)
+            self.palette_lock = lock_file
 
         return edit_palette
 
@@ -919,18 +960,28 @@ class SpriteEditor(QtWidgets.QWidget):
         self.refresh()
 
         self.palette_changed.emit(palette_id, palette_num)
+        self.prev_palette = palette_id
 
     def select_palette_slot(self):
         """
         We have selected a palette which has been saved by the user.
         Disable the delete button when we have the Edit slot selected.
         """
+        character = self.selector.character.currentData()
+        character_name = self.selector.character.currentText()
+        palette_id = self.selector.palette.currentText()
         slot_name = self.selector.slot.currentText()
         slot_type = self.selector.slot.currentData()
+
+        # We have selected a new palette slot and should now lock it for editing.
+        # If it is locked by another process and the user wishes to respect that we should not continue.
+        if not self._lock_palette(character, character_name, palette_id):
+            return
 
         self.refresh()
 
         self.palette_slot_changed.emit(slot_name, slot_type)
+        self.prev_slot = slot_name
 
     def expand_all_sprites(self, _):
         """
@@ -986,10 +1037,8 @@ class SpriteEditor(QtWidgets.QWidget):
         We prioritize any active edits and if no edit files exist we fall back to palette saves.
         The save fallback includes the game version of the given palette.
         """
-        slot_hpl_file = hpl_file.replace(PALETTE_EXT, SLOT_PALETTE_EXT_FMT.format(slot_name))
-
-        hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
-        palette_full_path = os.path.join(hpl_file_path, slot_hpl_file)
+        hpl_file_path = self.paths.get_edit_palette_path(character, palette_id, slot_name)
+        palette_full_path = os.path.join(hpl_file_path, hpl_file)
 
         if not os.path.exists(palette_full_path):
             hpl_file_path = self.paths.get_palette_save_path(character, palette_id, slot_name)
@@ -1355,9 +1404,13 @@ class SpriteEditor(QtWidgets.QWidget):
             self.show_error_dialog("Error Updating Palette", message)
             return
 
-        hpl_file = self.selected_item.hpl_file.replace(PALETTE_EXT, SLOT_PALETTE_EXT_FMT.format(slot_name))
-        hpl_file_path = self.paths.get_edit_palette_path(character, palette_id)
-        palette_full_path = os.path.join(hpl_file_path, hpl_file)
+        # We may be making fresh edits on a newly-saved palette. Ensure we lock the palette if we need to.
+        # If it is locked by another process and the user wishes to respect that we should not continue.
+        if not self._lock_palette(character, character_name, palette_id):
+            return
+
+        hpl_file_path = self.paths.get_edit_palette_path(character, palette_id, slot_name)
+        palette_full_path = os.path.join(hpl_file_path, self.selected_item.hpl_file)
 
         try:
             self.sprite.save_palette(palette_full_path)
@@ -1459,10 +1512,12 @@ class SpriteEditor(QtWidgets.QWidget):
 
         with block_signals(self.selector.palette):
             self.selector.palette.setCurrentIndex(-1)
+            self.prev_palette = None
 
         with block_signals(self.selector.slot):
             self.selector.slot.setEnabled(False)
             self.selector.slot.clear()
+            self.prev_slot = None
 
         with block_signals(self.ui.sprite_list):
             self.sprite_list_model.clear()
@@ -1476,6 +1531,7 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         with block_signals(self.selector.character):
             self.selector.character.setCurrentIndex(-1)
+            self.prev_character = None
 
         self._reset()
 
@@ -1498,10 +1554,11 @@ class SpriteEditor(QtWidgets.QWidget):
 
         character = self.selector.character.currentData()
         palette_id = self.selector.palette.currentText()
+        slot_name = self.selector.slot.currentText()
 
         # If we have an active lock file remove it.
         if character is not None and palette_id is not None:
-            lock_file = self.paths.get_edit_lock_path(character, palette_id)
+            lock_file = self.paths.get_edit_lock_path(character, palette_id, slot_name)
 
             if owns_lock(lock_file):
                 os.remove(lock_file)

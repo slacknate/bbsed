@@ -653,7 +653,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.discard_palette.setEnabled(False)
         self.ui.delete_palette.setEnabled(True)
 
-        self.sprite_editor.add_save_slot(save_name)
+        self.sprite_editor.update_saved_palette(save_name)
 
     def _choose_palette_name(self, character, palette_id, *previous_choices):
         """
@@ -791,13 +791,11 @@ class MainWindow(QtWidgets.QMainWindow):
             palette_id, palette_num = self.sprite_editor.get_palette()
             slot_name, _ = self.sprite_editor.get_slot()
 
-            edit_palette_path = self.paths.get_edit_palette_path(character, palette_id)
+            edit_palette_path = self.paths.get_edit_palette_path(character, palette_id, slot_name)
 
             for hpl_src_path in self.clipboard:
                 hpl_file = os.path.basename(hpl_src_path)
-
                 hpl_file = PALETTE_NUM_REGEX.sub(PALETTE_NUM_REPL.format(palette_num), hpl_file)
-                hpl_file = hpl_file.replace(PALETTE_EXT, SLOT_PALETTE_EXT_FMT.format(slot_name))
 
                 hpl_dst_path = os.path.join(edit_palette_path, hpl_file)
                 shutil.copyfile(hpl_src_path, hpl_dst_path)
