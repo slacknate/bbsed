@@ -947,15 +947,15 @@ class SpriteEditor(QtWidgets.QWidget):
         palette_id = self.selector.palette.currentText()
         palette_num = self.selector.palette.currentData()
 
-        # We have selected a new palette and should now lock it for editing.
-        # If it is locked by another process and the user wishes to respect that we should not continue.
-        if not self._lock_palette(character, character_name, palette_id):
-            return
-
         # When we select a palette ID we need to look for existing saved palettes associated to it.
         # Based on the presence of these files we also need to update the state of the UI.
         palette_saves = self.paths.get_palette_saves(character, palette_id)
         self._update_save_slots(palette_saves)
+
+        # We have selected a new palette and should now lock it for editing.
+        # If it is locked by another process and the user wishes to respect that we should not continue.
+        if not self._lock_palette(character, character_name, palette_id):
+            return
 
         self.refresh()
 
