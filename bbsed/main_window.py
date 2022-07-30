@@ -649,9 +649,9 @@ class MainWindow(QtWidgets.QMainWindow):
             hpl_dst_path = os.path.join(save_dst_path, hpl_dst_file)
             shutil.copyfile(hpl_src_path, hpl_dst_path)
 
-            # Remove any edit files if they exist.
-            for edit_hpl_file in self.paths.get_edit_palette(character, palette_id, slot_name):
-                os.remove(edit_hpl_file)
+        # Remove any edit files if they exist.
+        for edit_hpl_file in self.paths.get_edit_palette(character, palette_id, slot_name):
+            os.remove(edit_hpl_file)
 
         self._set_window_title(character_name, palette_id, slot_name=save_name)
 
