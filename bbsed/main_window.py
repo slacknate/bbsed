@@ -602,6 +602,26 @@ class MainWindow(QtWidgets.QMainWindow):
                 if section == character:
                     self.applied_config[section][setting] = SLOT_NAME_BBCF
 
+    def _get_missing_files(self, character, palette_id, slot_name, hpl_files_list):
+        """
+        We are copying or saving a palette, but the edit directory is missing some
+        required files. Copy the missing files from the save directory to the edit directory.
+        Add these files to the HPL files list we return in `_get_palette_files`.
+        """
+        edit_path = self.paths.get_edit_palette_path(character, palette_id, slot_name)
+
+        edit_files_set = set(os.path.basename(hpl_path) for hpl_path in hpl_files_list)
+        save_files_list = self.paths.get_saved_palette(character, palette_id, slot_name)
+
+        for hpl_save_path in save_files_list:
+            hpl_save_file = os.path.basename(hpl_save_path)
+
+            if hpl_save_file not in edit_files_set:
+                hpl_edit_file = os.path.join(edit_path, hpl_save_file)
+
+                shutil.copyfile(hpl_save_path, hpl_edit_file)
+                hpl_files_list.append(hpl_edit_file)
+
     def _get_palette_files(self, character, palette_id, slot_name):
         """
         Get a list of files that we either want to save, copy, or paste.
@@ -613,12 +633,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # If we have only edited some of the required files we should grab the remaining files from the
         # save path so nowhere along the line do we have an "incomplete" palette.
         if len(hpl_files_list) < FILES_PER_PALETTE:
-            edit_files_set = set(os.path.basename(hpl_path) for hpl_path in hpl_files_list)
-            save_files_list = self.paths.get_saved_palette(character, palette_id, slot_name)
-
-            for hpl_save_path in save_files_list:
-                if os.path.basename(hpl_save_path) not in edit_files_set:
-                    hpl_files_list.append(hpl_save_path)
+            self._get_missing_files(character, palette_id, slot_name, hpl_files_list)
 
         return hpl_files_list
 
