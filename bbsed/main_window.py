@@ -640,12 +640,6 @@ class MainWindow(QtWidgets.QMainWindow):
         for hpl_src_path in files_to_save:
             hpl_dst_file = os.path.basename(hpl_src_path)
 
-            # If our source file was an active edit HPL file then it will contain the slot name in the file name.
-            # When we move this file to the save directory we should remove the slot name as the slot name is
-            # included in the save directory path.
-            if hpl_dst_file.count(".") > 1:
-                hpl_dst_file = SLOT_NAME_REGEX.sub(PALETTE_EXT, hpl_dst_file)
-
             hpl_dst_path = os.path.join(save_dst_path, hpl_dst_file)
             shutil.copyfile(hpl_src_path, hpl_dst_path)
 
