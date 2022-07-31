@@ -36,6 +36,7 @@ __all__ = [
     # Functions
     "block_signals",
     "temp_directory",
+    "iter_characters",
     "iter_palettes",
     "palette_number_to_id",
     "steam_running",
@@ -51,6 +52,8 @@ import tempfile
 import contextlib
 
 import psutil
+
+from .char_info import CHARACTER_INFO
 
 BBCF_STEAM_APP_ID = "586140"
 STEAM_PROCESS_NAME = "steam.exe"
@@ -132,6 +135,15 @@ def temp_directory():
 
     finally:
         shutil.rmtree(temp_dir)
+
+
+def iter_characters():
+    """
+    Helper to iterate all characters in the CHARACTER_INFO dict sorted by character ID.
+    """
+    sorted_chars = list(CHARACTER_INFO.items())
+    sorted_chars.sort(key=lambda item: item[0])
+    yield from sorted_chars
 
 
 def iter_palettes():

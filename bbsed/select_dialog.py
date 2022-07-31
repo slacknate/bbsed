@@ -1,5 +1,6 @@
 import io
 import os
+import re
 
 from collections import defaultdict
 
@@ -10,8 +11,8 @@ from libhpl import PNGPaletteImage
 
 from .ui.select_dialog_ui import Ui_Dialog
 
+from .char_info import VALID_CHARACTERS
 from .exceptions import AppError
-from .char_info import CHARACTER_INFO
 from .util import *
 
 ROLE_CHECK_STATE = QtCore.Qt.ItemDataRole.UserRole
@@ -36,7 +37,7 @@ class SelectDialog(QtWidgets.QDialog):
 
     selection_made = QtCore.pyqtSignal(dict)
 
-    def __init__(self, paths, config=None, diff_config=None, multi_select=False, parent=None):
+    def __init__(self, paths, config, diff_config=None, multi_select=False, parent=None):
         QtWidgets.QDialog.__init__(self, parent, flags=QtCore.Qt.WindowType.WindowTitleHint)
 
         self.ui = Ui_Dialog()
@@ -50,6 +51,7 @@ class SelectDialog(QtWidgets.QDialog):
         self.selected = set()
         self.unselected = set()
         self.multi_select = multi_select
+        self.ui.ms_checkbox.setVisible(multi_select)
 
         self.setWindowTitle("Select Palettes")
 
@@ -61,130 +63,24 @@ class SelectDialog(QtWidgets.QDialog):
         self.current_sprite = io.BytesIO()
         self.sprite = PNGPaletteImage()
 
-        # We need to sort the character info before adding to the selection combo box.
-        # This way the combo box index will match the defined character IDs in the char_info module.
-        sorted_chars = list(CHARACTER_INFO.items())
-        sorted_chars.sort(key=lambda item: item[0])
-
-        # Set up the character selection.
+        self.ui.character_select.currentIndexChanged.connect(self.select_character)
         with block_signals(self.ui.character_select):
-            for _, (character_name, character) in sorted_chars:
+            for _, (character_name, character) in iter_characters():
                 self.ui.character_select.addItem(character_name, character)
 
-            self.ui.character_select.currentIndexChanged.connect(self.select_character)
             self.ui.character_select.setCurrentIndex(-1)
 
-        def _update_multislot_callback(_palette_id, _select_check, _select_combo):
-            """
-            Create a callback to update the check state of the multi-select checkbox.
-            """
-            return lambda _check_state: self.update_check_state(_palette_id, _check_state, _select_check, _select_combo)
+        self.ui.palette_select.currentIndexChanged.connect(self.select_palette)
+        with block_signals(self.ui.palette_select):
+            for palette_id, palette_num in iter_palettes():
+                self.ui.palette_select.addItem(palette_id, palette_num)
 
-        def _select_palette_callback(_palette_id, _select_check, _select_combo):
-            """
-            Create a callback to update the sprite preview that works with any Qt signal.
-            """
-            return lambda *_, **__: self.select_palette(_palette_id, _select_check, _select_combo)
+            self.ui.palette_select.setCurrentIndex(-1)
 
-        def _show_sprite_callback(_palette_id, _select_check, _select_combo):
-            """
-            Create a callback to update the check state of the multi-select checkbox.
-            """
-            return lambda *_, **__: self.show_sprite(_palette_id, _select_check, _select_combo)
+        self.ui.slot_select.currentIndexChanged.connect(self.select_slot)
+        self.ui.ms_checkbox.stateChanged.connect(self.multi_select_slot)
 
-        for palette_id, palette_group, select_check, select_combo in self.iter_widgets():
-            # If we allow for selecting multiple palettes per slot we need to set up a
-            # signal to update the state of the checkbox for each combobox item.
-            if self.multi_select:
-                select_check.stateChanged.connect(_update_multislot_callback(palette_id, select_check, select_combo))
-            # Otherwise hide the checkbox and don't worry about signals.
-            else:
-                select_check.hide()
-
-            # We want combo box selections to update the sprite preview.
-            select_combo.currentIndexChanged.connect(_select_palette_callback(palette_id, select_check, select_combo))
-
-            # We also want to be able to easily change palette preview by clicking a palette group box.
-            palette_group.mousePressEvent = _show_sprite_callback(palette_id, select_check, select_combo)
-
-        if self.config is not None:
-            self._load_config()
-
-    def _load_config(self):
-        """
-        Set the initial state of the dialog from the saved config.
-        This will only occur if the config exists.
-        """
         self.initial = self.config.copy()
-
-        for character, palette_id, config_value in self.config:
-            _, select_check, select_combo = self._get_widgets(palette_id)
-
-            # We block signals for these widgets so that we do not trigger any callbacks when setting the initial
-            # dialog state. We currently have no character selected and no palette slots added and as such if we
-            # trigger a callback here we will definitely encounter an error condition.
-            with block_signals(select_check, select_combo):
-                # If we are in multi-select mode we need to parse this value to retrieve all selections
-                # for this character/palette ID.
-                if self.multi_select:
-                    for selection in config_value.split(";"):
-                        select_name, is_selected = selection.split(",")
-                        is_selected = bool(int(is_selected))
-
-                        self._mark_palette_selected(character, palette_id, select_name, select_check, is_selected)
-
-                # If we aren't in multi-select mode then we only have one selection for this character/palette ID.
-                else:
-                    self._mark_palette_selected(character, palette_id, config_value, select_check, True)
-
-    def _get_config_value(self, character, palette_id, select_name, is_selected):
-        """
-        Get the value we need to store in our backend config based on the dialog mode
-        and our current selection.
-        """
-        # If we are in multi-select mode then our config value contains multiple selections
-        # which are (select_name, is_selected) tuples.
-        if self.multi_select:
-            existing_value = self.config[character][palette_id]
-            select_value = f"{select_name},{int(is_selected)}"
-
-            # If this select name has previously been selected then we need to find where it exists in
-            # the config value for this character/palette ID combo and update that value in place.
-            if select_name in existing_value:
-                start = existing_value.find(select_name)
-                end = start + len(select_name) + 2
-                config_value = existing_value[:start] + select_value + existing_value[end:]
-
-            # If other selections have been made we need to append to the selection config.
-            elif existing_value:
-                config_value = ";" + select_value
-
-            # If no selections have been made then this is our only current selection.
-            else:
-                config_value = select_value
-
-        # Otherwise our config value is simply the selection name.
-        else:
-            config_value = select_name
-
-        return config_value
-
-    def _save_config(self):
-        """
-        Update our config with the most recent selections and save them to disk.
-        """
-        for character, palette_id, select_name in self.selected:
-            config_value = self._get_config_value(character, palette_id, select_name, True)
-            self.config[character][palette_id] = config_value
-
-        # We only have to worry about unselected palettes for multi-select mode.
-        # For single-select mode, the config value is just a singular value of the selected palette.
-        if self.multi_select:
-            for character, palette_id, select_name in self.unselected:
-                config_value = self._get_config_value(character, palette_id, select_name, False)
-                self.config[character][palette_id] = config_value
-
-        self.config.save()
 
     def _remove_unchanged(self, selected_palettes):
         """
@@ -199,32 +95,18 @@ class SelectDialog(QtWidgets.QDialog):
                 current_name = self.config[character][palette_id]
 
                 # If there is no diff config then there is not a diff to be had.
-                diff_name = None
-                if self.diff_config is not None:
-                    diff_name = self.diff_config[character][palette_id]
+                diff_name = self.diff_config[character][palette_id]
 
                 # Check if the selection has changed.
                 same_selection = (initial_name == current_name)
                 # Check if the diff config does not match the selection.
-                no_diff = (diff_name is None or diff_name == current_name)
+                no_diff = (diff_name == current_name)
 
                 should_remove = same_selection and no_diff
                 remove_list.append(should_remove)
 
             if all(remove_list):
                 selected_palettes.pop(character)
-
-    def _get_selection_ui(self):
-        """
-        Get the current selection from the state of the UI.
-        """
-        selected_palettes = defaultdict(lambda: defaultdict(dict))
-
-        for character, palette_id, select_name in self.selected:
-            hpl_files = self.paths.get_saved_palette(character, palette_id, select_name)
-            selected_palettes[character][palette_id][select_name] = hpl_files
-
-        return selected_palettes
 
     def _get_selection(self):
         """
@@ -234,11 +116,26 @@ class SelectDialog(QtWidgets.QDialog):
         creation vs as it currently exists after a selection has been made. We do this to save time during the
         procedures to export or apply palettes.
 
-        Otherwise we just get the current selection as directly reflected by the state of the UI.
+        Otherwise we just get the current selection as directly reflected by the state of the config.
         """
-        selected_palettes = self._get_selection_ui()
+        selected_palettes = defaultdict(lambda: defaultdict(dict))
 
-        if self.config is not None:
+        for character in VALID_CHARACTERS:
+            for palette_id, _ in iter_palettes():
+                character_saves = self.paths.get_palette_saves(character, palette_id)
+
+                for slot_name in character_saves:
+                    if self.multi_select:
+                        is_selected = self._get_slot_multi_select(character, palette_id, slot_name)
+
+                    else:
+                        is_selected = (self.config[character][palette_id] == slot_name)
+
+                    if is_selected:
+                        hpl_files = self.paths.get_saved_palette(character, palette_id, slot_name)
+                        selected_palettes[character][palette_id][slot_name] = hpl_files
+
+        if self.diff_config is not None:
             self._remove_unchanged(selected_palettes)
 
         if not self.multi_select:
@@ -251,70 +148,41 @@ class SelectDialog(QtWidgets.QDialog):
     def accept(self):
         QtWidgets.QDialog.accept(self)
 
-        # Only update a backend config for this dialog if it exists.
-        if self.config is not None:
-            self._save_config()
+        self.config.save()
 
         selection = self._get_selection()
         self.selection_made.emit(selection)
 
-    def _get_widgets(self, palette_id):
+    def _update_save_slots(self):
         """
-        The attribute names of these widgets are explicitly defined in Qt Designer.
-        These attributes will in fact exist and we get at them this way to avoid writing a giant block of
-        code that would manually call out these widgets `GAME_MAX_PALETTES` times.
+        We have selected a character or a palette.
+        We need to update the available slots presented in the UI.
         """
-        palette_group = getattr(self.ui, PALETTE_GROUP_PREFIX.format(palette_id))
-        select_check = getattr(self.ui, SELECT_CHECK_PREFIX.format(palette_id))
-        select_combo = getattr(self.ui, SELECT_COMBOBOX_PREFIX.format(palette_id))
-        return palette_group, select_check, select_combo
+        character = self.ui.character_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+        character_saves = self.paths.get_palette_saves(character, palette_id)
 
-    def iter_widgets(self):
-        """
-        Helper to iterate our palette selection widgets.
-        """
-        for palette_id, _ in iter_palettes():
-            palette_group, select_check, select_combo = self._get_widgets(palette_id)
-            yield palette_id, palette_group, select_check, select_combo
+        self.ui.slot_select.clear()
 
-    def _update_ui_for_selected(self, character_saves, character, palette_id, select_check, select_combo):
-        """
-        Read our current selections and update the UI to reflect selection choices for this character/palette ID.
-        We set the combobox to the item with the smallest index that is also selected. We also update the checkbox
-        check state accordingly.
-        """
-        first_index = None
-        first_selected = False
+        # TODO: BBTAG, BBCP, BBCS, BBCT
+        # In multi-select mode we do not want to select any of the game slots.
+        # This prevents exporting of the palettes that come with the game.
+        if not self.multi_select:
+            self.ui.slot_select.addItem(SLOT_NAME_BBCF, PALETTE_BBCF)
 
-        selections = []
+        for save_name in character_saves:
+            if save_name not in GAME_SLOT_NAMES:
+                self.ui.slot_select.addItem(save_name, PALETTE_SAVE)
 
-        for select_name in character_saves:
-            is_selected = ((character, palette_id, select_name) in self.selected)
+        # Set the selected slot to the BBCF game slot.
+        self.ui.slot_select.setCurrentIndex(0)
 
-            # In multi-select mode we do not want to select any of the game slots.
-            if self.multi_select and select_name not in GAME_SLOT_NAMES:
-                selections.append((select_name, is_selected))
+    def _refresh(self):
+        character = self.ui.character_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+        slot_name = self.ui.slot_select.currentText()
 
-            # In single-select mode we are looking for the one selection for this character and palette ID.
-            elif is_selected:
-                selections.append((select_name, True))
-
-        for select_name, is_selected in selections:
-            index = select_combo.findText(select_name)
-            select_combo.setItemData(index, is_selected, ROLE_CHECK_STATE)
-
-            if is_selected and (first_index is None or index < first_index):
-                first_selected = is_selected
-                first_index = index
-
-        # We need to use a value index. Just default to the first item in the combobox.
-        if first_index is None:
-            first_index = 0
-
-        check_state = QtCore.Qt.CheckState.Checked if first_selected else QtCore.Qt.CheckState.Unchecked
-
-        select_check.setCheckState(check_state)
-        select_combo.setCurrentIndex(first_index)
+        self._update_sprite_preview(character, palette_id, slot_name)
 
     def select_character(self):
         """
@@ -322,54 +190,123 @@ class SelectDialog(QtWidgets.QDialog):
         We populate the palette selection widgets to reflect selections that were previously
         made and applied to the game for this character, as well as any saved palettes and current edits.
         """
-        if not self.ui.palette_pages.isEnabled():
-            self.ui.palette_pages.setEnabled(True)
+        with block_signals(self.ui.palette_select):
+            self.ui.palette_select.setCurrentIndex(0)
+
+        self.select_palette()
+
+    def select_palette(self):
+        """
+        A palette was selected.
+        Reload the save slots. In single-select mode we set the slot to the configured selection.
+        """
+        with block_signals(self.ui.slot_select):
+            self._update_save_slots()
 
         character = self.ui.character_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
 
-        for palette_id, _, select_check, select_combo in self.iter_widgets():
-            with block_signals(select_check, select_combo):
-                # Clear the combo box before re-populating it.
-                select_combo.clear()
+        if self.multi_select:
+            selections_raw = self.config[character][palette_id]
+            selections_split1 = [selection for selection in selections_raw.split(";") if selection != ""]
 
-                # Allow the user to choose not to change this palette in game.
-                # Note that if we are in multi-select mode we do not add this slot.
-                # In multi-select mode the game-slot equivalent is not setting the check for any slots.
-                if not self.multi_select:
-                    # TODO: BBTAG, BBCP, BBCS, BBCT
-                    select_combo.addItem(SLOT_NAME_BBCF, PALETTE_BBCF)
-                    select_combo.setItemData(0, False, ROLE_CHECK_STATE)
+            selections_split2 = []
+            for selection in selections_split1:
+                selection_split = selection.split(",")
+                if selection_split:
+                    selections_split2.append(selection_split)
 
-                # Show any saved palettes that map to this palette ID.
-                character_saves = self.paths.get_palette_saves(character, palette_id)
-                for save_name in character_saves:
-                    if save_name not in GAME_SLOT_NAMES:
-                        select_combo.addItem(save_name, PALETTE_SAVE)
-                        index = select_combo.findText(save_name)
-                        select_combo.setItemData(index, False, ROLE_CHECK_STATE)
+            selections = [(slot_name, bool(int(is_selected))) for slot_name, is_selected in selections_split2]
+            selections.sort(key=lambda _item: _item[0])
 
-                # If there are no added palette saves we should disable these widgets as they
-                # have nothing for the user to interact with and we also want to prevent errors from occurring.
-                if select_combo.count() < 1:
-                    select_check.setEnabled(False)
-                    select_combo.setEnabled(False)
+        else:
+            slot_name = self.config[character][palette_id]
+            index = self.ui.slot_select.findText(slot_name)
 
-                # Update the UI to reflect the current selections for this character and palette ID.
-                self._update_ui_for_selected(character_saves, character, palette_id, select_check, select_combo)
+            with block_signals(self.ui.slot_select):
+                self.ui.slot_select.setCurrentIndex(index)
 
-    def show_sprite(self, palette_id, _, select_combo):
+        self.select_slot()
+
+    def select_slot(self):
         """
-        Callback for clicking on a selection groupbox.
-        This does nothing except update the sprite preview.
-        This update only occurs if the clicked group contains a coombo
-        box with a valid palette selection.
+        A slot has been selected.
+        Update the configuration value and the palette displayed in the sprite preview.
         """
-        select_name = select_combo.currentText()
+        character = self.ui.character_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+        slot_name = self.ui.slot_select.currentText()
 
-        # Only update the preview if we have a valid selection.
-        if select_name:
-            character = self.ui.character_select.currentData()
-            self._update_sprite_preview(character, palette_id, select_name)
+        # Set the selection in the config.
+        if self.multi_select:
+            # This checkbox is disabled by default.
+            # If it is still disabled here we need to enable it so the user can interact with it.
+            # This check is made here because the checkbox needs to stay disabled until a character is
+            # selected so the user cannot interact with it without a valid character/palette/slot combo.
+            if not self.ui.ms_checkbox.isEnabled():
+                self.ui.ms_checkbox.setEnabled(True)
+
+            is_selected = self._get_slot_multi_select(character, palette_id, slot_name)
+            check_state = QtCore.Qt.CheckState.Checked if is_selected else QtCore.Qt.CheckState.Unchecked
+            self.multi_select_slot(check_state)
+
+        else:
+            self.config[character][palette_id] = slot_name
+            self._refresh()
+
+    def _get_slot_multi_select(self, character, palette_id, slot_name):
+        """
+        Get the `is_selected` status of the given character/palette/slot combo as a boolean.
+        """
+        selections_raw = self.config[character][palette_id]
+        is_selected = False
+
+        match = re.search(r";?(" + slot_name + r",[01]);?", selections_raw)
+        if match is not None:
+            _, is_selected_raw = match.group(1).split(",")
+            is_selected = bool(int(is_selected_raw))
+
+        return is_selected
+
+    def _set_slot_multi_select(self, character, palette_id, slot_name, is_selected):
+        """
+        Set the `is_selected` status of the given character/palette/slot combo in the config.
+        """
+        selections_raw = self.config[character][palette_id]
+
+        old_config_value = f"{slot_name},{int(not is_selected)}"
+        new_config_value = f"{slot_name},{int(is_selected)}"
+
+        # If this slot has been selected before then we can just do a good ol' string replace to update the value.
+        if old_config_value in selections_raw:
+            selections_raw = selections_raw.replace(old_config_value, new_config_value)
+
+        # Otherwise we need to append this selection to the existing ones.
+        elif slot_name not in selections_raw:
+            # If no selections have yet been made at all then we need to skip the delimiter.
+            if selections_raw:
+                selections_raw += ";"
+
+            selections_raw += new_config_value
+
+        self.config[character][palette_id] = selections_raw
+
+    def multi_select_slot(self, check_state):
+        """
+        A slot has been selected (specifically applies in multi-select mode).
+        This is the callback for the multi-select checkbox state changing.
+        Update the configuration value and the palette displayed in the sprite preview.
+        """
+        character = self.ui.character_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+        slot_name = self.ui.slot_select.currentText()
+        is_selected = bool(check_state)
+
+        self._set_slot_multi_select(character, palette_id, slot_name, is_selected)
+        with block_signals(self.ui.ms_checkbox):
+            self.ui.ms_checkbox.setCheckState(check_state)
+
+        self._refresh()
 
     def _update_sprite_preview(self, character, palette_id, select_name):
         """
@@ -380,6 +317,11 @@ class SelectDialog(QtWidgets.QDialog):
         self.sprite_scene.clear()
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
+
+        # If there is not a valid slot selection then we cannot update the preview.
+        # There is not a palette to load from the save path.
+        if not select_name:
+            return
 
         # Get the cached sprites for this character.
         sprite_cache = self.paths.get_sprite_cache(character)
@@ -447,82 +389,3 @@ class SelectDialog(QtWidgets.QDialog):
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
-
-    def _mark_palette_selected(self, character, palette_id, select_name, select_check, is_selected):
-        """
-        Update our selections that will be saved to disk in the apply config as well as
-        the selections data we use to generate the data to apply to game files.
-        Note that if the dialog is not accepted these datas are discarded.
-        """
-        select_key = (character, palette_id, select_name)
-
-        if is_selected:
-            self.selected.add(select_key)
-            self.unselected.discard(select_key)
-
-        else:
-            self.selected.discard(select_key)
-            self.unselected.add(select_key)
-
-        # Update the state of the associated check box. If we are not in multi-select mode this widget is hidden
-        # but we always set it for the sake of ease of implementation.
-        check_state = QtCore.Qt.CheckState.Checked if is_selected else QtCore.Qt.CheckState.Unchecked
-        select_check.setCheckState(check_state)
-
-    def update_check_state(self, palette_id, check_state, select_check, select_combo):
-        """
-        Update the state of our multi-select checkbox.
-        We also need to update the selected state of the associated palette and slot
-        and the sprite preview so checking the box of an edit slow on dialog load shows a sprite.
-        """
-        index = select_combo.currentIndex()
-        character = self.ui.character_select.currentData()
-
-        is_selected = (check_state == QtCore.Qt.CheckState.Checked)
-        select_combo.setItemData(index, is_selected, ROLE_CHECK_STATE)
-        select_name = select_combo.itemText(index)
-
-        with block_signals(select_check, select_combo):
-            self._mark_palette_selected(character, palette_id, select_name, select_check, is_selected)
-
-        self._update_sprite_preview(character, palette_id, select_name)
-
-    def _deselect_previous(self, character, palette_id, select_combo):
-        """
-        Helper to find any previously selected palette with the given character and palette ID
-        and remove it from the current selections.
-        """
-        for _character, _palette_id, select_name in self.selected:
-            if _character == character and _palette_id == palette_id:
-                select_key = (character, palette_id, select_name)
-
-                index = select_combo.findText(select_name)
-                select_combo.setItemData(index, False, ROLE_CHECK_STATE)
-
-                self.selected.discard(select_key)
-                self.unselected.add(select_key)
-
-                break
-
-    def select_palette(self, palette_id, select_check, select_combo):
-        """
-        A character or palette selection was made and we need to update the UI.
-        """
-        character = self.ui.character_select.currentData()
-        select_name = select_combo.currentText()
-        index = select_combo.currentIndex()
-
-        if self.multi_select:
-            is_selected = select_combo.currentData(ROLE_CHECK_STATE)
-
-        # In single-select mode we need to de-select the previous palette selection before
-        # adding the new palette so we do not end up with more than one selection for a given character and palette ID.
-        else:
-            self._deselect_previous(character, palette_id, select_combo)
-            select_combo.setItemData(index, True, ROLE_CHECK_STATE)
-            is_selected = True
-
-        with block_signals(select_check, select_combo):
-            self._mark_palette_selected(character, palette_id, select_name, select_check, is_selected)
-
-        self._update_sprite_preview(character, palette_id, select_name)

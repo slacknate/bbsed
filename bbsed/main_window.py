@@ -50,7 +50,7 @@ HPL_MAX_FILES_PER_PALETTE = 7
 MAX_UNHANDLED_DIALOGS = 1
 
 
-def generate_palette_settings():
+def generate_palette_settings(default_value):
     """
     Generate the settings definition of ApplyConfig
     programmatically to save codespace.
@@ -61,14 +61,14 @@ def generate_palette_settings():
         settings[character] = {}
 
         for palette_id, palette_num in iter_palettes():
-            settings[character][palette_id] = SLOT_NAME_BBCF
+            settings[character][palette_id] = default_value
 
     return settings
 
 
 class SelectConfig(Configuration):
 
-    SETTINGS = generate_palette_settings()
+    SETTINGS = generate_palette_settings(SLOT_NAME_BBCF)
 
     def __init__(self, paths):
         Configuration.__init__(self, paths.select_config_file)
@@ -76,10 +76,28 @@ class SelectConfig(Configuration):
 
 class AppliedConfig(Configuration):
 
-    SETTINGS = generate_palette_settings()
+    SETTINGS = generate_palette_settings(SLOT_NAME_BBCF)
 
     def __init__(self, paths):
         Configuration.__init__(self, paths.applied_config_file)
+
+
+class ExportConfig(Configuration):
+
+    SETTINGS = generate_palette_settings("")
+
+    def __init__(self):
+        Configuration.__init__(self, None)
+
+    def load(self):
+        """
+        Noop. This is a stand-in config for non-file-saved selections.
+        """
+
+    def save(self):
+        """
+        Noop. This is a stand-in config for non-file-saved selections.
+        """
 
 
 class AppConfig(Configuration):
@@ -470,6 +488,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.sprite_editor.import_palette_data(character, palette_id, hpl_to_import, pac_to_import)
                 self.sprite_editor.refresh()
 
+    def export_palettes(self):
+        """
+        Callback for the Export All action. Share all your palettes with friends :D
+        """
+        dialog = SelectDialog(self.paths, config=ExportConfig(), multi_select=True, parent=self)
+        dialog.selection_made.connect(self._export_palettes)
+        dialog.show()
+
     def _choose_export_pac(self):
         """
         Helper to get the export PAC file path which will be our export destination.
@@ -483,27 +509,43 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return pac_path
 
-    def export_palettes(self):
-        """
-        Callback for the Export All action. Share all your palettes with friends :D
-        """
-        dialog = SelectDialog(self.paths, multi_select=True, parent=self)
-        dialog.selection_made.connect(self._export_palettes)
-        dialog.show()
-
     def _export_palettes(self, files_to_export):
         """
         Callback for when the SelectDialog is accepted.
         Necessary for running this dialog non-modal.
+        If we pick a destination PAC path then we should
+        show a summary of the exported data.
         """
         pac_path = self._choose_export_pac()
 
         if pac_path:
             thread = ExportThread(pac_path, files_to_export, self.paths)
             self.run_work_thread(thread, "Palette Exporter", "Exporting Palette Data...")
+            self._show_select_summary(files_to_export, "Export")
 
         else:
             self.show_message_dialog("Export Aborted", "Export path not chosen! Aborting palette export!")
+
+    def _show_select_summary(self, selection, selection_name):
+        """
+        Generate and display a summary of the palettes being selected.
+        """
+        export_list = []
+
+        for character, character_exports in selection.items():
+            for palette_id, palette_exports in character_exports.items():
+                for slot_name in palette_exports.keys():
+                    export_list.append((character, palette_id, slot_name))
+
+        summary = []
+        export_list = list(sorted(export_list))
+
+        for char, pal, name in export_list:
+            index = self.sprite_editor.selector.character.findData(char)
+            char_name = self.sprite_editor.selector.character.itemText(index)
+            summary.append(f"{char_name} - {pal} - {name}")
+
+        self.show_message_dialog(f"{selection_name} Summary", "\n".join(summary))
 
     def apply_palettes(self, _):
         """
@@ -526,9 +568,13 @@ class MainWindow(QtWidgets.QMainWindow):
             thread = ApplyThread(files_to_apply, self.paths)
             success = self.run_work_thread(thread, "Sprite Updater", "Applying Sprite Data...")
 
-            # If the palette application succeeds we should update our applied palettes saved config
-            # to match that of the palette selections config.
+            # If the palette application succeeds, show a summary of what was applied to the game files
+            # and also update our applied palettes saved config to match that of the palette selections config.
             if success:
+                # Only show the summary if files were actually changed.
+                if files_to_apply:
+                    self._show_select_summary(files_to_apply, "Palette Apply")
+
                 self.applied_config.load_from(self.select_config)
                 self.applied_config.save()
 

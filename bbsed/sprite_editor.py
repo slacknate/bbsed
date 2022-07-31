@@ -613,12 +613,7 @@ class SpriteEditor(QtWidgets.QWidget):
         # use to save color changes.
         self.selected_item = None
 
-        # We need to sort the character info before adding to the selection combo box.
-        # This way the combo box index will match the defined character IDs in the char_info module.
-        sorted_chars = list(CHARACTER_INFO.items())
-        sorted_chars.sort(key=lambda item: item[0])
-
-        for _, (character_name, character) in sorted_chars:
+        for _, (character_name, character) in iter_characters():
             self.selector.character.addItem(character_name, character)
 
         for palette_id, palette_num in iter_palettes():
