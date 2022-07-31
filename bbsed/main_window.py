@@ -15,6 +15,7 @@ from .ui.main_window_ui import Ui_MainWindow
 from .exceptions import AppError, AppException
 from .settings_dialog import SettingsDialog
 from .tutorial_dialog import TutorialDialog
+from .message_dialog import MessageDialog
 from .select_dialog import SelectDialog
 from .sprite_editor import SpriteEditor
 from .about_dialog import AboutDialog
@@ -695,27 +696,27 @@ class MainWindow(QtWidgets.QMainWindow):
             # However if the dialog is not accepted we ignore this restriction as we will be discarding this data.
             if NON_ALPHANUM_REGEX.search(palette_name) is not None and accepted:
                 message = "Palette names may only contain alpha-numeric characters and underscores!"
-                self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
+                self.show_message_dialog("Invalid Palette Name", message, "error")
 
             # We explicitly disallow certain names (i.e. the abbreviation of installments to the series)
             # so we can use those slots as the game-data versions of the palettes.
             elif palette_name in GAME_SLOT_NAMES and accepted:
                 message = "Palette name may not be any of: {}".format(", ".join(GAME_SLOT_NAMES))
-                self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
+                self.show_message_dialog("Invalid Palette Name", message, "error")
 
             # If the palette name already exists and the dialog was accepted we should
             # show a message and not overwrite any data that exists under this name.
             # If the dialog was not accepted we ignore this restriction as we will be discarding this data.
             elif palette_name in existing_saves and accepted:
                 message = f"Palette name {palette_name} already exists!"
-                self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
+                self.show_message_dialog("Invalid Palette Name", message, "error")
 
             # If the palette name was recently chosen as an import name then
             # show a message and not overwrite any data that exists under this name.
             # If the dialog was not accepted we ignore this restriction as we will be discarding this data.
             elif palette_name in previous_choices and accepted:
                 message = f"Palette name {palette_name} was previously chosen for other palettes!"
-                self.show_message_dialog("Invalid Palette Name", message, QtWidgets.QMessageBox.Icon.Critical)
+                self.show_message_dialog("Invalid Palette Name", message, "error")
 
             # We picked a good name or the dialog was not accepted.
             else:
@@ -977,15 +978,10 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Show a message to the user.
         """
-        contents_icon = QtWidgets.QMessageBox.Icon.NoIcon
-
         if icon is None:
-            icon = Qt.QIcon(":/images/images/question.ico")
-        else:
-            icon = Qt.QIcon(f":/images/images/{icon}.ico")
+            icon = "question"
 
-        message_box = QtWidgets.QMessageBox(contents_icon, title, message, parent=self)
-        message_box.setWindowIcon(icon)
+        message_box = MessageDialog(title, message, icon, parent=self)
         message_box.exec_()
 
     def show_error_dialog(self, title, message, exc_info=None):

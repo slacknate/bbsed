@@ -16,7 +16,7 @@ class AppError(Exception):
         """
         Return a tuple of error details we can pass to `MainWindow.show_message_dialog()`.
         """
-        return self.title, self.message, QtWidgets.QMessageBox.Icon.Critical
+        return self.title, self.message, "error"
 
 
 class AppException(Exception):
