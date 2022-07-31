@@ -20,6 +20,8 @@ class MessageDialog(QtWidgets.QDialog):
             line_label = QtWidgets.QLabel(message_line)
             message_layout.addWidget(line_label)
 
+        # TODO: put a frame around the vertical scrollbar
+
         # Setup UI elements for user interaction.
         self.ui.ok_button.clicked.connect(self.close)
 
