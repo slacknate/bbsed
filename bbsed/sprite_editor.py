@@ -531,7 +531,7 @@ class EditorSelector:
         self.slot.setEnabled(False)
 
         self.hpl_file = QtWidgets.QComboBox()
-        self.hpl_file.addItems(str(i) for i in range(FILES_PER_PALETTE))
+        self.hpl_file.addItems(str(i + 1) for i in range(FILES_PER_PALETTE))
         self.hpl_file.setEnabled(False)
 
         toolbar.insertWidget(before_widget, self.character)
