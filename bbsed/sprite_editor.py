@@ -51,7 +51,6 @@ class StateControls:
         self.state_name = QtWidgets.QLabel()
         self.state_choices = QtWidgets.QComboBox()
 
-        self.separator = toolbar.addSeparator()
         self.name_action = toolbar.addWidget(self.state_name)
         self.choice_action = toolbar.addWidget(self.state_choices)
 
@@ -61,13 +60,12 @@ class StateControls:
         """
         Get the visibulity of extra controls actions.
         """
-        return self.separator.isVisible()
+        return self.name_action.isVisible()
 
     def set_visibility(self, state):
         """
         Set the visibulity of extra controls actions.
         """
-        self.separator.setVisible(state)
         self.name_action.setVisible(state)
         self.choice_action.setVisible(state)
 
@@ -217,33 +215,6 @@ class CharacterState:
                 color1, color2 = self.sprite.get_color_swap(index1, index2)
                 self.sprite.set_color_swap((index1, color2), (index2, color1))
 
-    def swap_palettes(self, sprite_item):
-        """
-        Swap the palette of this sprite item if it uses a palette associated to the character state.
-
-        Note that the way this works is that we only swap the palettes when not
-        in the initial character state.
-        """
-        ext_info = CHARACTER_INFO_EXT.get(self.character_id, {})
-        char_states = ext_info.get(CHARACTER_STATES, {})
-        swap_palettes = char_states.get(STATE_CHANGE, {}).get(SWAP_PALETTES, ())
-
-        is_initial = self._update_state()
-
-        for swap_files in swap_palettes:
-            hpl_fmt = sprite_item.hpl_fmt
-
-            # If our item HPL format is in the swap tuple then we need to get the format
-            # that is NOT the one currently associated to the item and assign it.
-            if hpl_fmt in swap_files:
-                swap_palette = None
-
-                # Each the swap data is a tuple of two HPL formats.
-                if not is_initial:
-                    swap_palette = get_other(swap_files, hpl_fmt)
-
-                sprite_item.swap_hpl_fmt = swap_palette
-
     def get_swap_of(self, index):
         """
         When we fetch the palette index of a double clicked pixel we need to
@@ -349,14 +320,13 @@ class SpriteFileItem(Qt.QStandardItem):
     """
     Child item in the sprite list to represent a HIP image associated to the current selected character.
     """
-    def __init__(self, hip_full_path, sprite_duration, hip_file, hpl_fmt):
+    def __init__(self, sprite_editor, hip_full_path, sprite_duration, hip_file, hpl_fmt):
         Qt.QStandardItem.__init__(self)
+        self.sprite_editor = sprite_editor
         self.hip_full_path = hip_full_path
         self.sprite_duration = sprite_duration
         self.hip_file = hip_file
-        self.swap_hpl_fmt = None
         self.hpl_fmt = hpl_fmt
-        self.palette_num = ""
 
     @property
     def hpl_file(self):
@@ -368,13 +338,9 @@ class SpriteFileItem(Qt.QStandardItem):
         Additionally, the palette file may also be swapped depending on character
         state controls for the selected character.
         """
-        if self.swap_hpl_fmt is not None:
-            _hpl_file = self.swap_hpl_fmt.format(self.palette_num)
-
-        else:
-            _hpl_file = self.hpl_fmt.format(self.palette_num)
-
-        return _hpl_file
+        palette_index = self.sprite_editor.hpl_selector.choices.currentIndex()
+        palette_num = self.sprite_editor.selector.palette.currentData()
+        return self.hpl_fmt.format(palette_num, palette_index)
 
     def data(self, role=None):
         """
@@ -566,6 +532,23 @@ class EditorSelector:
         toolbar.insertSeparator(before_widget)
 
 
+class HPLSelector:
+    """
+    Wrapper object to manage extra character control widgets.
+    Right now this is used for changing Izayoi Gain Art and Izanami Time Stop.
+    """
+    def __init__(self, toolbar, callback):
+        self.label = QtWidgets.QLabel("Palette File")
+        self.choices = QtWidgets.QComboBox()
+        self.choices.addItems(str(i) for i in range(FILES_PER_PALETTE))
+
+        self.separator = toolbar.addSeparator()
+        self.label_action = toolbar.addWidget(self.label)
+        self.choice_action = toolbar.addWidget(self.choices)
+
+        self.choices.currentIndexChanged.connect(callback)
+
+
 # TODO: implement editing for all relevant HPL files.
 #       color shift would be a nice feature to have.
 class SpriteEditor(QtWidgets.QWidget):
@@ -581,8 +564,14 @@ class SpriteEditor(QtWidgets.QWidget):
         self.ui = Ui_Editor()
         self.ui.setupUi(self)
 
+        self.mainwindow = mainwindow
+        self.paths = paths
+
         # Create our character/palette/slot selector widget and add it to the toolbar.
         self.selector = EditorSelector(mainwindow.ui.toolbar, mainwindow.ui.cut_color)
+
+        # Create our HPL file selector widget add it to the toolbar.
+        self.hpl_selector = HPLSelector(mainwindow.ui.toolbar, self.hpl_changed)
 
         # Maintain the previous character, palette, and slot.
         # We need this to delete old palette locks when the new selections are made in the UI.
@@ -594,20 +583,17 @@ class SpriteEditor(QtWidgets.QWidget):
         # if we already have the current palette locked.
         self.palette_lock = None
 
+        # Crosshair drawn on the sprite preview with which the user can select palette colors.
+        self.crosshair = Crosshair(CROSS_HAIR_SIZE)
+
         # The sprite we are currently editing.
         self.sprite = Sprite()
+
         # An object to manage the display of stateful characters.
         # A stateful character is a character like Izayoi where a user action can
         # change a character state (e.g. Gain Art) that in turn changes the colors displayed on the character.
         self.state = CharacterState(mainwindow.ui.toolbar, self.sprite, self)
 
-        # Crosshair drawn on the sprite preview with which the user can select palette colors.
-        self.crosshair = Crosshair(CROSS_HAIR_SIZE)
-
-        self.mainwindow = mainwindow
-        self.paths = paths
-
-        # When we select a sprite item we maintain a reference to it.
         # This way if we select a sprite group item (which does not change app state) and
         # then change a palette color we have an item associated to a palette file we will
         # use to save color changes.
@@ -1051,10 +1037,6 @@ class SpriteEditor(QtWidgets.QWidget):
         palette_id = self.selector.palette.currentText()
         sprite_item = self.selected_item
 
-        # We only need to palette swap if we have an active item.
-        if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
-            self.state.swap_palettes(sprite_item)
-
         hpl_full_path = self._choose_hpl(self.selected_item.hpl_file, character, palette_id, slot_name)
 
         try:
@@ -1158,7 +1140,6 @@ class SpriteEditor(QtWidgets.QWidget):
         character_name = self.selector.character.currentText()
         character = self.selector.character.currentData()
         palette_id = self.selector.palette.currentText()
-        palette_num = self.selector.palette.currentData()
 
         # Do not try to populate the sprite list if no character is selected or if
         # it has already has been populated. The sprite list is cleared on reset so
@@ -1171,8 +1152,6 @@ class SpriteEditor(QtWidgets.QWidget):
             # If it is locked by another process and the user wishes to respect that we should not continue.
             if not self._lock_palette(character, character_name, palette_id):
                 return
-
-        self._update_sprite_list(palette_num)
 
         sprite_item = self.selected_item
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
@@ -1202,16 +1181,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
             item_index += 1
 
-    def _update_sprite_list(self, palette_num):
-        """
-        Iterate our sprite list and set the palette number on our file items.
-        This way the HPL file basename can be formatted to the correct palette.
-        """
-        for sprite_item in self._iterate_sprite_files():
-            sprite_item.palette_num = palette_num
-
-    @staticmethod
-    def _add_hip_items(parent_item, hip_file_list, hpl_fmt):
+    def _add_hip_items(self, parent_item, hip_file_list, hpl_fmt):
         """
         Add all our HIP image files as a `SpriteFileItem` to the parent `SpriteGroupItem`.
         We associate an HPL palette file name format to each file item so we can dynamically
@@ -1219,7 +1189,7 @@ class SpriteEditor(QtWidgets.QWidget):
         """
         for hip_full_path, sprite_duration in hip_file_list:
             hip_file = os.path.basename(hip_full_path)
-            parent_item.add_sprite(hip_full_path, sprite_duration, hip_file, hpl_fmt)
+            parent_item.add_sprite(self, hip_full_path, sprite_duration, hip_file, hpl_fmt)
 
     def _get_or_create_group(self, name):
         """
@@ -1240,7 +1210,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
             item_index += 1
 
-    def _populate_script_sprites(self, nodes, sprite_cache_path, default_palette_fmt):
+    def _populate_script_sprites(self, nodes, sprite_cache_path, palette_fmt):
         """
         Read a parsed bbscript file and find all character sprites.
         """
@@ -1260,7 +1230,7 @@ class SpriteEditor(QtWidgets.QWidget):
                     hip_file_list.append((hip_full_path, sprite_duration))
 
                 parent_item = self._get_or_create_group(animation_name)
-                self._add_hip_items(parent_item, hip_file_list, default_palette_fmt)
+                self._add_hip_items(parent_item, hip_file_list, palette_fmt)
 
     def _populate_sprite_list(self, character_id):
         """
@@ -1270,7 +1240,7 @@ class SpriteEditor(QtWidgets.QWidget):
         ext_info = CHARACTER_INFO_EXT.get(character_id, {})
         character = ext_info.get(FILE_OVERRIDE, character)
 
-        default_palette_fmt = DEFAULT_PALETTE_FMT.format(character)
+        palette_fmt = PALETTE_FMT.format(character)
 
         sprite_cache_path = self.paths.get_sprite_cache_path(character)
         script_cache_path = self.paths.get_script_cache_path(character)
@@ -1281,7 +1251,13 @@ class SpriteEditor(QtWidgets.QWidget):
             with open(script_path, "r") as ast_fp:
                 nodes = json.load(ast_fp)
 
-            self._populate_script_sprites(nodes, sprite_cache_path, default_palette_fmt)
+            self._populate_script_sprites(nodes, sprite_cache_path, palette_fmt)
+
+    def hpl_changed(self, _):
+        """
+        HPL file selection has changed, refresh the sprite preview to load the new palette.
+        """
+        self._refresh()
 
     def select_sprite(self):
         """
