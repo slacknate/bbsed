@@ -248,9 +248,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def _check_steam_install(self):
         """
         Helper to check if we have a Steam install configured and should enable relevant UI elements.
+        Note that we only need to check the Steam install to ensure both Steam and BBCF are configured.
+        The settings dialog cannot be accepted without configuring both.
         """
         enabled = bool(self.app_config["bbsed"]["steam_install"])
-        self.sprite_editor.set_selection_enable(enabled)
+        self.sprite_editor.set_character_enable(enabled)
 
     def _detect_nameless_hpl(self, hpl_file, save_name_map):
         """

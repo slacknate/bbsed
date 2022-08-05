@@ -338,7 +338,7 @@ class SpriteFileItem(Qt.QStandardItem):
         Additionally, the palette file may also be swapped depending on character
         state controls for the selected character.
         """
-        palette_index = self.sprite_editor.hpl_selector.choices.currentIndex()
+        palette_index = self.sprite_editor.selector.hpl_file.currentIndex()
         palette_num = self.sprite_editor.selector.palette.currentData()
         return self.hpl_fmt.format(palette_num, palette_index)
 
@@ -523,30 +523,22 @@ class EditorSelector:
     """
     def __init__(self, toolbar, before_widget):
         self.character = QtWidgets.QComboBox()
+
         self.palette = QtWidgets.QComboBox()
+        self.palette.setEnabled(False)
+
         self.slot = QtWidgets.QComboBox()
+        self.slot.setEnabled(False)
+
+        self.hpl_file = QtWidgets.QComboBox()
+        self.hpl_file.addItems(str(i) for i in range(FILES_PER_PALETTE))
+        self.hpl_file.setEnabled(False)
 
         toolbar.insertWidget(before_widget, self.character)
         toolbar.insertWidget(before_widget, self.palette)
         toolbar.insertWidget(before_widget, self.slot)
+        toolbar.insertWidget(before_widget, self.hpl_file)
         toolbar.insertSeparator(before_widget)
-
-
-class HPLSelector:
-    """
-    Wrapper object to manage extra character control widgets.
-    Right now this is used for changing Izayoi Gain Art and Izanami Time Stop.
-    """
-    def __init__(self, toolbar, callback):
-        self.label = QtWidgets.QLabel("Palette File")
-        self.choices = QtWidgets.QComboBox()
-        self.choices.addItems(str(i) for i in range(FILES_PER_PALETTE))
-
-        self.separator = toolbar.addSeparator()
-        self.label_action = toolbar.addWidget(self.label)
-        self.choice_action = toolbar.addWidget(self.choices)
-
-        self.choices.currentIndexChanged.connect(callback)
 
 
 # TODO: implement editing for all relevant HPL files.
@@ -567,11 +559,8 @@ class SpriteEditor(QtWidgets.QWidget):
         self.mainwindow = mainwindow
         self.paths = paths
 
-        # Create our character/palette/slot selector widget and add it to the toolbar.
+        # Create our character/palette/slot/HPL selector widget and add it to the toolbar.
         self.selector = EditorSelector(mainwindow.ui.toolbar, mainwindow.ui.cut_color)
-
-        # Create our HPL file selector widget add it to the toolbar.
-        self.hpl_selector = HPLSelector(mainwindow.ui.toolbar, self.hpl_changed)
 
         # Maintain the previous character, palette, and slot.
         # We need this to delete old palette locks when the new selections are made in the UI.
@@ -609,9 +598,12 @@ class SpriteEditor(QtWidgets.QWidget):
         # By default no character is selected.
         self.selector.character.setCurrentIndex(-1)
         self.selector.palette.setCurrentIndex(-1)
+        self.selector.slot.setCurrentIndex(-1)
+        self.selector.hpl_file.setCurrentIndex(-1)
         self.selector.character.currentIndexChanged.connect(self.select_character)
         self.selector.palette.currentIndexChanged.connect(self.select_palette)
         self.selector.slot.currentIndexChanged.connect(self.select_palette_slot)
+        self.selector.hpl_file.currentIndexChanged.connect(self.select_hpl)
 
         # Create editor related dialogs and associate them to their respective View Menu check items.
         self.zoom_dialog = ZoomDialog(self.mainwindow.ui.view_zoom, parent=mainwindow)
@@ -851,6 +843,13 @@ class SpriteEditor(QtWidgets.QWidget):
             # palette data before a sprite is selected.
             self.selector.palette.setCurrentIndex(0)
             self.prev_palette = palette_number_to_id(0)
+
+        # Set the HPL selector to the default file.
+        # Block signals while we add items so the signals are not emitted.
+        with block_signals(self.selector.hpl_file):
+            # We intentionally select this in the block_signals block so we do not try to set
+            # palette data before a sprite is selected.
+            self.selector.hpl_file.setCurrentIndex(0)
 
         # Get the palette ID from the widget for the sake of consistency.
         palette_id = self.selector.palette.currentText()
@@ -1253,7 +1252,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
             self._populate_script_sprites(nodes, sprite_cache_path, palette_fmt)
 
-    def hpl_changed(self, _):
+    def select_hpl(self, _):
         """
         HPL file selection has changed, refresh the sprite preview to load the new palette.
         """
@@ -1506,14 +1505,20 @@ class SpriteEditor(QtWidgets.QWidget):
 
         self._reset()
 
+    def set_character_enable(self, state):
+        """
+        Set the enable state of only the character selection widget.
+        """
+        self.selector.character.setEnabled(state)
+
     def set_selection_enable(self, state):
         """
-        Set the enable state of the character group.
-        Used to enable or disable the character, palette, and slot selection widgets.
+        Set the enable state of the character, palette, slot, and HPL selection widgets.
         """
         self.selector.character.setEnabled(state)
         self.selector.palette.setEnabled(state)
         self.selector.slot.setEnabled(state)
+        self.selector.hpl_file.setEnabled(state)
 
     def close(self):
         """
