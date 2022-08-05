@@ -29,7 +29,7 @@ PAGE_2 = """
 Now we can select a character for which we want to make a custom palette.<br><br>
 
 There are three dropdowns found on the left side of the toolbar.<br>
-Selecting a character is done with the left-most <a href="char_select">dropdown</a>.<br><br>
+Selecting a character is done with the first <a href="char_select">dropdown</a>.<br><br>
 
 Go ahead, select a character!
 </body>
@@ -49,28 +49,19 @@ all sprite files for that character animation.
 PAGE_4 = """
 <html>
 <body>
-Select the first sprite file in the previously expanded animation group.<br><br>
-
+Select the first sprite file in the previously expanded animation group.<br>
 A character sprite preview, as well as some new dialogs, have appeared!<br>
 These dialogs provide useful information for editing a character palette.<br><br>
 
 The Sprite Zoom dialog shows a 2X zoom of the currently displayed<br>
-sprite image centered on the cursor.<br>
-Sometimes you may need to select an individual pixel, and unless<br>
-you have super-vision odds are having a zoom is quite helpful for this.<br><br>
+sprite image centered on the cursor. The Palette Data dialog displays<br>
+the full palette for the displayed sprite image. This information is<br>
+visualized as a 16x16 square of the 256 colors present in the palette.<br>
+Note that not every color must be used in a sprite.<br><br>
 
-The Palette Data dialog displays the full palette for the displayed<br>
-sprite image. This information is visualized as a 16x16 square of the<br>
-256 colors present in the palette.<br><br>
-
-Note that any sprite is not required to use all 256 of these colors.<br>
-Most commonly any unused colors will be set to black, although some<br>
-palettes set unused colors to something else.<br><br>
-
-The first color in any palette, displayed in the Palette Data dialog at<br>
-the bottom right corner, is the "transparent" color for this sprite. This color<br>
-will not be displayed in game, and is how the sprites appear to have their<br>
-custom shape, rather than being rectangular, in game. 
+The first color in any palette, displayed in the Palette Data dialog<br>
+at the bottom right corner, is the "transparent" color for this sprite.<br>
+This color will not be displayed in game.
 </body>
 </html>
 """
@@ -79,7 +70,7 @@ PAGE_5 = """
 <html>
 <body>
 The editor allows for separately editing each color palette, by number, that the game allows<br>
-players to choose in game. This can be done via the middle <a href="pal_select">dropdown</a> found<br>
+players to choose in game. This can be done via the second <a href="pal_select">dropdown</a> found<br>
 on the left side of the toolbar. Cycle through the list and see how the displayed<br>
 palette changes.<br><br>
 
@@ -140,7 +131,7 @@ PAGE_9 = """
 <html>
 <body>
 Your changes have been saved as the name you chose for this palette slot when prompted.<br>
-This name will now appear in the right-most <a href="slot_select">dropdown</a> and<br>
+This name will now appear in the third <a href="slot_select">dropdown</a> and<br>
 you can recall this palette to view or edit whenever you like!<br><br>
 
 Note that slots are bound to the specific palette number selected during editing,<br>
@@ -154,6 +145,20 @@ A save slot must be actively selected for the "Delete" option to be enabled.
 """
 
 PAGE_10 = """
+<html>
+<body>
+The fourth <a href="hpl_select">dropdown</a> is used to select which color set is currently being<br>
+viewed and edited. Each character has 8 color sets that serve different purposes.<br>
+Note that not all of these color sets may be used.<br><br>
+
+Characters will commonly have different color sets for things such as effects,<br>
+unique intro sprites, unique Astral sprites, etc. Experiment with the color sets<br>
+to see what colors in the game you can edit!
+</body>
+</html>
+"""
+
+PAGE_11 = """
 <html>
 <body>
 Note that there are also "Copy Palette", "Paste Palette", and "Discard Changes" options<br>
@@ -173,26 +178,24 @@ Unsaved changes must be for the "Discard" option to be enabled.
 </html>
 """
 
-PAGE_11 = """
+PAGE_12 = """
 <html>
 <body>
 To get your custom palettes into the game, you must apply your palettes to the game files.<br>
 This can be done via the "Apply Palettes" option found on the toolbar or in the 
 <a href="game_files_menu">Game Files</a> menu.<br><br>
 
-This will show the Select Palettes dialog. This dialog features a character selection and sprite<br>
-preview of its own. The remaining UI elements are for selecting palettes to apply to the game files.<br><br>
+This will show the Select Palettes dialog. This dialog features a character, palette, and slot selection<br>
+just like the editor toolbar, as well as a sprite preview of its own. The chosen slot will be the slot<br>
+that is applied to the game files for that palette.<br><br>
 
-If a selection is a game-version slot then game version of that palette will not be replaced.<br>
-Otherwise, the palette will be replaced with one created in the editor.<br><br>
-
-The state of this dialog is saved when accepted, so palettes previously applied need not be<br>
-re-selected each time you want to add new creations to your palette selections.
+Applied palettes are saved and need not be re-selected each time you want to add new creations<br>
+to your palette selections.
 </body>
 </html>
 """
 
-PAGE_12 = """
+PAGE_13 = """
 <html>
 <body>
 With palettes now applied to the game files, you can launch the game and expect to see<br>
@@ -211,13 +214,13 @@ currently selected character palette files to their original states, respectivel
 </html>
 """
 
-PAGE_13 = """
+PAGE_14 = """
 <html>
 <body>
 If you want to share your palettes with others, you can export a selection of your<br>
 edit and save slots via the "Export" option found in the <a href="pal_menu">Palettes</a> menu.<br>
 This will bring up a selection dialog like we have seen with "Apply Palettes", except<br>
-this time it will allow us to select multiple slots per palette.<br><br>
+this time it will allow us to select multiple slots per palette with a checkbox.<br><br>
 
 Likewise, if you have downloaded or otherwise receive palettes from other folks,<br>
 you can import those palettes via the "Import" option found in the <a href="pal_menu">Palettes</a> menu.<br>
@@ -231,7 +234,7 @@ slot name for those files.
 </html>
 """
 
-PAGE_14 = """
+PAGE_15 = """
 <html>
 <body>
 That should be all you need to know! Happy palette creation!
@@ -256,6 +259,7 @@ TUTORIAL_PAGES = [
     PAGE_12,
     PAGE_13,
     PAGE_14,
+    PAGE_15,
 ]
 
 
@@ -319,14 +323,17 @@ class TutorialDialog(QtWidgets.QDialog):
         elif action == "CHAR_SELECT":
             self.main_window.sprite_editor.selector.character.showPopup()
 
+        elif action == "SLOT_SELECT":
+            self.main_window.sprite_editor.selector.slot.showPopup()
+
         elif action == "PAL_SELECT":
             self.main_window.sprite_editor.selector.palette.showPopup()
 
+        elif action == "HPL_SELECT":
+            self.main_window.sprite_editor.selector.hpl_file.showPopup()
+
         elif action == "PAL_MENU":
             self.main_window.ui.palettes_menu.popup(QtGui.QCursor().pos())
-
-        elif action == "SLOT_SELECT":
-            self.main_window.sprite_editor.selector.slot.showPopup()
 
         elif action == "GAME_FILES_MENU":
             self.main_window.ui.game_files_menu.popup(QtGui.QCursor().pos())
