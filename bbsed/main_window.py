@@ -13,10 +13,10 @@ from libpac import enumerate_pac
 from .ui.main_window_ui import Ui_MainWindow
 
 from .exceptions import AppError, AppException
+from .select_dialog import DATA_DELIMITER, ApplyDialog, ExportDialog, generate_selection_hash
 from .settings_dialog import SettingsDialog
 from .tutorial_dialog import TutorialDialog
 from .message_dialog import MessageDialog
-from .select_dialog import SelectDialog
 from .sprite_editor import SpriteEditor
 from .about_dialog import AboutDialog
 from .error_dialog import ErrorDialog
@@ -74,32 +74,6 @@ class SelectConfig(Configuration):
         Configuration.__init__(self, paths.select_config_file)
 
 
-class AppliedConfig(Configuration):
-
-    SETTINGS = generate_palette_settings(SLOT_NAME_BBCF)
-
-    def __init__(self, paths):
-        Configuration.__init__(self, paths.applied_config_file)
-
-
-class ExportConfig(Configuration):
-
-    SETTINGS = generate_palette_settings("")
-
-    def __init__(self):
-        Configuration.__init__(self, None)
-
-    def load(self):
-        """
-        Noop. This is a stand-in config for non-file-saved selections.
-        """
-
-    def save(self):
-        """
-        Noop. This is a stand-in config for non-file-saved selections.
-        """
-
-
 class AppConfig(Configuration):
 
     SETTINGS = {"bbsed": {"bbcf_install": "", "steam_install": ""}}
@@ -127,7 +101,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.paths = Paths()
         self.app_config = AppConfig(self.paths)
         self.select_config = SelectConfig(self.paths)
-        self.applied_config = AppliedConfig(self.paths)
 
         self.clipboard = None
 
@@ -494,7 +467,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for the Export All action. Share all your palettes with friends :D
         """
-        dialog = SelectDialog(self.paths, config=ExportConfig(), multi_select=True, parent=self)
+        dialog = ExportDialog(self.paths, parent=self)
         dialog.selection_made.connect(self._export_palettes)
         dialog.show()
 
@@ -553,8 +526,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Callback for the Apply All action. Apply all palettes to the BBCF game data.
         """
-        applied_diff = self.applied_config.copy()
-        dialog = SelectDialog(self.paths, config=self.select_config, diff_config=applied_diff, parent=self)
+        dialog = ApplyDialog(self.paths, config=self.select_config, parent=self)
         dialog.selection_made.connect(self._apply_palettes)
         dialog.show()
 
@@ -577,8 +549,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if files_to_apply:
                     self._show_select_summary(files_to_apply, "Palette Apply")
 
-                self.applied_config.load_from(self.select_config)
-                self.applied_config.save()
+                self.select_config.save()
 
     def discard_palette(self, _):
         """
@@ -619,6 +590,13 @@ class MainWindow(QtWidgets.QMainWindow):
         os.remove(pac_palette_path)
         shutil.copyfile(backup_palette_path, pac_palette_path)
 
+    def _get_restore_hash(self, character, palette_id):
+        """
+        Get the hash of the BBCF slot for the given character/palette.
+        """
+        hpl_files_list = self.paths.get_saved_palette(character, palette_id, SLOT_NAME_BBCF)
+        return generate_selection_hash(hpl_files_list)
+
     def restore_all(self, _):
         """
         Restore all character palettes from the backed up game data in the BBCF install directory.
@@ -631,8 +609,11 @@ class MainWindow(QtWidgets.QMainWindow):
             for character in VALID_CHARACTERS:
                 self._restore_character_palettes(character)
 
-            for section, setting, _ in self.applied_config:
-                self.applied_config[section][setting] = SLOT_NAME_BBCF
+            for character, palette_id, _ in self.select_config:
+                selection_hash = self._get_restore_hash(character, palette_id)
+                self.select_config[character][palette_id] = SLOT_NAME_BBCF + DATA_DELIMITER + selection_hash
+
+            self.select_config.save()
 
     def restore_character(self, _):
         """
@@ -647,9 +628,13 @@ class MainWindow(QtWidgets.QMainWindow):
         if restore:
             self._restore_character_palettes(character)
 
-            for section, setting, _ in self.applied_config:
-                if section == character:
-                    self.applied_config[section][setting] = SLOT_NAME_BBCF
+            for conf_character, palette_id, _ in self.select_config:
+                if conf_character == character:
+                    selection_hash = self._get_restore_hash(character, palette_id)
+                    self.select_config[conf_character][palette_id] = SLOT_NAME_BBCF + DATA_DELIMITER + selection_hash
+                    break
+
+            self.select_config.save()
 
     def _get_missing_files(self, character, palette_id, slot_name, hpl_files_list):
         """

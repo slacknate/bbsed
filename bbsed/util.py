@@ -38,6 +38,7 @@ __all__ = [
     "temp_directory",
     "iter_characters",
     "iter_palettes",
+    "palette_id_to_number",
     "palette_number_to_id",
     "steam_running",
     "create_lock",
@@ -158,14 +159,24 @@ def iter_palettes():
         yield PALETTE_ID_FMT.format(palette_id), PALETTE_ID_FMT.format(palette_num)
 
 
+def palette_id_to_number(palette_id):
+    """
+    Convert a palette number to a palette ID. We ensure it is always 2 digits.
+    A palette number is the prefix number that appears in HPL file names.
+    A palette ID is the number we see in game and also in the tool UI.
+    """
+    palette_number = int(palette_id) - 1
+    return PALETTE_ID_FMT.format(palette_number)
+
+
 def palette_number_to_id(palette_number):
     """
     Convert a palette number to a palette ID. We ensure it is always 2 digits.
     A palette number is the prefix number that appears in HPL file names.
     A palette ID is the number we see in game and also in the tool UI.
     """
-    palette_num_in_game = int(palette_number) + 1
-    return PALETTE_ID_FMT.format(palette_num_in_game)
+    palette_id = int(palette_number) + 1
+    return PALETTE_ID_FMT.format(palette_id)
 
 
 def steam_running():

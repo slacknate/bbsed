@@ -1,6 +1,7 @@
 import io
 import os
 import re
+import hashlib
 
 from collections import defaultdict
 
@@ -11,7 +12,7 @@ from libhpl import PNGPaletteImage
 
 from .ui.select_dialog_ui import Ui_Dialog
 
-from .char_info import VALID_CHARACTERS
+from .char_info import PALETTE_FMT, VALID_CHARACTERS
 from .exceptions import AppError
 from .util import *
 
@@ -20,6 +21,24 @@ ROLE_CHECK_STATE = QtCore.Qt.ItemDataRole.UserRole
 PALETTE_GROUP_PREFIX = "palette_{}"
 SELECT_COMBOBOX_PREFIX = "select_{}"
 SELECT_CHECK_PREFIX = "check_{}"
+
+SELECTION_DELIMITER = ";"
+DATA_DELIMITER = ","
+
+
+def generate_selection_hash(hpl_files_list):
+    """
+    Generate a SHA-256 hash of the contents of the given HPL files.
+    This is used to determine if a selection has changed on dialog accept so we know
+    which palettes need be applied to the game files.
+    """
+    palette_contents = b""
+
+    for hpl_full_path in hpl_files_list:
+        with open(hpl_full_path, "rb") as hpl_fp:
+            palette_contents += hpl_fp.read()
+
+    return hashlib.sha256(palette_contents).hexdigest()
 
 
 def iter_selection(selected_palettes):
@@ -37,16 +56,13 @@ class SelectDialog(QtWidgets.QDialog):
 
     selection_made = QtCore.pyqtSignal(dict)
 
-    def __init__(self, paths, config, diff_config=None, multi_select=False, parent=None):
+    def __init__(self, paths, multi_select, parent=None):
         QtWidgets.QDialog.__init__(self, parent, flags=QtCore.Qt.WindowType.WindowTitleHint)
 
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
         self.paths = paths
-        self.config = config
-        self.diff_config = diff_config
-        self.initial = None
 
         self.selected = set()
         self.unselected = set()
@@ -78,35 +94,42 @@ class SelectDialog(QtWidgets.QDialog):
             self.ui.palette_select.setCurrentIndex(-1)
 
         self.ui.slot_select.currentIndexChanged.connect(self.select_slot)
-        self.ui.ms_checkbox.stateChanged.connect(self.multi_select_slot)
 
-        self.initial = self.config.copy()
-
-    def _remove_unchanged(self, selected_palettes):
+    def _get_hpl_files(self, character, palette_id, palette_num, slot_name):
         """
-        Filter out any palette selections that have not changed since dialog creation.
-        This allows for applying palettes to the game files to have as short a duration as possible.
+        Get the HPL files for this character/palette/slot selection.
+        We prefer palette files from the edit path so unsaved changes may be applied.
+        If there are no active edits for a given file it will be retrieved from the save path.
         """
-        for character, palette_info in list(selected_palettes.items()):
-            remove_list = []
+        # Lambda-11 palette files use the Nu-13 character prefix.
+        hpl_char = character
+        if character == "rm":
+            hpl_char = "ny"
 
-            for palette_id, _ in palette_info.items():
-                initial_name = self.initial[character][palette_id]
-                current_name = self.config[character][palette_id]
+        hpl_files = []
+        hpl_file_names = [PALETTE_FMT.format(hpl_char).format(palette_num, i) for i in range(FILES_PER_PALETTE)]
 
-                # If there is no diff config then there is not a diff to be had.
-                diff_name = self.diff_config[character][palette_id]
+        edit_path = self.paths.get_edit_palette_path(character, palette_id, slot_name)
+        edit_files_list = self.paths.get_edit_palette(character, palette_id, slot_name)
+        edit_file_names = [os.path.basename(hpl_path) for hpl_path in edit_files_list]
 
-                # Check if the selection has changed.
-                same_selection = (initial_name == current_name)
-                # Check if the diff config does not match the selection.
-                no_diff = (diff_name == current_name)
+        save_path = self.paths.get_palette_save_path(character, palette_id, slot_name)
 
-                should_remove = same_selection and no_diff
-                remove_list.append(should_remove)
+        for hpl_file_name in hpl_file_names:
+            if hpl_file_name in edit_file_names:
+                hpl_files.append(os.path.join(edit_path, hpl_file_name))
 
-            if all(remove_list):
-                selected_palettes.pop(character)
+            else:
+                hpl_files.append(os.path.join(save_path, hpl_file_name))
+
+        return hpl_files
+
+    def _get_selected(self, character, palette_id, slot_name):
+        """
+        Get the "is selected" status of the given character/palette/slot choice.
+        Use for implementing custom behavior in subclasses.
+        """
+        raise NotImplementedError
 
     def _get_selection(self):
         """
@@ -121,22 +144,15 @@ class SelectDialog(QtWidgets.QDialog):
         selected_palettes = defaultdict(lambda: defaultdict(dict))
 
         for character in VALID_CHARACTERS:
-            for palette_id, _ in iter_palettes():
+            for palette_id, palette_num in iter_palettes():
                 character_saves = self.paths.get_palette_saves(character, palette_id)
 
                 for slot_name in character_saves:
-                    if self.multi_select:
-                        is_selected = self._get_slot_multi_select(character, palette_id, slot_name)
-
-                    else:
-                        is_selected = (self.config[character][palette_id] == slot_name)
+                    is_selected = self._get_selected(character, palette_id, slot_name)
 
                     if is_selected:
-                        hpl_files = self.paths.get_saved_palette(character, palette_id, slot_name)
+                        hpl_files = self._get_hpl_files(character, palette_id, palette_num, slot_name)
                         selected_palettes[character][palette_id][slot_name] = hpl_files
-
-        if self.diff_config is not None:
-            self._remove_unchanged(selected_palettes)
 
         if not self.multi_select:
             for select_info in iter_selection(selected_palettes):
@@ -147,8 +163,6 @@ class SelectDialog(QtWidgets.QDialog):
 
     def accept(self):
         QtWidgets.QDialog.accept(self)
-
-        self.config.save()
 
         selection = self._get_selection()
         self.selection_made.emit(selection)
@@ -177,56 +191,51 @@ class SelectDialog(QtWidgets.QDialog):
         # Set the selected slot to the BBCF game slot.
         self.ui.slot_select.setCurrentIndex(0)
 
-    def _refresh(self):
-        character = self.ui.character_select.currentData()
-        palette_id = self.ui.palette_select.currentText()
-        slot_name = self.ui.slot_select.currentText()
-
-        self._update_sprite_preview(character, palette_id, slot_name)
-
     def select_character(self):
         """
         A character was selected.
         We populate the palette selection widgets to reflect selections that were previously
         made and applied to the game for this character, as well as any saved palettes and current edits.
         """
+        if not self.ui.palette_select.isEnabled():
+            self.ui.palette_select.setEnabled(True)
+
         with block_signals(self.ui.palette_select):
             self.ui.palette_select.setCurrentIndex(0)
 
         self.select_palette()
+
+    def _select_palette(self, character, palette_id):
+        """
+        A palette has been chosen by the user.
+        Use for implementing custom behavior in subclasses.
+        """
+        raise NotImplementedError
 
     def select_palette(self):
         """
         A palette was selected.
         Reload the save slots. In single-select mode we set the slot to the configured selection.
         """
+        if not self.ui.slot_select.isEnabled():
+            self.ui.slot_select.setEnabled(True)
+
         with block_signals(self.ui.slot_select):
             self._update_save_slots()
 
         character = self.ui.character_select.currentData()
         palette_id = self.ui.palette_select.currentText()
 
-        if self.multi_select:
-            selections_raw = self.config[character][palette_id]
-            selections_split1 = [selection for selection in selections_raw.split(";") if selection != ""]
-
-            selections_split2 = []
-            for selection in selections_split1:
-                selection_split = selection.split(",")
-                if selection_split:
-                    selections_split2.append(selection_split)
-
-            selections = [(slot_name, bool(int(is_selected))) for slot_name, is_selected in selections_split2]
-            selections.sort(key=lambda _item: _item[0])
-
-        else:
-            slot_name = self.config[character][palette_id]
-            index = self.ui.slot_select.findText(slot_name)
-
-            with block_signals(self.ui.slot_select):
-                self.ui.slot_select.setCurrentIndex(index)
+        self._select_palette(character, palette_id)
 
         self.select_slot()
+
+    def _select_slot(self, character, palette_id, slot_name):
+        """
+        A slot has been chosen by the user.
+        Use for implementing custom behavior in subclasses.
+        """
+        raise NotImplementedError
 
     def select_slot(self):
         """
@@ -237,76 +246,18 @@ class SelectDialog(QtWidgets.QDialog):
         palette_id = self.ui.palette_select.currentText()
         slot_name = self.ui.slot_select.currentText()
 
-        # Set the selection in the config.
-        if self.multi_select:
-            # This checkbox is disabled by default.
-            # If it is still disabled here we need to enable it so the user can interact with it.
-            # This check is made here because the checkbox needs to stay disabled until a character is
-            # selected so the user cannot interact with it without a valid character/palette/slot combo.
-            if not self.ui.ms_checkbox.isEnabled():
-                self.ui.ms_checkbox.setEnabled(True)
+        self._select_slot(character, palette_id, slot_name)
+        self._refresh()
 
-            is_selected = self._get_slot_multi_select(character, palette_id, slot_name)
-            check_state = QtCore.Qt.CheckState.Checked if is_selected else QtCore.Qt.CheckState.Unchecked
-            self.multi_select_slot(check_state)
-
-        else:
-            self.config[character][palette_id] = slot_name
-            self._refresh()
-
-    def _get_slot_multi_select(self, character, palette_id, slot_name):
+    def _refresh(self):
         """
-        Get the `is_selected` status of the given character/palette/slot combo as a boolean.
-        """
-        selections_raw = self.config[character][palette_id]
-        is_selected = False
-
-        match = re.search(r";?(" + slot_name + r",[01]);?", selections_raw)
-        if match is not None:
-            _, is_selected_raw = match.group(1).split(",")
-            is_selected = bool(int(is_selected_raw))
-
-        return is_selected
-
-    def _set_slot_multi_select(self, character, palette_id, slot_name, is_selected):
-        """
-        Set the `is_selected` status of the given character/palette/slot combo in the config.
-        """
-        selections_raw = self.config[character][palette_id]
-
-        old_config_value = f"{slot_name},{int(not is_selected)}"
-        new_config_value = f"{slot_name},{int(is_selected)}"
-
-        # If this slot has been selected before then we can just do a good ol' string replace to update the value.
-        if old_config_value in selections_raw:
-            selections_raw = selections_raw.replace(old_config_value, new_config_value)
-
-        # Otherwise we need to append this selection to the existing ones.
-        elif slot_name not in selections_raw:
-            # If no selections have yet been made at all then we need to skip the delimiter.
-            if selections_raw:
-                selections_raw += ";"
-
-            selections_raw += new_config_value
-
-        self.config[character][palette_id] = selections_raw
-
-    def multi_select_slot(self, check_state):
-        """
-        A slot has been selected (specifically applies in multi-select mode).
-        This is the callback for the multi-select checkbox state changing.
-        Update the configuration value and the palette displayed in the sprite preview.
+        Refresh the sprite preview of the current selection.
         """
         character = self.ui.character_select.currentData()
         palette_id = self.ui.palette_select.currentText()
         slot_name = self.ui.slot_select.currentText()
-        is_selected = bool(check_state)
 
-        self._set_slot_multi_select(character, palette_id, slot_name, is_selected)
-        with block_signals(self.ui.ms_checkbox):
-            self.ui.ms_checkbox.setCheckState(check_state)
-
-        self._refresh()
+        self._update_sprite_preview(character, palette_id, slot_name)
 
     def _update_sprite_preview(self, character, palette_id, select_name):
         """
@@ -389,3 +340,203 @@ class SelectDialog(QtWidgets.QDialog):
 
         # Ensure the graphics view is refreshed so our changes are visible to the user.
         self.ui.sprite_preview.viewport().update()
+
+
+class ApplyDialog(SelectDialog):
+    """
+    A dialog for selecting color palettes to apply to the BBCF game files.
+    """
+    def __init__(self, paths, config, parent=None):
+        SelectDialog.__init__(self, paths, False, parent=parent)
+        self.config = config
+        self.initial = config.copy()
+
+    def _remove_unchanged(self, selected_palettes):
+        """
+        Filter out any palette selections that have not changed since dialog creation.
+        This allows for applying palettes to the game files to have as short a duration as possible.
+        """
+        for character, palette_info in list(selected_palettes.items()):
+            remove_list = []
+
+            for palette_id, select_info in palette_info.items():
+                for select_name, hpl_files_list in select_info.items():
+                    files_hash = generate_selection_hash(hpl_files_list)
+                    initial_name, initial_hash = self._get_initial_selection(character, palette_id)
+
+                    # If the selection name does not match the initial selection or the
+                    # current palette hash does not match the initial hash, then this selection
+                    # has changed and we should not remove it from our selections.
+                    should_remove = (select_name == initial_name and files_hash == initial_hash)
+                    remove_list.append(should_remove)
+
+                    # If our hash has changed but the initial and config values for this
+                    # character/palette are a match, then the user has made some edits and
+                    # accepted the palette dialog without making selection changes. We need
+                    # to handle that scenario and ensure we update the files hash that is
+                    # present in the config so the config data accurately reflects selections.
+                    initial_eq_config = self._initial_eq_config(character, palette_id)
+                    if files_hash != initial_hash and initial_eq_config:
+                        self._select_slot(character, palette_id, select_name, files_hash)
+
+            if all(remove_list):
+                selected_palettes.pop(character)
+
+    def _get_selection(self):
+        """
+        This dialog has a file saved config. This means we can look for changes
+        since the previous time palettes were applied and only apply character
+        palettes that have changed. This reduces the time it takes to apply palettes.
+        """
+        selection = SelectDialog._get_selection(self)
+        self._remove_unchanged(selection)
+        return selection
+
+    @staticmethod
+    def _parse_selection(selection):
+        """
+        In previous versions of BBSED, the apply config did not include a hash.
+        We should be able to handle both config value styles.
+        """
+        try:
+            select_name, select_hash = selection.split(DATA_DELIMITER)
+
+        # Handle the old-style config values.
+        except ValueError:
+            select_name = selection
+            select_hash = ""
+
+        return select_name, select_hash
+
+    def _get_initial_selection(self, character, palette_id):
+        """
+        Get the selection state of the given character/palette from the previous palette apply.
+        """
+        selection = self.initial[character][palette_id]
+        return self._parse_selection(selection)
+
+    def _initial_eq_config(self, character, palette_id):
+        """
+        Check if the initial and config values for the given character/palette_id are equal.
+        """
+        return self.initial[character][palette_id] == self.config[character][palette_id]
+
+    def _get_selected(self, character, palette_id, slot_name):
+        """
+        Check if the given slot is the config-selected slot.
+        """
+        selection = self.config[character][palette_id]
+        select_name, _ = self._parse_selection(selection)
+        return select_name == slot_name
+
+    def _select_palette(self, character, palette_id):
+        """
+        Set the current slot selection from the config data.
+        """
+        selection = self.config[character][palette_id]
+        slot_name, _ = self._parse_selection(selection)
+
+        index = self.ui.slot_select.findText(slot_name)
+        with block_signals(self.ui.slot_select):
+            self.ui.slot_select.setCurrentIndex(index)
+
+    def _select_slot(self, character, palette_id, slot_name, select_hash=None):
+        """
+        Set the given character/palette/slot as selected, optionally providing a hash.
+        If no has is provided then we generate one here.
+        """
+        if select_hash is None:
+            palette_num = palette_id_to_number(palette_id)
+            hpl_files_list = self._get_hpl_files(character, palette_id, palette_num, slot_name)
+            select_hash = generate_selection_hash(hpl_files_list)
+
+        self.config[character][palette_id] = slot_name + DATA_DELIMITER + select_hash
+
+
+class ExportDialog(SelectDialog):
+    """
+    A dialog for selecting palettes to export.
+    """
+    def __init__(self, paths, parent=None):
+        SelectDialog.__init__(self, paths, True, parent=parent)
+        self.ui.ms_checkbox.stateChanged.connect(self.multi_select_slot)
+        self.config = defaultdict(lambda: defaultdict(str))
+
+    def _get_slot_multi_selected(self, character, palette_id, slot_name):
+        """
+        Get the `is_selected` status of the given character/palette/slot selection as a boolean.
+        """
+        selections_raw = self.config[character][palette_id]
+        is_selected = False
+
+        match = re.search(r";?(" + slot_name + r",[01]);?", selections_raw)
+        if match is not None:
+            _, is_selected_raw = match.group(1).split(",")
+            is_selected = bool(int(is_selected_raw))
+
+        return is_selected
+
+    def _set_slot_multi_selected(self, character, palette_id, slot_name, is_selected):
+        """
+        Set the `is_selected` status of the given character/palette/slot selection in the config.
+        """
+        selections_raw = self.config[character][palette_id]
+
+        old_config_value = f"{slot_name},{int(not is_selected)}"
+        new_config_value = f"{slot_name},{int(is_selected)}"
+
+        # If this slot has been selected before then we can just do a good ol' string replace to update the value.
+        if old_config_value in selections_raw:
+            selections_raw = selections_raw.replace(old_config_value, new_config_value)
+
+        # Otherwise we need to append this selection to the existing ones.
+        elif slot_name not in selections_raw:
+            # If no selections have yet been made at all then we need to skip the delimiter.
+            if selections_raw:
+                selections_raw += ";"
+
+            selections_raw += new_config_value
+
+        self.config[character][palette_id] = selections_raw
+
+        check_state = QtCore.Qt.CheckState.Checked if is_selected else QtCore.Qt.CheckState.Unchecked
+        with block_signals(self.ui.ms_checkbox):
+            self.ui.ms_checkbox.setCheckState(check_state)
+
+    def _get_selected(self, character, palette_id, slot_name):
+        """
+        Get the "is selected" status of the given character/palette/slot choice.
+        """
+        return self._get_slot_multi_selected(character, palette_id, slot_name)
+
+    def _select_palette(self, character, palette_id):
+        """
+        This dialog does not require an implementation for this method.
+        The `_select_slot` implementation handles what we would need to do here.
+        """
+
+    def _select_slot(self, character, palette_id, slot_name):
+        """
+        A slot has been selected.
+        Ensure the checkbox has been enabled and if it has
+        not yet already been enabled we should do so now.
+        Update the checkbox state from the selection state of this character/palette/slot.
+        """
+        if not self.ui.ms_checkbox.isEnabled():
+            self.ui.ms_checkbox.setEnabled(True)
+
+        is_selected = self._get_slot_multi_selected(character, palette_id, slot_name)
+        self._set_slot_multi_selected(character, palette_id, slot_name, is_selected)
+
+    def multi_select_slot(self, check_state):
+        """
+        The checkbox state has changed.
+        Update the select state of the current character/palette/slot choice.
+        """
+        character = self.ui.character_select.currentData()
+        palette_id = self.ui.palette_select.currentText()
+        slot_name = self.ui.slot_select.currentText()
+
+        is_selected = (check_state == QtCore.Qt.CheckState.Checked)
+
+        self._set_slot_multi_selected(character, palette_id, slot_name, is_selected)
