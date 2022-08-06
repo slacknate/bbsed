@@ -258,7 +258,7 @@ class Paths:
         Get a list of HPL palette files saved as `save_name` for the given character and palette ID.
         """
         character_save_path = self._get_palette_save_path(character, palette_id, save_name)
-        return [os.path.join(character_save_path, hpl_file) for hpl_file in os.listdir(character_save_path)]
+        return [os.path.join(character_save_path, hpl_file) for hpl_file in listdir_safe(character_save_path)]
 
     def walk_palette_save(self, *characters):
         """
