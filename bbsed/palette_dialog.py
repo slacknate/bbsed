@@ -14,23 +14,6 @@ PALLETE_MIN = 0
 PALLETE_MAX = 15
 
 
-def update_channel(channel_val, step):
-    """
-    Update a color channel value by the given step.
-    We ensure the color channel value cannot be less
-    than `COLOR_MIN` and not more than `COLOR_MAX`.
-    """
-    new_channel_val = channel_val + step
-
-    if new_channel_val > COLOR_MAX:
-        new_channel_val = COLOR_MAX
-
-    if new_channel_val < COLOR_MIN:
-        new_channel_val = COLOR_MIN
-
-    return new_channel_val
-
-
 def make_selection_rect(pallete_x, pallete_y):
     """
     Helper to create a QGraphicsRectItem for palette index selection(s).
@@ -410,12 +393,9 @@ class PaletteDialog(QtWidgets.QDialog):
         index_colors = [(swap_index, swap_color2), (swap_index2, swap_color)]
         self.indices_changed.emit(index_colors)
 
-    def gradient_color(self):
+    def _generate_gradient(self):
         """
-        Generate a color gradient that starts at the first selected palette index
-        and ends at the last selected palette index. The color gradient will overwrite
-        all selected colors with the gradient, and the generated gradient shifts from
-        the first color to the last which each step.
+        Generate a color gradiant for our selected palette index range.
         """
         gradient_range = list(self.iter_index_range())
         num_steps = len(gradient_range)
@@ -425,32 +405,36 @@ class PaletteDialog(QtWidgets.QDialog):
 
         end_index = gradient_range[-1]
         end_color = tuple(self.sprite.get_index_color(end_index))
-        # FIXME: pretty sure we do not always get to the end color...
 
         r_delta = end_color[0] - start_color[0]
         g_delta = end_color[1] - start_color[1]
         b_delta = end_color[2] - start_color[2]
         a_delta = end_color[3] - start_color[3]
 
-        r_round = -1 if r_delta < 0 else 1
-        g_round = -1 if g_delta < 0 else 1
-        b_round = -1 if b_delta < 0 else 1
-        a_round = -1 if a_delta < 0 else 1
-
-        r_step = (r_delta + r_round) // num_steps
-        g_step = (g_delta + g_round) // num_steps
-        b_step = (b_delta + b_round) // num_steps
-        a_step = (a_delta + a_round) // num_steps
-
+        r_start, g_start, b_start, a_start = start_color
         r, g, b, a = start_color
-        index_colors = []
 
-        for palette_index in gradient_range:
-            index_colors.append((palette_index, (r, g, b, a)))
-            r = update_channel(r, r_step)
-            g = update_channel(g, g_step)
-            b = update_channel(b, b_step)
-            a = update_channel(a, a_step)
+        for gradient_index, palette_index in enumerate(gradient_range):
+            yield palette_index, (r, g, b, a)
+
+            percent = (gradient_index + 1) / num_steps
+
+            r = r_start + int(r_delta * percent)
+            g = g_start + int(g_delta * percent)
+            b = b_start + int(b_delta * percent)
+            a = a_start + int(a_delta * percent)
+
+    def gradient_color(self):
+        """
+        Generate a color gradient that starts at the first selected palette index
+        and ends at the last selected palette index. The color gradient will overwrite
+        all selected colors with the gradient, and the generated gradient shifts from
+        the first color to the last which each step.
+        """
+        # FIXME: pretty sure we do not always get to the end color...
+        index_colors = []
+        for palette_index, palette_color in self._generate_gradient():
+            index_colors.append((palette_index, palette_color))
 
         self.indices_changed.emit(index_colors)
 
