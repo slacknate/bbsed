@@ -432,10 +432,15 @@ class PaletteDialog(QtWidgets.QDialog):
         b_delta = end_color[2] - start_color[2]
         a_delta = end_color[3] - start_color[3]
 
-        r_step = r_delta // num_steps
-        g_step = g_delta // num_steps
-        b_step = b_delta // num_steps
-        a_step = a_delta // num_steps
+        r_round = -1 if r_delta < 0 else 1
+        g_round = -1 if g_delta < 0 else 1
+        b_round = -1 if b_delta < 0 else 1
+        a_round = -1 if a_delta < 0 else 1
+
+        r_step = (r_delta + r_round) // num_steps
+        g_step = (g_delta + g_round) // num_steps
+        b_step = (b_delta + b_round) // num_steps
+        a_step = (a_delta + a_round) // num_steps
 
         r, g, b, a = start_color
         index_colors = []
