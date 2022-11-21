@@ -541,8 +541,7 @@ class EditorSelector:
         toolbar.insertSeparator(before_widget)
 
 
-# TODO: implement editing for all relevant HPL files.
-#       color shift would be a nice feature to have.
+# TODO: color shift would be a nice feature to have.
 class SpriteEditor(QtWidgets.QWidget):
 
     image_data_changed = QtCore.pyqtSignal()

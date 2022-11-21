@@ -85,6 +85,8 @@ class AppConfig(Configuration):
         paths.set_app_config(self)
 
 
+# TODO: deleting a palette should update selections (currently does not)
+# FIXME: something with locks is broken (they aren't being deleted when they should)
 class MainWindow(QtWidgets.QMainWindow):
 
     unhandled_exc = QtCore.pyqtSignal(tuple)
