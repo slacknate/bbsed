@@ -161,7 +161,7 @@ def iter_palettes():
 
 def palette_id_to_number(palette_id):
     """
-    Convert a palette number to a palette ID. We ensure it is always 2 digits.
+    Convert a palette ID to a palette number. We ensure it is always 2 digits.
     A palette number is the prefix number that appears in HPL file names.
     A palette ID is the number we see in game and also in the tool UI.
     """
