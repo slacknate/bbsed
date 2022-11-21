@@ -207,7 +207,7 @@ class CharacterState:
         ext_info = CHARACTER_INFO_EXT.get(self.character_id, {})
         char_states = ext_info.get(CHARACTER_STATES, {})
         swap_colors = char_states.get(STATE_CHANGE, {}).get(SWAP_COLORS, ())
-        palette_file = char_states.get(PALETTE_FILE, {})
+        palette_file = char_states.get(PALETTE_FILE, "")
 
         is_swap_file = (hpl_file == palette_file.format(palette_id_to_number(self.palette_id)))
         is_initial = self._update_state()
