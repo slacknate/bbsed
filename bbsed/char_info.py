@@ -90,6 +90,7 @@ STATE_CHANGE = 7
 FILE_OVERRIDE = 8
 
 SWAP_COLORS = 0
+PALETTE_FILE = 1
 
 CHARACTER_INFO_EXT = {
 
@@ -98,6 +99,7 @@ CHARACTER_INFO_EXT = {
         CHARACTER_STATES: {
 
             # This will result in Inactive being the first displayed choice.
+            PALETTE_FILE: "iz{}_00.hpl",
             STATE_DEFINITION: ("Gain Art", ("Inactive", "Active")),
             STATE_INITIAL: "Inactive",
             STATE_CHANGE: {

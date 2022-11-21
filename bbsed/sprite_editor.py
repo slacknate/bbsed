@@ -193,7 +193,7 @@ class CharacterState:
 
         return is_initial
 
-    def swap_colors(self):
+    def swap_colors(self, hpl_file):
         """
         Swap the colors of the relevant palette indices.
 
@@ -207,10 +207,12 @@ class CharacterState:
         ext_info = CHARACTER_INFO_EXT.get(self.character_id, {})
         char_states = ext_info.get(CHARACTER_STATES, {})
         swap_colors = char_states.get(STATE_CHANGE, {}).get(SWAP_COLORS, ())
+        palette_file = char_states.get(PALETTE_FILE, {})
 
+        is_swap_file = (hpl_file == palette_file.format(palette_id_to_number(self.palette_id)))
         is_initial = self._update_state()
 
-        if not is_initial:
+        if is_swap_file and not is_initial:
             for index1, index2 in swap_colors:
                 color1, color2 = self.sprite.get_color_swap(index1, index2)
                 self.sprite.set_color_swap((index1, color2), (index2, color1))
@@ -1046,7 +1048,7 @@ class SpriteEditor(QtWidgets.QWidget):
 
         # We only need to color swap if we have an active item.
         if sprite_item is not None and not isinstance(sprite_item, SpriteGroupItem):
-            self.state.swap_colors()
+            self.state.swap_colors(self.selected_item.hpl_file)
 
     def _refresh(self):
         """
